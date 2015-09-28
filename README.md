@@ -30,6 +30,7 @@ class PaymentService < Restercom::Service
     }
   end
   
+  # Methods with a bang signify a POST.
   def create!(card_token, params={})
     # Create a payment.
   end
