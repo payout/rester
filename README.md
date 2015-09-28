@@ -5,25 +5,33 @@ A RESTful replacement for Intercom.
 
 ### Client-side
 ```ruby
-MyService = Restercom.connect("http://url-to-service.com")
-MyService.list_transactions("card_token", page: 1, page_size: 10)
-# => GET http://url-to-service.com/transactions/card_token?page=1&page_size=10
-# <= { "transactions": [{ amount_cents: 100, state: "cleared", time: 1234567890 }, ...] }
+PaymentService = Restercom.connect("http://url-to-service.com")
+PaymentService.list("card_token", page: 1, page_size: 10)
+# => GET http://url-to-service.com/list/card_token?page=1&page_size=10
+# <= { "payments": [{ amount_cents: 100, state: "cleared", time: 1234567890 }, ...] }
+
+PaymentService.create!(card_token, amount_cents: 10)
+# => POST http://url-to-service.com/create/card_token
+#    data: amount_cents=10
 ```
 
 ### Service-side
 ```ruby
-class MyService < Restercom::Service
-  def transactions(card_token, params={})
+class PaymentService < Restercom::Service
+  def list(card_token, params={})
     {
       page = params[:page].to_i
       page_size = params[:page_size].to_i
       
-      transactions: [
+      payment: [
         { amount_cents: 100, state: "cleared", time: 1234567890 },
         { amount_cents: 200, state: "failed", time: 1234567891 }
       ]
     }
+  end
+  
+  def create!(card_token, params={})
+    # Create a payment.
   end
 end
 ```
