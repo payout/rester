@@ -3,6 +3,11 @@ An opinionated framework for creating simple and effective RESTful interfaces be
 application services. The goal is to create a way to rapidly develop new services
 without needing to package SDKs into gems or interface directly with the web interface.
 
+## Installation
+```ruby
+gem install rester
+```
+
 ## Interface
 
 ### Client-side
