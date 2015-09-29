@@ -1,6 +1,7 @@
-# rester
+# Rester
 An opinionated framework for creating simple and effective RESTful interfaces between
-application services.
+application services. The goal is to create a way to rapidly develop new services
+without needing to package SDKs into gems or interface directly with the web interface.
 
 ## Interface
 
