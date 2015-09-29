@@ -32,7 +32,9 @@ PaymentService.cards("card_token").credit!(amount_cents: 10)
 ```ruby
 class PaymentService < Rester::Service
   module v1
-    class Cards < Rester::Object
+    class Card < Rester::Object
+      id :token
+    
       class << self
         def search(params)
           # Search for the card.
@@ -44,28 +46,46 @@ class PaymentService < Rester::Service
       end
 
       ##
-      # Instance methods have an `id` variable available which contains the
+      # Instance methods will have a `token` variable available which contains the
       # identifier for the designated model.
 
+      ##
+      # GET /v1/cards/:token
       def get
-        # Lookup card based on id.
+        # Lookup card based on token.
       end
 
+      ##
+      # PUT /v1/cards/:token
       def update(params={})
         # Update the card.
       end
 
+      ##
+      # DELETE /v1/cards/:token
       def delete
         # Delete the card.
       end
       
+      mount Credit
+    end
+    
+    class Credit < Rester::Object
+      class << self
+        ##
+        # Can be called directly via: POST /v1/credits
+        # Or can be called via POST /v1/cards/token/credits
+        # In the later case, a `card_token` parameter will
+        # automatically be passed to it.
+        def create(params)
+        end
+      end
+      
       ##
-      # Additional methods can be defined as well. Ending with a bang
-      # will create a POST endpoint, otherwise it'll create a GET endpoint.
+      # GET /v1/credits/token
       #
-      # In both cases these additional methods will receive a hash of values.
-      def credit!(params)
-        # Send money to the card.
+      # Only class methods are available via a mount.
+      def get
       end
     end
   end
