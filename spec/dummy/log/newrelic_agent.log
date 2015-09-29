@@ -1,0 +1,37 @@
+# Logfile created on 2015-09-10 16:59:18 -0700 by logger.rb/44203
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Starting the New Relic agent in "development" environment.
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : To prevent agent startup add a NEWRELIC_AGENT_ENABLED=false environment variable or modify the "development" section of your newrelic.yml.
+[09/10/15 16:59:18 -0700 robertopia (24158)] WARN : No configuration file found. Working directory = /Users/robert/github/ribbon/intercom/spec/dummy
+[09/10/15 16:59:18 -0700 robertopia (24158)] WARN : Looked in these locations (based on defaults): /Users/robert/github/ribbon/intercom/spec/dummy/config/newrelic.yml, /Users/robert/github/ribbon/intercom/spec/dummy/newrelic.yml, /Users/robert/github/ribbon/intercom/spec/dummy/config/newrelic.yml, /Users/robert/github/ribbon/intercom/spec/dummy/newrelic.yml, /Users/robert/.newrelic/newrelic.yml, /Users/robert/newrelic.yml
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Environment: development
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Dispatcher: webrick
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Application: development
+[09/10/15 16:59:18 -0700 robertopia (24158)] WARN : No license key found. This often means your newrelic.yml file was not found, or it lacks a section for the running environment, 'development'. You may also want to try linting your newrelic.yml to ensure it is valid YML.
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Installing ActiveRecord 4 instrumentation
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Installing Net instrumentation
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Installing deferred Rack instrumentation
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Installing Rack::Builder middleware instrumentation
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Installing Rails 3+ middleware instrumentation
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Installing Rails 4 Controller instrumentation
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Installing Rails 4 view instrumentation
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Installing Rails 4 Error instrumentation
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Finished instrumentation
+[09/10/15 16:59:18 -0700 robertopia (24158)] INFO : Doing deferred dependency-detection before Rack startup
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Starting the New Relic agent in "development" environment.
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : To prevent agent startup add a NEWRELIC_AGENT_ENABLED=false environment variable or modify the "development" section of your newrelic.yml.
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Reading configuration from config/newrelic.yml (/Users/robert/github/ribbon/intercom/spec/dummy)
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Environment: development
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Dispatcher: webrick
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Application: IntercomTestingDev
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Installing ActiveRecord 4 instrumentation
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Installing Net instrumentation
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Installing deferred Rack instrumentation
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Installing Rack::Builder middleware instrumentation
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Installing Rails 3+ middleware instrumentation
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Installing Rails 4 Controller instrumentation
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Installing Rails 4 view instrumentation
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Installing Rails 4 Error instrumentation
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Finished instrumentation
+[09/10/15 17:00:51 -0700 robertopia (24182)] INFO : Doing deferred dependency-detection before Rack startup
+[09/10/15 17:00:52 -0700 robertopia (24182)] INFO : Reporting to: https://rpm.newrelic.com/accounts/1078287/applications/10826065
+[09/10/15 17:03:12 -0700 robertopia (24182)] INFO : Starting Agent shutdown
