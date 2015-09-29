@@ -1,6 +1,6 @@
-require 'restercom'
+require 'rester'
 
-module Restercom
+module Rester
   class DummyService < Service
     def echo(*args)
       {
@@ -22,4 +22,4 @@ module Restercom
     def _a_private_method
     end
   end # DummyService
-end # Restercom
+end # Rester

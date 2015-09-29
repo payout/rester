@@ -1,7 +1,7 @@
-module Restercom
+module Rester
   module Client::Adapters
     class HttpAdapter < Adapter
-      autoload(:Connection, 'restercom/client/adapters/http_adapter/connection')
+      autoload(:Connection, 'rester/client/adapters/http_adapter/connection')
 
       attr_reader :connection
 
@@ -28,4 +28,4 @@ module Restercom
       end
     end # HttpAdapter
   end # Client::Adapters
-end # Restercom
+end # Rester

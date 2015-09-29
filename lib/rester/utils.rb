@@ -1,6 +1,6 @@
 require 'date'
 
-module Restercom
+module Rester
   module Utils
     class << self
       ##
@@ -46,4 +46,4 @@ module Restercom
       end
     end # Class methods
   end # Utils
-end # Restercom
+end # Rester

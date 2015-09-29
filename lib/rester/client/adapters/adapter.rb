@@ -1,4 +1,4 @@
-module Restercom
+module Rester
   module Client::Adapters
     class Adapter
       def initialize(*args)
@@ -111,4 +111,4 @@ module Restercom
       end
     end # Adapter
   end # Client::Adapters
-end # Restercom
+end # Rester

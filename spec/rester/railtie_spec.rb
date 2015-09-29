@@ -1,7 +1,7 @@
 require 'rake'
 Dummy::Application.load_tasks
 
-module Restercom
+module Rester
   RSpec.describe Railtie do
   end # Railtie
-end # Restercom
+end # Rester

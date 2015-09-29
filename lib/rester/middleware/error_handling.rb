@@ -1,10 +1,10 @@
 require 'json'
 
-module Restercom
+module Rester
   module Middleware
     ##
-    # Provides error handling for Restercom. Should be mounted above all other
-    # Restercom middleware.
+    # Provides error handling for Rester. Should be mounted above all other
+    # Rester middleware.
     class ErrorHandling < Base
       def call(env)
         error = catch(:error) {
@@ -46,4 +46,4 @@ module Restercom
       end
     end # ErrorHandling
   end # Middleware
-end # Restercom
+end # Rester

@@ -1,4 +1,4 @@
-module Restercom
+module Rester
   module Middleware
     class Base
       attr_reader :app
@@ -41,4 +41,4 @@ module Restercom
       end
     end # Base
   end # Middleware
-end # Restercom
+end # Rester

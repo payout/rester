@@ -1,8 +1,8 @@
 require 'json'
 
-module Restercom
+module Rester
   class Client
-    autoload(:Adapters, 'restercom/client/adapters')
+    autoload(:Adapters, 'rester/client/adapters')
 
     attr_reader :adapter
 
@@ -58,4 +58,4 @@ module Restercom
       end
     end
   end # Client
-end # Restercom
+end # Rester

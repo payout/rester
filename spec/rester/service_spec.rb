@@ -1,5 +1,5 @@
-module Restercom
+module Rester
   RSpec.describe Service do
 
   end # Service
-end # Restercom
+end # Rester

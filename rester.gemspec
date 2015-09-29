@@ -1,12 +1,12 @@
 $:.push File.expand_path("../lib", __FILE__)
 
 # Maintain your gem's version:
-require "restercom/version"
+require "rester/version"
 
 Gem::Specification.new do |s|
-  s.name        = 'restercom'
-  s.version     = Restercom::VERSION
-  s.homepage    = "http://github.com/ribbon/restercom"
+  s.name        = 'rester'
+  s.version     = Rester::VERSION
+  s.homepage    = "http://github.com/ribbon/rester"
   s.license     = 'BSD'
   s.summary     = "A framework for creating simple RESTful interfaces between services."
   s.description = s.summary

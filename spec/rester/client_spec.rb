@@ -1,4 +1,4 @@
-module Restercom
+module Rester
   RSpec.describe Client do
     let(:client) { Client.new }
     let(:test_url) { RSpec.server_uri }
@@ -120,4 +120,4 @@ module Restercom
       end # with both params and arguments
     end # #echo!
   end # Client
-end # Restercom
+end # Rester

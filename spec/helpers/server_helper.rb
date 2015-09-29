@@ -1,10 +1,10 @@
-require 'restercom'
+require 'rester'
 require 'dummy/dummy_service'
 
 module RSpec
   class << self
     def start_server
-      service = Restercom::DummyService
+      service = Rester::DummyService
 
       Thread.new {
         Rack::Handler::WEBrick.run(service, :Port => 9292)

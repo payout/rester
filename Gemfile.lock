@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    restercom (0.1.0)
+    rester (0.0.1)
       rack (~> 1.5, >= 1.5.2)
 
 GEM
@@ -109,7 +109,7 @@ PLATFORMS
 DEPENDENCIES
   codeclimate-test-reporter
   rails (~> 4.0.0)
-  restercom!
+  rester!
   rspec
   rspec-rails
   sqlite3

@@ -1,4 +1,4 @@
-module Restercom
+module Rester
   module Errors
     class << self
       ##
@@ -46,7 +46,7 @@ module Restercom
     # General Errors
     class InvalidValueError < Error; end
 
-    # Restercom Errors
+    # Rester Errors
     class ServiceNotDefinedError < Error; end
   end # Errors
-end # Restercom
+end # Rester

@@ -1,7 +1,7 @@
 require 'uri'
 require 'rack'
 
-module Restercom
+module Rester
   class Service
     ##
     # The base set of middleware to use for every service.
@@ -134,4 +134,4 @@ module Restercom
       Errors.throw_error!(klass, message)
     end
   end # Service
-end # Restercom
+end # Rester

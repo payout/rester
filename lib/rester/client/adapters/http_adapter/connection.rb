@@ -2,7 +2,7 @@ require 'net/http'
 require 'openssl'
 require 'uri'
 
-module Restercom
+module Rester
   module Client::Adapters
     class HttpAdapter::Connection
       DEFAULT_POST_HEADERS = {
@@ -55,4 +55,4 @@ module Restercom
       end
     end # HttpAdapter::Connection
   end # Client::Adapters
-end # Restercom
+end # Rester
