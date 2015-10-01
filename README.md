@@ -35,14 +35,12 @@ class PaymentService < Rester::Service
     class Card < Rester::Object
       id :token
     
-      class << self
-        def search(params)
-          # Search for the card.
-        end
+      def self.search(params)
+        # Search for the card.
+      end
 
-        def create(params)
-          # Create the card.
-        end
+      def self.create(params)
+        # Create the card.
       end
 
       ##
@@ -71,14 +69,12 @@ class PaymentService < Rester::Service
     end
     
     class Credit < Rester::Object
-      class << self
-        ##
-        # Can be called directly via: POST /v1/credits
-        # Or can be called via POST /v1/cards/token/credits
-        # In the later case, a `card_token` parameter will
-        # automatically be passed to it.
-        def create(params)
-        end
+      ##
+      # Can be called directly via: POST /v1/credits
+      # Or can be called via POST /v1/cards/token/credits
+      # In the later case, a `card_token` parameter will
+      # automatically be passed to it.
+      def self.create(params)
       end
       
       ##
