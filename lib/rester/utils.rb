@@ -16,6 +16,11 @@ module Rester
         end
       end
 
+      def join_paths(*paths)
+        paths.map(&:to_s).reject { |p| p.nil? || p.empty? }
+          .join('/').gsub(/\/+/, '/')
+      end
+
       def walk(object, context=nil, &block)
         case object
         when Hash

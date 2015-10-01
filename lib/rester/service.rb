@@ -1,19 +1,44 @@
 require 'uri'
 require 'rack'
+require 'active_support/inflector'
 
 module Rester
   class Service
+    autoload(:Request, 'rester/service/request')
+    autoload(:Object,  'rester/service/object')
+
     ##
     # The base set of middleware to use for every service.
     # Middleware will be executed in the order specified.
     BASE_MIDDLEWARE = [
       Rack::Head,
-      Middleware::ErrorHandling
+      Middleware::ErrorHandling,
+      Middleware::StatusCheck
     ].freeze
 
     # Used to signify an empty body
     class EmptyResponse; end
 
+    ########################################################################
+    # DSL
+    ########################################################################
+    class << self
+      ###
+      # Middleware DSL
+      ###
+
+      def use(klass, *args)
+        _middleware << [klass, *args]
+      end
+
+      def _middleware
+        @__middleware ||= BASE_MIDDLEWARE.dup
+      end
+    end # DSL
+
+    ########################################################################
+    # Class Methods
+    ########################################################################
     class << self
       def instance
         @instance ||= new
@@ -29,16 +54,33 @@ module Rester
         instance.public_send(meth, *args, &block)
       end
 
-      ###
-      # Middleware DSL
-      ###
-
-      def use(klass, *args)
-        _middleware << [klass, *args]
+      def versions
+        @__versions ||= constants.map(&:to_s).select { |c|
+          c.match(/^V\d{1,3}$/)
+        }.map(&:downcase).map(&:to_sym)
       end
 
-      def _middleware
-        @__middleware ||= BASE_MIDDLEWARE.dup
+      def version_module(version)
+        (@__version_modules ||= {})[version.to_sym] ||= _load_version_module(version)
+      end
+
+      def _load_version_module(version)
+        versions.include?(version.to_sym) or
+          raise ArgumentError, "invalid version #{version.inspect}"
+
+        const_get(version.to_s.upcase)
+      end
+
+      def objects(version_module)
+        (@__objects ||= {})[version_module] ||= _load_objects(version_module)
+      end
+
+      def _load_objects(version_module)
+        version_module.constants.map { |c|
+          version_module.const_get(c)
+        }.select { |c|
+          c.is_a?(Class) && c < Service::Object
+        }
       end
     end # Class methods
 
@@ -69,13 +111,8 @@ module Rester
     # Calls methods that may modify instance variables, so the instance should
     # be dup'd beforehand.
     def call!(env)
-      @request = Rack::Request.new(env)
+      @request = Request.new(env)
       _process_request
-    end
-
-    ##
-    # Built in service method called by Client#connected?
-    def test_connection(params={})
     end
 
     private
@@ -92,19 +129,56 @@ module Rester
     end
 
     def _process_request
-      error!(Errors::NotFoundError) unless request.get? || request.post?
-      method, *args = _parse_path
-      params = _parse_params
-      method = "#{method}!" if request.post?
-      retval = public_send(method, *args, params)
+      _error!(Errors::NotFoundError) unless request.valid?
+      _validate_version
+      retval = _resolve_object_chain
       _response(request.post? ? 201 : 200, _prepare_response(retval))
+    end
+
+    def _resolve_object_chain
+      params = request.params
+      retval = nil
+
+      name, id, *object_chain = request.object_chain
+      obj = _load_object(name)
+
+      loop {
+        obj = obj.new(id) if id
+
+        if object_chain.empty?
+          retval = obj.process(request.request_method, params)
+          break
+        end
+
+        params.merge!(obj.id_param => obj.id)
+        name, id, *object_chain = object_chain
+        obj = obj.mounts[name] or raise Errors::NotFoundError
+      }
+
+      retval
+    end
+
+    def _version_module
+      self.class.version_module(request.version)
+    end
+
+    def _load_object(name)
+      _version_module.const_get(name.camelcase.singularize)
+    rescue NameError
+      _error!(Errors::NotFoundError)
+    end
+
+    def _validate_version
+      unless self.class.versions.include?(request.version)
+        _error!(Errors::NotFoundError)
+      end
     end
 
     def _prepare_response(retval)
       retval ||= {}
 
       unless retval.is_a?(Hash)
-        error!(Errors::ServerError, "Invalid response: #{retval.inspect}")
+        _error!(Errors::ServerError, "Invalid response: #{retval.inspect}")
       end
 
       JSON.dump(retval)

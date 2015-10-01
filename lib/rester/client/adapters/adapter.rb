@@ -25,32 +25,26 @@ module Rester
         raise NotImplementedError
       end
 
-      def request(verb, method, *args, &block)
+      def request(verb, path, params={}, &block)
+        params ||= {}
         _validate_verb(verb)
-        params = _validate_params(args.pop) if args.last.is_a?(Hash)
-        _validate_args(args)
-
-        public_send(
-          "#{verb}!",
-          "/#{method}/#{args.map(&:to_s).join('/')}",
-          params
-        )
+        _validate_params(params)
+        public_send("#{verb}!", path.to_s, params)
       end
 
-      def get(method, *args, &block)
-        request(:get, method, *args, &block)
-      end
+      [:get, :post, :put, :delete].each do |verb|
+        ##
+        # Define helper methods: get, post, put, delete
+        define_method(verb) { |*args, &block|
+          request(verb, *args, &block)
+        }
 
-      def post(method, *args, &block)
-        request(:post, method, *args, &block)
-      end
-
-      def get!(path, params={})
-        raise NotImplementedError
-      end
-
-      def post!(path, params={})
-        raise NotImplementedError
+        ##
+        # Define implementation methods: get!, post!, put!, delete!
+        # These methods should be overridden by the specific adapter.
+        define_method("#{verb}!") { |*args, &block|
+          raise NotImplementedError
+        }
       end
 
       protected
@@ -62,8 +56,10 @@ module Rester
       private
 
       VALID_VERBS = {
-        get: true,
-        post: true
+        get:    true,
+        post:   true,
+        put:    true,
+        delete: true
       }.freeze
 
       VALID_ARG_TYPES = {

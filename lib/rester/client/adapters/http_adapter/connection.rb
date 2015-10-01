@@ -5,7 +5,7 @@ require 'uri'
 module Rester
   module Client::Adapters
     class HttpAdapter::Connection
-      DEFAULT_POST_HEADERS = {
+      DEFAULT_DATA_HEADERS = {
         "Content-Type".freeze => "application/x-www-form-urlencoded".freeze
       }.freeze
 
@@ -23,9 +23,22 @@ module Rester
         )
       end
 
+      def delete(path, params={})
+        _http.delete(
+          _path(path, params[:query]),
+          _prepare_headers(params[:headers])
+        )
+      end
+
+      def put(path, params={})
+        encoded_data = _encode_data(params[:data])
+        headers = _prepare_data_headers(params[:headers])
+        _http.put(_path(path), encoded_data, headers)
+      end
+
       def post(path, params={})
-        headers = DEFAULT_POST_HEADERS.merge(_prepare_headers(params[:headers]))
-        encoded_data = URI.encode_www_form(params[:data] || {})
+        encoded_data = _encode_data(params[:data])
+        headers = _prepare_data_headers(params[:headers])
         _http.post(_path(path), encoded_data, headers)
       end
 
@@ -33,9 +46,17 @@ module Rester
 
       def _path(path, query=nil)
         u = url.dup
-        u.path += path
+        u.path = Utils.join_paths(u.path, path)
         u.query = URI.encode_www_form(query) if query && !query.empty?
         u.request_uri
+      end
+
+      def _encode_data(data)
+        URI.encode_www_form(data || {})
+      end
+
+      def _prepare_data_headers(headers)
+        DEFAULT_DATA_HEADERS.merge(_prepare_headers(headers))
       end
 
       def _http

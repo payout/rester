@@ -1,8 +1,10 @@
 require 'json'
+require 'active_support/inflector'
 
 module Rester
   class Client
     autoload(:Adapters, 'rester/client/adapters')
+    autoload(:Resource, 'rester/client/resource')
 
     attr_reader :adapter
 
@@ -13,6 +15,8 @@ module Rester
       else
         self.adapter = Adapters::HttpAdapter.new(*args)
       end
+
+      @_resource = Resource.new(self)
     end
 
     def connect(*args)
@@ -20,7 +24,11 @@ module Rester
     end
 
     def connected?
-      adapter.connected? && adapter.get(:test_connection).first == 200
+      adapter.connected? && adapter.get('status').first == 200
+    end
+
+    def request(verb, path, params={}, &block)
+      _process_response(path, *adapter.request(verb, path, params, &block))
     end
 
     protected
@@ -34,17 +42,16 @@ module Rester
     ##
     # Submits the method to the adapter.
     def method_missing(meth, *args, &block)
-      verb, meth = Utils.extract_method_verb(meth)
-      _process_response(meth, *adapter.request(verb, meth, *args, &block))
+      @_resource.send(:method_missing, meth, *args, &block)
     end
 
-    def _process_response(meth, status, body)
+    def _process_response(path, status, body)
       if status.between?(200, 299)
         _parse_json(body)
       elsif status == 400
         raise Errors::RequestError, _parse_json(body)[:message]
       elsif status == 404
-        raise Errors::InvalidMethodError, meth.to_s
+        raise Errors::NotFoundError, _parse_json(body)[:message]
       else
         raise Errors::ServerError, _parse_json(body)[:message]
       end
