@@ -6,12 +6,12 @@ require "rester/version"
 Gem::Specification.new do |s|
   s.name        = 'rester'
   s.version     = Rester::VERSION
-  s.homepage    = "http://github.com/ribbon/rester"
+  s.homepage    = "http://github.com/payout/rester"
   s.license     = 'BSD'
   s.summary     = "A framework for creating simple RESTful interfaces between services."
   s.description = s.summary
   s.authors     = ["Robert Honer", "Kayvon Ghaffari"]
-  s.email       = ['robert@ribbonpayments.com', 'kayvon@ribbon.co']
+  s.email       = ['robert@payout.com', 'kayvon@payout.com']
   s.files       = Dir['lib/**/*.rb'] + Dir['lib/tasks/**/*.rake']
 
   s.add_dependency 'rack', '~> 1.5', '>= 1.5.2'
