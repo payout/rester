@@ -163,6 +163,11 @@ module Rester
                 it { is_expected.to eq res_hash.merge(test_token: 'token') }
               end # #update
 
+              describe '#delete' do
+                subject { mounted_object.delete }
+                it { is_expected.to eq(no: 'params accepted') }
+              end # #delete
+
               # Multi-level
               describe '#mounted_object' do
                 subject { mounted_object.mounted_object('mounted_id2').get }

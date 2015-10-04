@@ -16,9 +16,6 @@ module Rester
       Middleware::StatusCheck
     ].freeze
 
-    # Used to signify an empty body
-    class EmptyResponse; end
-
     ########################################################################
     # DSL
     ########################################################################
@@ -84,10 +81,7 @@ module Rester
       end
     end # Class methods
 
-    attr_reader :request
-
-    def initialize(opts={})
-      @_opts = opts.dup
+    def initialize
     end
 
     ##
@@ -106,13 +100,12 @@ module Rester
     end
 
     ##
-    # Actually process the request.
+    # Process the request.
     #
     # Calls methods that may modify instance variables, so the instance should
     # be dup'd beforehand.
     def call!(env)
-      @request = Request.new(env)
-      _process_request
+      _process_request(Request.new(env))
     end
 
     private
@@ -128,19 +121,34 @@ module Rester
       }.to_app
     end
 
-    def _process_request
+    ##
+    # Validates the request, calls the appropriate Service::Object method and
+    # returns a valid Rack response.
+    def _process_request(request)
       _error!(Errors::NotFoundError) unless request.valid?
-      _validate_version
-      retval = _resolve_object_chain
+      _validate_version(request)
+      retval = _call_method(request)
       _response(request.post? ? 201 : 200, _prepare_response(retval))
     end
 
-    def _resolve_object_chain
+    ##
+    # Validates that the version of the request matches a defined version module.
+    # If the version is not found, it throws a NotFoundError (HTTP 404).
+    def _validate_version(request)
+      unless self.class.versions.include?(request.version)
+        _error!(Errors::NotFoundError)
+      end
+    end
+
+    ##
+    # Calls the appropriate method on the appropriate Service::Object for the
+    # request.
+    def _call_method(request)
       params = request.params
       retval = nil
 
       name, id, *object_chain = request.object_chain
-      obj = _load_object(name)
+      obj = _load_object(request, name)
 
       loop {
         obj = obj.new(id) if id
@@ -158,22 +166,24 @@ module Rester
       retval
     end
 
-    def _version_module
-      self.class.version_module(request.version)
-    end
-
-    def _load_object(name)
-      _version_module.const_get(name.camelcase.singularize)
+    ##
+    # Loads the appropriate Service::Object for the request. This will return
+    # the class, not an instance.
+    def _load_object(request, name)
+      _version_module(request).const_get(name.camelcase.singularize)
     rescue NameError
       _error!(Errors::NotFoundError)
     end
 
-    def _validate_version
-      unless self.class.versions.include?(request.version)
-        _error!(Errors::NotFoundError)
-      end
+    ##
+    # Returns the module specified by the version in the request.
+    def _version_module(request)
+      self.class.version_module(request.version)
     end
 
+    ##
+    # Prepares the retval from a Service::Object method to be returned to the
+    # client (i.e., validates it and dumps it as JSON).
     def _prepare_response(retval)
       retval ||= {}
 
@@ -184,26 +194,17 @@ module Rester
       JSON.dump(retval)
     end
 
-    def _parse_path
-      path = request.path
-      uri = URI(path)
-      uri.path.split('/')[1..-1]
-    end
-
-    def _parse_params
-      if request.get?
-        request.GET
-      elsif request.post?
-        request.POST
-      end
-    end
-
-    def _response(status, body=EmptyResponse, headers={})
-      body = body == EmptyResponse ? [] : [body]
+    ##
+    # Returns a valid rack response.
+    def _response(status, body=nil, headers={})
+      body = [body].compact
       headers = headers.merge("Content-Type" => "application/json")
       Rack::Response.new(body, status, headers).finish
     end
 
+    ##
+    # Throws an exception (instead of raising it). This is done for performance
+    # reasons. The exception will be caught in the ErrorHandling middleware.
     def _error!(klass, message=nil)
       Errors.throw_error!(klass, message)
     end

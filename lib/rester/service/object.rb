@@ -53,14 +53,30 @@ module Rester
           (@__mounts ||= {})
         end
 
-        def process(request_method, params={})
-          meth = REQUEST_METHOD_TO_CLASS_METHOD[request_method]
+        ##
+        # Helper method called at the class and instance level that calls the
+        # specified method on the passed object with the params. Allows for
+        # the arity of the method to be 0, 1 or -1.
+        def process!(obj, meth, params)
+          if obj.respond_to?(meth)
+            meth = obj.method(meth)
 
-          if respond_to?(meth)
-            public_send(meth, params)
+            case meth.arity.abs
+            when 1
+              meth.call(params)
+            when 0
+              meth.call
+            else
+              raise MethodDefinitionError, "#{meth} must take 0 or 1 argument"
+            end
           else
             raise Errors::NotFoundError, meth
           end
+        end
+
+        def process(request_method, params={})
+          meth = REQUEST_METHOD_TO_CLASS_METHOD[request_method]
+          process!(self, meth, params)
         end
       end # Class Methods
 
@@ -76,12 +92,7 @@ module Rester
 
       def process(request_method, params={})
         meth = REQUEST_METHOD_TO_INSTANCE_METHOD[request_method]
-
-        if respond_to?(meth)
-          public_send(meth, params)
-        else
-          raise Errors::NotFoundError, meth
-        end
+        self.class.process!(self, meth, params)
       end
 
       def mounts

@@ -11,11 +11,8 @@ module Rester
     end # Class Methods
 
     class Error < StandardError; end
-
-    ##
-    # Packet errors
-    class PacketError < Error; end
-    class InvalidEncodingError < PacketError; end
+    class MethodError < Error; end
+    class MethodDefinitionError < Error; end
 
     #############
     # Http Errors
@@ -35,18 +32,8 @@ module Rester
 
     # 404 Not Found
     class NotFoundError < RequestError; end
-    class InvalidMethodError < NotFoundError; end
 
     # 500 ServerError
     class ServerError < RequestError; end
-
-    ##
-    # Server Errors
-
-    # General Errors
-    class InvalidValueError < Error; end
-
-    # Rester Errors
-    class ServiceNotDefinedError < Error; end
   end # Errors
 end # Rester

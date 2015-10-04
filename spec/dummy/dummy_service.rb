@@ -22,6 +22,10 @@ module Rester
           params
         end
 
+        def delete
+          { no: 'params accepted' }
+        end
+
         mount MountedObject
       end # MountedObject
 
