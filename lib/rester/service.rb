@@ -81,9 +81,6 @@ module Rester
       end
     end # Class methods
 
-    def initialize
-    end
-
     ##
     # To be called by Rack. Wraps the app in middleware.
     def rack_call(env)
