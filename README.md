@@ -1,3 +1,5 @@
+[![Gem Version](https://badge.fury.io/rb/rester.svg)](http://badge.fury.io/rb/rester)
+
 # Rester
 An opinionated framework for creating simple and effective RESTful interfaces between
 application services. The goal is to create a way to rapidly develop new services
