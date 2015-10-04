@@ -8,10 +8,6 @@ module Rester
           def search(params)
             params.merge(method: :search)
           end
-
-          def create(params)
-            params.merge(method: :create)
-          end
         end # Class Methods
 
         def get(params)

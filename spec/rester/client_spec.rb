@@ -175,6 +175,12 @@ module Rester
               end
             end # with mounted object token
           end # mounted_object
+
+          describe '#mounted_object!' do
+            let(:mounted_object!) { tests.mounted_object!(arg: 'required') }
+            subject { mounted_object! }
+            it { expect { subject }.to raise_error Errors::NotFoundError, 'create' }
+          end # mounted_object!
         end # with string argument
 
         context 'with hash argument' do
