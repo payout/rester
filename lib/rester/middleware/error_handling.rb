@@ -22,7 +22,7 @@ module Rester
 
       def _error_to_response(error)
         Rack::Response.new(
-          [JSON.dump(message: error.message)],
+          [JSON.dump(message: error.message, backtrace: error.backtrace)],
           _error_to_http_code(error),
           { "Content-Type" => "application/json"}
         )
