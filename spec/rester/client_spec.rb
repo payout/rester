@@ -1,7 +1,7 @@
 module Rester
   RSpec.describe Client do
     let(:client) { Client.new }
-    let(:test_url) { RSpec.server_uri }
+    let(:test_url) { "#{RSpec.server_uri}/v1" }
 
     # Request Hash
     let(:req_hash) { {string: "string", integer: 1, float: 1.1, symbol: :symbol} }
@@ -67,131 +67,142 @@ module Rester
       context 'with connection' do
         before { client.connect(test_url) }
 
-        context 'with string argument' do
+        context 'with unsupported version' do
+          let(:test_url) { "#{RSpec.server_uri}/v2" }
           let(:args) { ['token'] }
 
-          it { is_expected.to be_a Rester::Client::Resource }
+          it 'should raise error' do
+            expect { subject.get }.to raise_error Errors::NotFoundError, 'v2'
+          end
+        end # with unsupported version
 
-          describe '#get' do
-            let(:params) { {} }
-            let(:expected_resp) { {token: 'token', params: params.map{|k,v| [k, v.to_s]}.to_h, method: 'get'} }
+        context 'with supported version' do
+          context 'with string argument' do
+            let(:args) { ['token'] }
 
-            context 'without argument' do
-              subject { tests.get }
-              it { is_expected.to eq(expected_resp) }
-            end # without argument
+            it { is_expected.to be_a Rester::Client::Resource }
 
-            context 'with argument' do
+            describe '#get' do
               let(:params) { {} }
-              subject { tests.get(params) }
-              it { is_expected.to eq(expected_resp) }
+              let(:expected_resp) { {token: 'token', params: params.map{|k,v| [k, v.to_s]}.to_h, method: 'get'} }
 
-              context 'with params' do
-                let(:params) { req_hash }
+              context 'without argument' do
+                subject { tests.get }
                 it { is_expected.to eq(expected_resp) }
-              end
+              end # without argument
 
-              context 'with nil argument' do
-                let(:params) { nil }
-                it { is_expected.to eq(token: 'token', params: {}, method: 'get') }
-              end
-            end # with argument
-          end # #get
-
-          describe '#update' do
-            let(:params) { {} }
-            let(:expected_resp) {
-              {
-                method: 'update',
-                int: 1, float: 1.1, bool: true, null: nil,
-                params: params.map{|k,v| [k, v.to_s]}.to_h
-              }
-            }
-
-            context 'without argument' do
-              subject { tests.update }
-              it { is_expected.to eq expected_resp }
-            end # without argument
-
-            context 'with argument' do
-              subject { tests.update(params) }
-
-              context 'with empty params' do
+              context 'with argument' do
                 let(:params) { {} }
-                it { is_expected.to eq expected_resp }
-              end
+                subject { tests.get(params) }
+                it { is_expected.to eq(expected_resp) }
 
-              context 'with params' do
-                let(:params) { req_hash }
-                it { is_expected.to eq expected_resp }
-              end
-            end # with argument
-          end # #update
+                context 'with params' do
+                  let(:params) { req_hash }
+                  it { is_expected.to eq(expected_resp) }
+                end
 
-          describe '#delete' do
-            let(:params) { {} }
-            let(:expected_resp) { {token: 'token', params: params.map{|k,v| [k, v.to_s]}.to_h, method: 'delete'} }
+                context 'with nil argument' do
+                  let(:params) { nil }
+                  it { is_expected.to eq(token: 'token', params: {}, method: 'get') }
+                end
+              end # with argument
+            end # #get
 
-            context 'without argument' do
-              subject { tests.delete }
-              it { is_expected.to eq(expected_resp) }
-            end # without argument
-
-            context 'with argument' do
+            describe '#update' do
               let(:params) { {} }
-              subject { tests.delete(params) }
+              let(:expected_resp) {
+                {
+                  method: 'update',
+                  int: 1, float: 1.1, bool: true, null: nil,
+                  params: params.map{|k,v| [k, v.to_s]}.to_h
+                }
+              }
 
-              before { client.connect(test_url) }
-              it { is_expected.to eq expected_resp }
-
-              context 'with params' do
-                let(:params) { req_hash }
+              context 'without argument' do
+                subject { tests.update }
                 it { is_expected.to eq expected_resp }
-              end
-            end # with argument
-          end # #delete
+              end # without argument
 
-          describe '#mounted_object' do
-            let(:mounted_object) { tests.mounted_object(*margs) }
+              context 'with argument' do
+                subject { tests.update(params) }
 
-            context 'with mounted object token' do
-              let(:margs) { ['mounted_id'] }
+                context 'with empty params' do
+                  let(:params) { {} }
+                  it { is_expected.to eq expected_resp }
+                end
 
-              describe '#update' do
-                let(:params) { req_hash }
-                subject { mounted_object.update(params) }
-                it { is_expected.to eq res_hash.merge(test_token: 'token') }
-              end # #update
+                context 'with params' do
+                  let(:params) { req_hash }
+                  it { is_expected.to eq expected_resp }
+                end
+              end # with argument
+            end # #update
 
-              describe '#delete' do
-                subject { mounted_object.delete }
-                it { is_expected.to eq(no: 'params accepted') }
-              end # #delete
+            describe '#delete' do
+              let(:params) { {} }
+              let(:expected_resp) { {token: 'token', params: params.map{|k,v| [k, v.to_s]}.to_h, method: 'delete'} }
 
-              # Multi-level
-              describe '#mounted_object' do
-                subject { mounted_object.mounted_object('mounted_id2').get }
-                it { is_expected.to eq(test_token: 'token', mounted_object_id: 'mounted_id', id: 'mounted_id2') }
-              end
-            end # with mounted object token
-          end # mounted_object
+              context 'without argument' do
+                subject { tests.delete }
+                it { is_expected.to eq(expected_resp) }
+              end # without argument
 
-          describe '#mounted_object!' do
-            let(:mounted_object!) { tests.mounted_object!(arg: 'required') }
-            subject { mounted_object! }
-            it { expect { subject }.to raise_error Errors::NotFoundError, 'create' }
-          end # mounted_object!
-        end # with string argument
+              context 'with argument' do
+                let(:params) { {} }
+                subject { tests.delete(params) }
 
-        context 'with hash argument' do
-          let(:args) { [req_hash] }
-          it { is_expected.to eq res_hash.merge(method: 'search') }
-        end # with hash argument
+                before { client.connect(test_url) }
+                it { is_expected.to eq expected_resp }
 
-        context 'with no arguments' do
-          let(:args) { [] }
-          it { expect { subject }.to raise_error ArgumentError, 'wrong number of arguments (0 for 1)' }
-        end # with no arguments
+                context 'with params' do
+                  let(:params) { req_hash }
+                  it { is_expected.to eq expected_resp }
+                end
+              end # with argument
+            end # #delete
+
+            describe '#mounted_object' do
+              let(:mounted_object) { tests.mounted_object(*margs) }
+
+              context 'with mounted object token' do
+                let(:margs) { ['mounted_id'] }
+
+                describe '#update' do
+                  let(:params) { req_hash }
+                  subject { mounted_object.update(params) }
+                  it { is_expected.to eq res_hash.merge(test_token: 'token') }
+                end # #update
+
+                describe '#delete' do
+                  subject { mounted_object.delete }
+                  it { is_expected.to eq(no: 'params accepted') }
+                end # #delete
+
+                # Multi-level
+                describe '#mounted_object' do
+                  subject { mounted_object.mounted_object('mounted_id2').get }
+                  it { is_expected.to eq(test_token: 'token', mounted_object_id: 'mounted_id', id: 'mounted_id2') }
+                end
+              end # with mounted object token
+            end # mounted_object
+
+            describe '#mounted_object!' do
+              let(:mounted_object!) { tests.mounted_object!(arg: 'required') }
+              subject { mounted_object! }
+              it { expect { subject }.to raise_error Errors::NotFoundError, 'create' }
+            end # mounted_object!
+          end # with string argument
+
+          context 'with hash argument' do
+            let(:args) { [req_hash] }
+            it { is_expected.to eq res_hash.merge(method: 'search') }
+          end # with hash argument
+
+          context 'with no arguments' do
+            let(:args) { [] }
+            it { expect { subject }.to raise_error ArgumentError, 'wrong number of arguments (0 for 1)' }
+          end # with no arguments
+        end # with supported version
       end # with connection
     end # #tests
 

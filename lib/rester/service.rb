@@ -133,7 +133,7 @@ module Rester
     # If the version is not found, it throws a NotFoundError (HTTP 404).
     def _validate_version(request)
       unless self.class.versions.include?(request.version)
-        _error!(Errors::NotFoundError)
+        _error!(Errors::NotFoundError, request.version)
       end
     end
 
