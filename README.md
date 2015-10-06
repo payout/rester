@@ -36,6 +36,7 @@ class PaymentService < Rester::Service
   module v1
     class Card < Rester::Object
       id :token
+      mount Credit
     
       def self.search(params)
         # Search for the card.
@@ -66,8 +67,6 @@ class PaymentService < Rester::Service
       def delete
         # Delete the card.
       end
-      
-      mount Credit
     end
     
     class Credit < Rester::Object
