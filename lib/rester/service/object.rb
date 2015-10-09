@@ -35,7 +35,7 @@ module Rester
         def mount(klass)
           raise "Only other Service Objects can be mounted." unless klass < Object
           start = self.name.split('::')[0..-2].join('::').length + 2
-          mounts[klass.name[start..-1].underscore] = klass
+          mounts[klass.name[start..-1].pluralize.underscore] = klass
         end
 
         def params(opts={}, &block)
@@ -69,7 +69,7 @@ module Rester
         # specified method on the passed object with the params. Allows for
         # the arity of the method to be 0, 1 or -1.
         def process!(obj, meth, params)
-          if obj.respond_to?(meth)
+          if meth && obj.respond_to?(meth)
             params = validator.validate(params)
             meth = obj.method(meth)
 

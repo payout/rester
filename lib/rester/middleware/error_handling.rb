@@ -21,11 +21,19 @@ module Rester
       private
 
       def _error_to_response(error)
-        Rack::Response.new(
-          [JSON.dump(message: error.message, backtrace: error.backtrace)],
-          _error_to_http_code(error),
-          { "Content-Type" => "application/json"}
-        )
+        code = _error_to_http_code(error)
+
+        unless code == 404
+          body_h = { message: error.message }
+
+          if code == 500
+            body_h[:error] = error.class.name
+            body_h[:backtrace] = error.backtrace
+          end
+        end
+
+        body = body_h ? [JSON.dump(body_h)] : []
+        Rack::Response.new(body, code, { "Content-Type" => "application/json"})
       end
 
       def _error_to_http_code(error)

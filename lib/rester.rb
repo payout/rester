@@ -17,7 +17,11 @@ module Rester
     end
 
     def connect(*args)
-      Client.new(*args)
+      if (service = args.first).is_a?(Class) && service < Service
+        Client.new(Client::Adapters::LocalAdapter.new(service))
+      else
+        Client.new(*args)
+      end
     end
   end # Class Methods
 end # Rester

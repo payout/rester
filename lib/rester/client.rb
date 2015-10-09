@@ -51,7 +51,7 @@ module Rester
       elsif status == 400
         raise Errors::RequestError, _parse_json(body)[:message]
       elsif status == 404
-        raise Errors::NotFoundError, _parse_json(body)[:message]
+        raise Errors::NotFoundError, "/#{path}"
       else
         raise Errors::ServerError, _parse_json(body)[:message]
       end
