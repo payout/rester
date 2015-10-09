@@ -68,7 +68,7 @@ module Rester
         # specified method on the passed object with the params. Allows for
         # the arity of the method to be 0, 1 or -1.
         def process!(obj, meth, params)
-          if obj.respond_to?(meth)
+          if meth && obj.respond_to?(meth)
             params = validator.validate(params) || params
             meth = obj.method(meth)
 
