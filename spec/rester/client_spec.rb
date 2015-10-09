@@ -79,7 +79,8 @@ module Rester
           let(:args) { ['token'] }
 
           it 'should raise error' do
-            expect { subject.get }.to raise_error Errors::NotFoundError, 'v2'
+            expect { subject.get }.to raise_error Errors::NotFoundError,
+              '/tests/token'
           end
         end # with unsupported version
 
@@ -196,7 +197,9 @@ module Rester
             describe '#mounted_objects!' do
               let(:mounted_objects!) { tests.mounted_objects!(arg: 'required') }
               subject { mounted_objects! }
-              it { expect { subject }.to raise_error Errors::NotFoundError, 'create' }
+              it { expect { subject }.to raise_error Errors::NotFoundError,
+                '/tests/token/mounted_objects'
+              }
             end # mounted_objects!
           end # with string argument
 
