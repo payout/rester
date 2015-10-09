@@ -14,7 +14,8 @@ RSpec.describe Rester do
     end
 
     context 'with service class' do
-      let(:connect_args) { [Rester::DummyService] }
+      let(:opts) { {} }
+      let(:connect_args) { [Rester::DummyService, opts] }
 
       it { is_expected.to be_a Rester::Client }
 
@@ -22,6 +23,18 @@ RSpec.describe Rester do
         expect(subject.adapter).to be_a Rester::Client::Adapters::LocalAdapter
         expect(subject.adapter.service).to eq Rester::DummyService
       end
-    end
+
+      it 'should default to version 1' do
+        expect(subject.adapter.version).to eq 1
+      end
+
+      context 'with version specified' do
+        let(:opts) { { version: 1234 } }
+
+        it 'should have specified version' do
+          expect(subject.adapter.version).to eq 1234
+        end
+      end # with version specified
+    end # with service class
   end # ::connect
 end # Rester

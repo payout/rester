@@ -1,7 +1,8 @@
 module Rester
   module Client::Adapters
     RSpec.describe LocalAdapter do
-      let(:adapter) { LocalAdapter.new(DummyService) }
+      let(:adapter) { LocalAdapter.new(DummyService, opts) }
+      let(:opts) { {} }
 
       describe '#get!' do
         let(:params) { {} }
@@ -9,8 +10,8 @@ module Rester
         let(:status) { subject.first }
         let(:body) { subject.last.body.first }
 
-        context 'with path "/v1/tests/token"' do
-          let(:path) { '/v1/tests/token' }
+        context 'with path "/tests/token"' do
+          let(:path) { '/tests/token' }
 
           it 'should return 200 status' do
             expect(status).to eq 200
@@ -21,8 +22,8 @@ module Rester
           end
         end
 
-        context 'with path "/v1/tests"' do
-          let(:path) { '/v1/tests' }
+        context 'with path "/tests"' do
+          let(:path) { '/tests' }
 
           it 'should return 200 status' do
             expect(status).to eq 200
@@ -31,10 +32,18 @@ module Rester
           it 'should return JSON body' do
             expect(body).to eq '{"method":"search"}'
           end
+
+          context 'with invalid version' do
+            let(:opts) { { version: 1234 } }
+
+            it 'should return 404 status' do
+              expect(status).to eq 404
+            end
+          end
         end
 
-        context 'with path "/v1/tests/1234/mounted_objects"' do
-          let(:path) { '/v1/tests/1234/mounted_objects' }
+        context 'with path "/tests/1234/mounted_objects"' do
+          let(:path) { '/tests/1234/mounted_objects' }
 
           it 'should return 200 status' do
             expect(status).to eq 200
@@ -52,8 +61,8 @@ module Rester
         let(:status) { subject.first }
         let(:body) { subject.last.body.first }
 
-        context 'with path "/v1/tests/token"' do
-          let(:path) { '/v1/tests/token' }
+        context 'with path "/tests/token"' do
+          let(:path) { '/tests/token' }
 
           it 'should return 200 status' do
             expect(status).to eq 200
@@ -64,8 +73,8 @@ module Rester
           end
         end
 
-        context 'with path "/v1/tests"' do
-          let(:path) { '/v1/tests' }
+        context 'with path "/tests"' do
+          let(:path) { '/tests' }
 
           it 'should return 404 status' do
             expect(status).to eq 404
@@ -76,8 +85,8 @@ module Rester
           end
         end
 
-        context 'with path "/v1/tests/1234/mounted_objects"' do
-          let(:path) { '/v1/tests/1234/mounted_objects' }
+        context 'with path "/tests/1234/mounted_objects"' do
+          let(:path) { '/tests/1234/mounted_objects' }
 
           it 'should return 404 status' do
             expect(status).to eq 404
@@ -95,8 +104,8 @@ module Rester
         let(:status) { subject.first }
         let(:body) { subject.last.body.first }
 
-        context 'with path "/v1/tests/token"' do
-          let(:path) { '/v1/tests/token' }
+        context 'with path "/tests/token"' do
+          let(:path) { '/tests/token' }
 
           it 'should return 404 status' do
             expect(status).to eq 404
@@ -107,8 +116,8 @@ module Rester
           end
         end
 
-        context 'with path "/v1/tests"' do
-          let(:path) { '/v1/tests' }
+        context 'with path "/tests"' do
+          let(:path) { '/tests' }
 
           it 'should return 201 status' do
             expect(status).to eq 201
@@ -119,8 +128,8 @@ module Rester
           end
         end
 
-        context 'with path "/v1/tests/1234/mounted_objects"' do
-          let(:path) { '/v1/tests/1234/mounted_objects' }
+        context 'with path "/tests/1234/mounted_objects"' do
+          let(:path) { '/tests/1234/mounted_objects' }
 
           it 'should return 404 status' do
             expect(status).to eq 404
@@ -138,8 +147,8 @@ module Rester
         let(:status) { subject.first }
         let(:body) { subject.last.body.first }
 
-        context 'with path "/v1/tests/token"' do
-          let(:path) { '/v1/tests/token' }
+        context 'with path "/tests/token"' do
+          let(:path) { '/tests/token' }
 
           it 'should return 200 status' do
             expect(status).to eq 200
@@ -151,8 +160,8 @@ module Rester
           end
         end
 
-        context 'with path "/v1/tests"' do
-          let(:path) { '/v1/tests' }
+        context 'with path "/tests"' do
+          let(:path) { '/tests' }
 
           it 'should return 404 status' do
             expect(status).to eq 404
@@ -163,8 +172,8 @@ module Rester
           end
         end
 
-        context 'with path "/v1/tests/1234/mounted_objects"' do
-          let(:path) { '/v1/tests/1234/mounted_objects' }
+        context 'with path "/tests/1234/mounted_objects"' do
+          let(:path) { '/tests/1234/mounted_objects' }
 
           it 'should return 404 status' do
             expect(status).to eq 404
@@ -175,6 +184,12 @@ module Rester
           end
         end
       end # #put!
+
+      describe '#version' do
+        subject { adapter.version }
+        let(:opts) { { version: 3 } }
+        it { is_expected.to eq 3 }
+      end # #version
     end # LocalAdapter
   end # Client::Adapters
 end # Rester

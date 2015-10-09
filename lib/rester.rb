@@ -18,7 +18,7 @@ module Rester
 
     def connect(*args)
       if (service = args.first).is_a?(Class) && service < Service
-        Client.new(Client::Adapters::LocalAdapter.new(service))
+        Client.new(Client::Adapters::LocalAdapter.new(*args))
       else
         Client.new(*args)
       end
