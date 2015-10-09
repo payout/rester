@@ -28,6 +28,12 @@ RSpec.describe Rester do
         expect(subject.adapter.version).to eq 1
       end
 
+      it 'should send request correctly' do
+        expect(subject.tests('testtoken').get).to eq(
+          { token: 'testtoken', params: {}, method: 'get' }
+        )
+      end
+
       context 'with version specified' do
         let(:opts) { { version: 1234 } }
 

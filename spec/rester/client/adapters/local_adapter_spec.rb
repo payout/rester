@@ -8,7 +8,7 @@ module Rester
         let(:params) { {} }
         subject { adapter.get!(path, params) }
         let(:status) { subject.first }
-        let(:body) { subject.last.body.first }
+        let(:body) { subject.last }
 
         context 'with path "/tests/token"' do
           let(:path) { '/tests/token' }
@@ -59,7 +59,7 @@ module Rester
         let(:params) { {} }
         subject { adapter.delete!(path, params) }
         let(:status) { subject.first }
-        let(:body) { subject.last.body.first }
+        let(:body) { subject.last }
 
         context 'with path "/tests/token"' do
           let(:path) { '/tests/token' }
@@ -102,7 +102,7 @@ module Rester
         let(:params) { {} }
         subject { adapter.post!(path, params) }
         let(:status) { subject.first }
-        let(:body) { subject.last.body.first }
+        let(:body) { subject.last }
 
         context 'with path "/tests/token"' do
           let(:path) { '/tests/token' }
@@ -145,7 +145,7 @@ module Rester
         let(:params) { {} }
         subject { adapter.put!(path, params) }
         let(:status) { subject.first }
-        let(:body) { subject.last.body.first }
+        let(:body) { subject.last }
 
         context 'with path "/tests/token"' do
           let(:path) { '/tests/token' }

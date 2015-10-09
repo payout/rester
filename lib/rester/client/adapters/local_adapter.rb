@@ -1,4 +1,5 @@
 require 'stringio'
+require 'rack'
 
 module Rester
   module Client::Adapters
@@ -40,12 +41,22 @@ module Rester
         body = URI.encode_www_form(opts[:data] || {})
         query = URI.encode_www_form(opts[:query] || {})
 
-        service.call(
+        response = service.call(
           'REQUEST_METHOD' => verb.to_s.upcase,
-          'PATH_INFO'      => "/v#{version}#{path}",
+          'PATH_INFO'      => Utils.join_paths("/v#{version}", path),
           'QUERY_STRING'   => query,
           'rack.input'     => StringIO.new(body)
-        ).tap { |r| r.delete_at(1) }
+        )
+
+        body = response.last
+        body = body.body if body.respond_to?(:body)
+        body = body.join if body.respond_to?(:join)
+        body = nil if body.respond_to?(:empty?) && body.empty?
+
+        [
+          response.first, # The status code
+          body            # The response body.
+        ]
       end
     end # LocalAdapter
   end # Client::Adapters
