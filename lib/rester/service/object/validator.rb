@@ -7,9 +7,11 @@ module Rester
 
       def initialize(opts={})
         @options = opts.dup.freeze
-        @_validators = {}
         @_required_fields = []
         @_all_fields = []
+
+        # Default "validator" is to just treat the param as a string.
+        @_validators = Hash.new([String, {}])
       end
 
       ##
@@ -41,22 +43,24 @@ module Rester
         end
 
         params.map do |key, value|
-          [key.to_sym, validate!(key, value)]
+          [key.to_sym, validate!(key.to_sym, value)]
         end.to_h
       end
 
       def validate!(key, value)
-        klass, opts = @_validators[key.to_sym]
+        klass, opts = @_validators[key]
 
         _parse_with_class(klass, value).tap do |obj|
+          if obj.nil? && @_required_fields.include?(key)
+            _error!("#{key} cannot be null")
+          end
+
           opts.each do |opt, value|
             case opt
             when :within
               _validate_within(key, obj, value)
-            when :required
-              # Don't do anything, this is checked elsewhere.
             else
-              _validate_method(key, obj, opt, value)
+              _validate_method(key, obj, opt, value) unless obj.nil?
             end
           end
         end
@@ -106,10 +110,12 @@ module Rester
       end
 
       def _parse_with_class(klass, value)
-        if klass == Integer
-          value.to_i
-        elsif klass == String
+        return nil if value == 'null'
+
+        if klass == String
           value
+        elsif klass == Integer
+          value.to_i
         elsif klass == Float
           value.to_f
         elsif klass == Symbol

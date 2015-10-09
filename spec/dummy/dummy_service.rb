@@ -34,6 +34,7 @@ module Rester
           Integer :integer
           Float   :float
           Symbol  :symbol
+          Boolean :bool
         end
 
         class << self

@@ -28,7 +28,7 @@ module Rester
       def request(verb, path, params={}, &block)
         params ||= {}
         _validate_verb(verb)
-        _validate_params(params)
+        params = _validate_params(params)
         public_send("#{verb}!", path.to_s, params)
       end
 
@@ -62,19 +62,41 @@ module Rester
         delete: true
       }.freeze
 
-      VALID_PARAM_KEY_TYPES = {
-        String   => true,
-        Symbol   => true
-      }.freeze
+      ##
+      # PARAM_KEY_TRANSFORMERS
+      #
+      # Defines how to transform a key value before being sent to the server.
+      # At the moment, this is a simple to_s conversion.
+      PARAM_KEY_TRANSFORMERS = Hash.new { |_, key|
+        proc { |value|
+          fail ArgumentError, "Invalid param key type: #{key.inspect}"
+        }
+      }.merge(
+        String   => :to_s.to_proc,
+        Symbol   => :to_s.to_proc
+      ).freeze
 
-      VALID_PARAM_VALUE_TYPES = {
-        String   => true,
-        Symbol   => true,
-        Fixnum   => true,
-        Integer  => true,
-        Float    => true,
-        DateTime => true
-      }.freeze
+      ##
+      # PARAM_VALUE_TRANSFORMERS
+      #
+      # Defines how values should be transformed before being sent to the
+      # server. Mostly, this is just a simple conversion to a string, but in
+      # the case of `nil` we want to convert it to 'null'.
+      PARAM_VALUE_TRANSFORMERS = Hash.new { |_, key|
+        proc { |value|
+          fail ArgumentError, "Invalid param value type: #{key.inspect}"
+        }
+      }.merge(
+        String     => :to_s.to_proc,
+        Symbol     => :to_s.to_proc,
+        Fixnum     => :to_s.to_proc,
+        Integer    => :to_s.to_proc,
+        Float      => :to_s.to_proc,
+        DateTime   => :to_s.to_proc,
+        TrueClass  => :to_s.to_proc,
+        FalseClass => :to_s.to_proc,
+        NilClass   => proc { 'null' }
+      ).freeze
 
       def _validate_verb(verb)
         VALID_VERBS[verb] or
@@ -82,13 +104,12 @@ module Rester
       end
 
       def _validate_params(params)
-        params.each { |key, value|
-          VALID_PARAM_KEY_TYPES[key.class] or
-            raise ArgumentError, "Invalid param key type: #{key.inspect}"
-
-          VALID_PARAM_VALUE_TYPES[value.class] or
-            raise ArgumentError, "Invalid param value type: #{value.inspect}"
-        }
+        params.map { |key, value|
+          [
+            PARAM_KEY_TRANSFORMERS[key.class].call(key),
+            PARAM_VALUE_TRANSFORMERS[value.class].call(value)
+          ]
+        }.to_h
       end
     end # Adapter
   end # Client::Adapters

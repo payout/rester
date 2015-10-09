@@ -11,10 +11,10 @@ module Rester
     let(:test_url) { "#{RSpec.server_uri}/v1" }
 
     # Request Hash
-    let(:req_hash) { {string: "string", integer: 1, float: 1.1, symbol: :symbol} }
+    let(:req_hash) { {string: "string", integer: 1, float: 1.1, symbol: :symbol, bool: true, null: nil} }
 
     # Response Hash
-    let(:res_hash) { req_hash.map{|k,v| [k, v.to_s]}.to_h }
+    let(:res_hash) { req_hash.map{|k,v| [k, v.nil? ? nil : v.to_s]}.to_h }
 
     describe '#connect', :connect do
       subject { client.connect(url) }

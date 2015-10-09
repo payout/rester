@@ -39,7 +39,7 @@ module Rester
         end
 
         def params(opts={}, &block)
-          (@_validator ||= Validator.new(opts)).instance_eval(&block)
+          (@_validator = Validator.new(opts)).instance_eval(&block)
         end
       end # DSL
 
@@ -60,7 +60,7 @@ module Rester
         end
 
         def validator
-          @_validator
+          @_validator ||= Validator.new
         end
 
         ##
@@ -69,7 +69,7 @@ module Rester
         # the arity of the method to be 0, 1 or -1.
         def process!(obj, meth, params)
           if obj.respond_to?(meth)
-            params = validator && validator.validate(params) || params
+            params = validator.validate(params) || params
             meth = obj.method(meth)
 
             case meth.arity.abs
