@@ -29,6 +29,14 @@ module Rester
         id :token
         mount MountedObject
 
+        params do
+          String  :string
+          Integer :integer
+          Float   :float
+          Symbol  :symbol
+          Boolean :bool
+        end
+
         class << self
           def search(params)
             params.merge(method: :search)
