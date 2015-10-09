@@ -38,6 +38,11 @@ class PaymentService < Rester::Service
       id :token
       mount Credit
     
+      params do
+        String :str
+        Integer :something
+      end
+    
       def self.search(params)
         # Search for the card.
       end
