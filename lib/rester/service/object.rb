@@ -35,7 +35,7 @@ module Rester
         def mount(klass)
           raise "Only other Service Objects can be mounted." unless klass < Object
           start = self.name.split('::')[0..-2].join('::').length + 2
-          mounts[klass.name[start..-1].underscore] = klass
+          mounts[klass.name[start..-1].pluralize.underscore] = klass
         end
 
         def params(opts={}, &block)

@@ -168,36 +168,36 @@ module Rester
               end # with argument
             end # #delete
 
-            describe '#mounted_object' do
-              let(:mounted_object) { tests.mounted_object(*margs) }
+            describe '#mounted_objects' do
+              let(:mounted_objects) { tests.mounted_objects(*margs) }
 
               context 'with mounted object token' do
                 let(:margs) { ['mounted_id'] }
 
                 describe '#update' do
                   let(:params) { req_hash }
-                  subject { mounted_object.update(params) }
+                  subject { mounted_objects.update(params) }
                   it { is_expected.to eq res_hash.merge(test_token: 'token') }
                 end # #update
 
                 describe '#delete' do
-                  subject { mounted_object.delete }
+                  subject { mounted_objects.delete }
                   it { is_expected.to eq(no: 'params accepted') }
                 end # #delete
 
                 # Multi-level
-                describe '#mounted_object' do
-                  subject { mounted_object.mounted_object('mounted_id2').get }
+                describe '#mounted_objects' do
+                  subject { mounted_objects.mounted_objects('mounted_id2').get }
                   it { is_expected.to eq(test_token: 'token', mounted_object_id: 'mounted_id', id: 'mounted_id2') }
                 end
               end # with mounted object token
             end # mounted_object
 
-            describe '#mounted_object!' do
-              let(:mounted_object!) { tests.mounted_object!(arg: 'required') }
-              subject { mounted_object! }
+            describe '#mounted_objects!' do
+              let(:mounted_objects!) { tests.mounted_objects!(arg: 'required') }
+              subject { mounted_objects! }
               it { expect { subject }.to raise_error Errors::NotFoundError, 'create' }
-            end # mounted_object!
+            end # mounted_objects!
           end # with string argument
 
           context 'with hash argument' do
