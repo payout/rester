@@ -1,5 +1,12 @@
 module Rester
   RSpec.describe Client do
+    ##
+    # Converts a hash into a hash that would be returned by the client.
+    # Essentially, this is mostly to convert symbol values into strings.
+    def json_h(params)
+      JSON.parse(params.to_json, symbolize_names: true)
+    end
+
     let(:client) { Client.new }
     let(:test_url) { "#{RSpec.server_uri}/v1" }
 
@@ -84,7 +91,7 @@ module Rester
 
             describe '#get' do
               let(:params) { {} }
-              let(:expected_resp) { {token: 'token', params: params.map{|k,v| [k, v.to_s]}.to_h, method: 'get'} }
+              let(:expected_resp) { {token: 'token', params: json_h(params), method: 'get'} }
 
               context 'without argument' do
                 subject { tests.get }
@@ -114,7 +121,7 @@ module Rester
                 {
                   method: 'update',
                   int: 1, float: 1.1, bool: true, null: nil,
-                  params: params.map{|k,v| [k, v.to_s]}.to_h
+                  params: json_h(params)
                 }
               }
 
@@ -140,7 +147,7 @@ module Rester
 
             describe '#delete' do
               let(:params) { {} }
-              let(:expected_resp) { {token: 'token', params: params.map{|k,v| [k, v.to_s]}.to_h, method: 'delete'} }
+              let(:expected_resp) { {token: 'token', params: json_h(params), method: 'delete'} }
 
               context 'without argument' do
                 subject { tests.delete }
@@ -195,7 +202,7 @@ module Rester
 
           context 'with hash argument' do
             let(:args) { [req_hash] }
-            it { is_expected.to eq res_hash.merge(method: 'search') }
+            it { is_expected.to eq json_h(req_hash).merge(method: 'search') }
           end # with hash argument
 
           context 'with no arguments' do
@@ -232,7 +239,7 @@ module Rester
 
         context 'with hash argument' do
           let(:args) { [req_hash] }
-          it { is_expected.to eq res_hash.merge(method: 'create') }
+          it { is_expected.to eq json_h(req_hash).merge(method: 'create') }
         end # with hash argument
       end # with connection
     end # #tests!
