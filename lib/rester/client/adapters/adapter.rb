@@ -62,14 +62,6 @@ module Rester
         delete: true
       }.freeze
 
-      VALID_ARG_TYPES = {
-        String  => true,
-        Symbol  => true,
-        Fixnum  => true,
-        Integer => true,
-        Float   => true
-      }.freeze
-
       VALID_PARAM_KEY_TYPES = {
         String   => true,
         Symbol   => true
@@ -87,13 +79,6 @@ module Rester
       def _validate_verb(verb)
         VALID_VERBS[verb] or
           raise ArgumentError, "Invalid verb: #{verb.inspect}"
-      end
-
-      def _validate_args(args)
-        args.each { |arg|
-          VALID_ARG_TYPES[arg.class] or
-            raise ArgumentError, "Invalid argument type: #{arg.inspect}"
-        }
       end
 
       def _validate_params(params)
