@@ -44,6 +44,7 @@ module Rester
         response = service.call(
           'REQUEST_METHOD' => verb.to_s.upcase,
           'PATH_INFO'      => Utils.join_paths("/v#{version}", path),
+          'CONTENT_TYPE'   => 'application/x-www-form-urlencoded',
           'QUERY_STRING'   => query,
           'rack.input'     => StringIO.new(body)
         )

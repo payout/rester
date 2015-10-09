@@ -5,7 +5,7 @@ module Rester
       let(:opts) { {} }
 
       describe '#get!' do
-        let(:params) { {} }
+        let(:params) { {test: 'param'} }
         subject { adapter.get!(path, params) }
         let(:status) { subject.first }
         let(:body) { subject.last }
@@ -18,7 +18,7 @@ module Rester
           end
 
           it 'should return JSON body' do
-            expect(body).to eq '{"token":"token","params":{},"method":"get"}'
+            expect(body).to eq '{"token":"token","params":{"test":"param"},"method":"get"}'
           end
         end
 
@@ -30,7 +30,7 @@ module Rester
           end
 
           it 'should return JSON body' do
-            expect(body).to eq '{"method":"search"}'
+            expect(body).to eq '{"test":"param","method":"search"}'
           end
 
           context 'with invalid version' do
@@ -50,13 +50,13 @@ module Rester
           end
 
           it 'should return JSON body' do
-            expect(body).to eq '{"test_token":"1234","method":"search"}'
+            expect(body).to eq '{"test":"param","test_token":"1234","method":"search"}'
           end
         end
       end # #get!
 
       describe '#delete!' do
-        let(:params) { {} }
+        let(:params) { {test: 'param'} }
         subject { adapter.delete!(path, params) }
         let(:status) { subject.first }
         let(:body) { subject.last }
@@ -69,7 +69,7 @@ module Rester
           end
 
           it 'should return JSON body' do
-            expect(body).to eq '{"token":"token","params":{},"method":"delete"}'
+            expect(body).to eq '{"token":"token","params":{"test":"param"},"method":"delete"}'
           end
         end
 
@@ -99,7 +99,7 @@ module Rester
       end # #delete!
 
       describe '#post!' do
-        let(:params) { {} }
+        let(:params) { {test: 'parameter'} }
         subject { adapter.post!(path, params) }
         let(:status) { subject.first }
         let(:body) { subject.last }
@@ -124,7 +124,7 @@ module Rester
           end
 
           it 'should return JSON body' do
-            expect(body).to eq '{"method":"create"}'
+            expect(body).to eq '{"test":"parameter","method":"create"}'
           end
         end
 
@@ -142,7 +142,7 @@ module Rester
       end # #post!
 
       describe '#put!' do
-        let(:params) { {} }
+        let(:params) { {test: 'param'} }
         subject { adapter.put!(path, params) }
         let(:status) { subject.first }
         let(:body) { subject.last }
@@ -156,7 +156,7 @@ module Rester
 
           it 'should return JSON body' do
             expect(body).to eq '{"method":"update","int":1,"float":1.1,' \
-              '"bool":true,"null":null,"params":{}}'
+              '"bool":true,"null":null,"params":{"test":"param"}}'
           end
         end
 
