@@ -4,6 +4,8 @@ require 'active_support/inflector'
 module Rester
   class Service
     class Object
+      autoload(:Validator, 'rester/service/object/validator')
+
       REQUEST_METHOD_TO_INSTANCE_METHOD = {
         'GET'    => :get,
         'PUT'    => :update,

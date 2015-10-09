@@ -14,6 +14,8 @@ module Rester
     class MethodError < Error; end
     class MethodDefinitionError < Error; end
 
+    class ValidationError < Error; end
+
     #############
     # Http Errors
     class HttpError < Error; end
