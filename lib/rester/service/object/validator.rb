@@ -1,6 +1,8 @@
 module Rester
   class Service::Object
     class Validator
+      BASIC_TYPES = [String, Symbol, Float, Integer].freeze
+
       attr_reader :options
 
       def initialize(opts={})
@@ -58,6 +60,20 @@ module Rester
             end
           end
         end
+      end
+
+      ##
+      # The basic data types all have helper methods named after them in Kernel.
+      # This allows you to do things like String(1234) to get '1234'. It's the
+      # same as doing 1234.to_s.
+      #
+      # Since methods already exist globally for these types, we need to override
+      # them so we can capture their calls. If this weren't the case, then we'd
+      # be catch them in `method_missing`.
+      BASIC_TYPES.each do |type|
+        define_method(type.to_s) { |name, opts={}|
+          _add_validator(name, type, opts)
+        }
       end
 
       ##
