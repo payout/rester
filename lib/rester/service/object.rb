@@ -37,6 +37,10 @@ module Rester
           start = self.name.split('::')[0..-2].join('::').length + 2
           mounts[klass.name[start..-1].underscore] = klass
         end
+
+        def params(opts={}, &block)
+          (@_validator ||= Validator.new(opts)).instance_eval(&block)
+        end
       end # DSL
 
       ########################################################################
@@ -55,12 +59,17 @@ module Rester
           (@__mounts ||= {})
         end
 
+        def validator
+          @_validator
+        end
+
         ##
         # Helper method called at the class and instance level that calls the
         # specified method on the passed object with the params. Allows for
         # the arity of the method to be 0, 1 or -1.
         def process!(obj, meth, params)
           if obj.respond_to?(meth)
+            params = validator.validate(params)
             meth = obj.method(meth)
 
             case meth.arity.abs
