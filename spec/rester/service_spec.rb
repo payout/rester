@@ -42,5 +42,21 @@ module Rester
         end # with middleware and arguments
       end # when service called
     end # ::use
+
+    describe '::call' do
+      subject { service.call(env: 'goes here') }
+
+      context 'with validation error' do
+        before {
+          allow(service.instance).to receive(:call) {
+            Errors.throw_error!(Errors::ValidationError)
+          }
+        }
+
+        it 'should return a 400 error' do
+          expect(subject.first).to eq 400
+        end
+      end
+    end # ::call
   end # Service
 end # Rester

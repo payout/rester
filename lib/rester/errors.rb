@@ -14,8 +14,6 @@ module Rester
     class MethodError < Error; end
     class MethodDefinitionError < Error; end
 
-    class ValidationError < Error; end
-
     #############
     # Http Errors
     class HttpError < Error; end
@@ -25,6 +23,7 @@ module Rester
 
     # 400 Error
     class RequestError < HttpError; end
+    class ValidationError < RequestError; end
 
     # 401 Error
     class AuthenticationError < RequestError; end
