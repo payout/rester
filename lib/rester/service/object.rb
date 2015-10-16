@@ -6,13 +6,13 @@ module Rester
     class Object
       autoload(:Validator, 'rester/service/object/validator')
 
-      REQUEST_METHOD_TO_INSTANCE_METHOD = {
+      REQUEST_METHOD_TO_IDENTIFIED_METHOD = {
         'GET'    => :get,
         'PUT'    => :update,
         'DELETE' => :delete
       }.freeze
 
-      REQUEST_METHOD_TO_CLASS_METHOD = {
+      REQUEST_METHOD_TO_UNIDENTIFIED_METHOD = {
         'GET'    => :search,
         'POST'   => :create
       }.freeze
@@ -24,10 +24,7 @@ module Rester
         ##
         # Specify the name of your identifier (Default: 'id')
         def id(name)
-          (@id_name = name.to_sym).tap { |name|
-            # Create the accessor method for the ID.
-            define_method(name) { @id } unless name == :id
-          }
+          @id_name = name.to_sym
         end
 
         ##
@@ -63,52 +60,55 @@ module Rester
         def validator
           @_validator ||= Validator.new
         end
-
-        ##
-        # Helper method called at the class and instance level that calls the
-        # specified method on the passed object with the params. Allows for
-        # the arity of the method to be 0, 1 or -1.
-        def process!(obj, meth, params)
-          if meth && obj.respond_to?(meth)
-            params = validator.validate(params)
-            meth = obj.method(meth)
-
-            case meth.arity.abs
-            when 1
-              meth.call(params)
-            when 0
-              meth.call
-            else
-              raise MethodDefinitionError, "#{meth} must take 0 or 1 argument"
-            end
-          else
-            raise Errors::NotFoundError, meth
-          end
-        end
-
-        def process(request_method, params={})
-          meth = REQUEST_METHOD_TO_CLASS_METHOD[request_method]
-          process!(self, meth, params)
-        end
       end # Class Methods
-
-      attr_reader :id
-
-      def initialize(id)
-        @id = id
-      end
 
       def id_param
         self.class.id_param
       end
 
-      def process(request_method, params={})
-        meth = REQUEST_METHOD_TO_INSTANCE_METHOD[request_method]
-        self.class.process!(self, meth, params)
+      ##
+      # Given an HTTP request method, calls the appropriate calls the
+      # appropriate instance method. `id_provided` specifies whether on not the
+      # ID for the object is included in the params hash. This will be used when
+      # determining which instance method to call. For example, if the request
+      # method is GET: the ID being specified will call the `get` method and if
+      # it's not specified then it will call the `search` method.
+      def process(request_method, id_provided, params={})
+        meth = (id_provided ? REQUEST_METHOD_TO_IDENTIFIED_METHOD
+          : REQUEST_METHOD_TO_UNIDENTIFIED_METHOD)[request_method]
+
+        _process(meth, params)
       end
 
       def mounts
         self.class.mounts
+      end
+
+      def validator
+        self.class.validator
+      end
+
+      private
+
+      ##
+      # Calls the specified method, passing the params if the method accepts
+      # an argument. Allows for the arity of the method to be 0, 1 or -1.
+      def _process(meth, params)
+        if meth && respond_to?(meth)
+          params = validator.validate(params)
+          meth = method(meth)
+
+          case meth.arity.abs
+          when 1
+            meth.call(params)
+          when 0
+            meth.call
+          else
+            fail MethodDefinitionError, "#{meth} must take 0 or 1 argument"
+          end
+        else
+          fail Errors::NotFoundError, meth
+        end
       end
     end # Object
   end # Service

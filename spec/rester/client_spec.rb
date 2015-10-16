@@ -122,7 +122,7 @@ module Rester
                 {
                   method: 'update',
                   int: 1, float: 1.1, bool: true, null: nil,
-                  params: json_h(params)
+                  params: json_h(params.merge(test_token: 'token'))
                 }
               }
 
@@ -178,7 +178,7 @@ module Rester
                 describe '#update' do
                   let(:params) { req_hash }
                   subject { mounted_objects.update(params) }
-                  it { is_expected.to eq res_hash.merge(test_token: 'token') }
+                  it { is_expected.to eq res_hash.merge(test_token: 'token', mounted_object_id: 'mounted_id') }
                 end # #update
 
                 describe '#delete' do
@@ -189,7 +189,7 @@ module Rester
                 # Multi-level
                 describe '#mounted_objects' do
                   subject { mounted_objects.mounted_objects('mounted_id2').get }
-                  it { is_expected.to eq(test_token: 'token', mounted_object_id: 'mounted_id', id: 'mounted_id2') }
+                  it { is_expected.to eq(test_token: 'token', mounted_object_id: 'mounted_id2') }
                 end
               end # with mounted object token
             end # mounted_object
