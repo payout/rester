@@ -4,14 +4,12 @@ module Rester
   class DummyService < Service
     module V1
       class MountedObject < Service::Object
-        class << self
-          def search(params)
-            params.merge(method: :search)
-          end
-        end # Class Methods
+        def search(params)
+          params.merge(method: :search)
+        end
 
         def get(params)
-          params.merge(id: id)
+          params
         end
 
         def update(params)
@@ -37,18 +35,16 @@ module Rester
           Boolean :bool
         end
 
-        class << self
-          def search(params)
-            params.merge(method: :search)
-          end
+        def search(params)
+          params.merge(method: :search)
+        end
 
-          def create(params)
-            params.merge(method: :create)
-          end
-        end # Class Methods
+        def create(params)
+          params.merge(method: :create)
+        end
 
         def get(params)
-          { token: token, params: params, method: :get }
+          { token: params.delete(:test_token), params: params, method: :get }
         end
 
         def update(params)

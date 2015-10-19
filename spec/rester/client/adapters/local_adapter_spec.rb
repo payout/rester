@@ -155,8 +155,9 @@ module Rester
           end
 
           it 'should return JSON body' do
-            expect(body).to eq '{"method":"update","int":1,"float":1.1,' \
-              '"bool":true,"null":null,"params":{"test":"param"}}'
+            expect(body).to eq '{"method":"update","int":1,"float":1.1,'\
+              '"bool":true,"null":null,"params":{"test":"param",'\
+              '"test_token":"token"}}'
           end
         end
 

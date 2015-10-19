@@ -43,22 +43,18 @@ class PaymentService < Rester::Service
         Integer :something
       end
     
-      def self.search(params)
+      def search(params)
         # Search for the card.
       end
 
-      def self.create(params)
+      def create(params)
         # Create the card.
       end
 
       ##
-      # Instance methods will have a `token` variable available which contains the
-      # identifier for the designated model.
-
-      ##
       # GET /v1/cards/:token
-      def get
-        # Lookup card based on token.
+      def get(params)
+        # Lookup card based on params[:card_token].
       end
 
       ##
@@ -80,7 +76,7 @@ class PaymentService < Rester::Service
       # Or can be called via POST /v1/cards/token/credits
       # In the later case, a `card_token` parameter will
       # automatically be passed to it.
-      def self.create(params)
+      def create(params)
       end
       
       ##

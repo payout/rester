@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     rester (0.2.4)
-      activesupport (>= 4.0.13)
+      activesupport
       rack (~> 1.5, >= 1.5.2)
 
 GEM

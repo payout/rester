@@ -148,16 +148,15 @@ module Rester
       obj = _load_object(request, name)
 
       loop {
-        obj = obj.new(id) if id
+        params.merge!(obj.id_param => id) if id
 
         if object_chain.empty?
-          retval = obj.process(request.request_method, params)
+          retval = obj.process(request.request_method, !!id, params)
           break
         end
 
-        params.merge!(obj.id_param => obj.id)
         name, id, *object_chain = object_chain
-        obj = obj.mounts[name] or raise Errors::NotFoundError
+        obj = obj.mounts[name].new or fail Errors::NotFoundError
       }
 
       retval
@@ -167,7 +166,7 @@ module Rester
     # Loads the appropriate Service::Object for the request. This will return
     # the class, not an instance.
     def _load_object(request, name)
-      _version_module(request).const_get(name.camelcase.singularize)
+      _version_module(request).const_get(name.camelcase.singularize).new
     rescue NameError
       _error!(Errors::NotFoundError)
     end
