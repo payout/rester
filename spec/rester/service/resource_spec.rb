@@ -2,8 +2,8 @@ require 'date'
 
 module Rester
   class Service
-    RSpec.describe Object do
-      let(:object) { Class.new(Object) }
+    RSpec.describe Resource do
+      let(:object) { Class.new(Resource) }
 
       describe '::params' do
         before do
@@ -22,6 +22,6 @@ module Rester
           expect(object.validator.strict?).to be true
         end
       end # ::params
-    end # Object
+    end # Resource
   end # Service
 end # Rester

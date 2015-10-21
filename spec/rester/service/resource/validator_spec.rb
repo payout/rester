@@ -1,7 +1,7 @@
 require 'date'
 
 module Rester
-  class Service::Object
+  class Service::Resource
     RSpec.describe Validator do
       let(:validator) { Validator.new(validator_opts) }
       let(:validator_opts) { {} }
@@ -248,5 +248,5 @@ module Rester
         end # with extra params
       end # with strict validation
     end # Validator
-  end # Service::Object
+  end # Service::Resource
 end # Rester

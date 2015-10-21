@@ -3,8 +3,8 @@ require 'active_support/inflector'
 
 module Rester
   class Service
-    class Object
-      autoload(:Validator, 'rester/service/object/validator')
+    class Resource
+      autoload(:Validator, 'rester/service/resource/validator')
 
       REQUEST_METHOD_TO_IDENTIFIED_METHOD = {
         'GET'    => :get,
@@ -28,9 +28,9 @@ module Rester
         end
 
         ##
-        # Mount another Service Object
+        # Mount another Service Resource
         def mount(klass)
-          raise "Only other Service Objects can be mounted." unless klass < Object
+          raise "Only other Service Resources can be mounted." unless klass < Resource
           start = self.name.split('::')[0..-2].join('::').length + 2
           mounts[klass.name[start..-1].pluralize.underscore] = klass
         end
@@ -110,6 +110,6 @@ module Rester
           fail Errors::NotFoundError, meth
         end
       end
-    end # Object
+    end # Resource
   end # Service
 end # Rester
