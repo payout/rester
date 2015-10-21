@@ -1,5 +1,5 @@
 module Rester
-  class Service::Object
+  class Service::Resource
     class Validator
       BASIC_TYPES = [String, Symbol, Float, Integer].freeze
 
@@ -8,6 +8,7 @@ module Rester
       def initialize(opts={})
         @options = opts.dup.freeze
         @_required_fields = []
+        @_default_values = {}
         @_all_fields = []
 
         # Default "validator" is to just treat the param as a string.
@@ -24,6 +25,7 @@ module Rester
       def freeze
         @_validators.freeze
         @_required_fields.freeze
+        @_default_values.freeze
         @_all_fields.freeze
       end
 
@@ -42,7 +44,7 @@ module Rester
           _error!("unexpected params: #{unexpected.join(', ')}")
         end
 
-        params.map do |key, value|
+        (@_default_values.merge(params)).map do |key, value|
           [key.to_sym, validate!(key.to_sym, value)]
         end.to_h
       end
@@ -104,6 +106,7 @@ module Rester
         fail 'validation options must be a Hash' unless opts.is_a?(Hash)
         opts = opts.dup
         @_required_fields << name.to_sym if opts.delete(:required)
+        @_default_values[name.to_s] = opts.delete(:default).to_s if opts[:default]
         @_all_fields << name.to_sym
         @_validators[name.to_sym] = [klass, opts]
         nil
