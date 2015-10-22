@@ -68,7 +68,7 @@ module Rester
 
       class TestWithDefaults < Service::Resource
         params do
-          String  :string_with_default,  default: "default"
+          String  :string_with_default,  default: 'string'
           Integer :integer_with_default, default: 1
           Float   :float_with_default,   default: 3.14
           Symbol  :symbol_with_default,  default: :default

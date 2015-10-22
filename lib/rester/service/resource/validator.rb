@@ -8,7 +8,7 @@ module Rester
       def initialize(opts={})
         @options = opts.dup.freeze
         @_required_fields = []
-        @_default_values = {}
+        @_defaults = {}
         @_all_fields = []
 
         # Default "validator" is to just treat the param as a string.
@@ -25,7 +25,7 @@ module Rester
       def freeze
         @_validators.freeze
         @_required_fields.freeze
-        @_default_values.freeze
+        @_defaults.freeze
         @_all_fields.freeze
       end
 
@@ -35,8 +35,9 @@ module Rester
 
       def validate(params)
         param_keys = params.keys.map(&:to_sym)
+        default_keys = @_defaults.keys
 
-        unless (missing = @_required_fields - param_keys).empty?
+        unless (missing = @_required_fields - param_keys - default_keys).empty?
           _error!("missing params: #{missing.join(', ')}")
         end
 
@@ -44,27 +45,18 @@ module Rester
           _error!("unexpected params: #{unexpected.join(', ')}")
         end
 
-        (@_default_values.merge(params)).map do |key, value|
+        validated_params = params.map do |key, value|
           [key.to_sym, validate!(key.to_sym, value)]
         end.to_h
+
+        @_defaults.merge(validated_params)
       end
 
       def validate!(key, value)
-        klass, opts = @_validators[key]
+        klass = @_validators[key].first
 
         _parse_with_class(klass, value).tap do |obj|
-          if obj.nil? && @_required_fields.include?(key)
-            _error!("#{key} cannot be null")
-          end
-
-          opts.each do |opt, value|
-            case opt
-            when :within
-              _validate_within(key, obj, value)
-            else
-              _validate_method(key, obj, opt, value) unless obj.nil?
-            end
-          end
+          _validate_obj(key, obj)
         end
       end
 
@@ -98,6 +90,8 @@ module Rester
           name = args.shift
           opts = args.shift || {}
           _add_validator(name, self.class.const_get(meth), opts)
+        else
+          super
         end
       end
 
@@ -105,11 +99,24 @@ module Rester
         fail 'must specify param name' unless name
         fail 'validation options must be a Hash' unless opts.is_a?(Hash)
         opts = opts.dup
+
         @_required_fields << name.to_sym if opts.delete(:required)
-        @_default_values[name.to_s] = opts.delete(:default).to_s if opts[:default]
+        default = opts.delete(:default)
+
         @_all_fields << name.to_sym
         @_validators[name.to_sym] = [klass, opts]
+
+        if default
+          _validate_default(name.to_sym, default)
+          @_defaults[name.to_sym] = default
+        end
+
         nil
+      end
+
+      def _validate_default(key, default)
+        error = catch(:error) { _validate_obj(key.to_sym, default) }
+        raise error if error
       end
 
       def _parse_with_class(klass, value)
@@ -127,6 +134,39 @@ module Rester
           value.downcase == 'true' ? true : false
         else
           klass.parse(value)
+        end
+      end
+
+      def _validate_obj(key, obj)
+        if obj.nil? && @_required_fields.include?(key)
+          _error!("#{key} cannot be null")
+        end
+
+        klass, opts = @_validators[key]
+        _validate_type(key, obj, klass) if obj
+
+        opts.each do |opt, value|
+          case opt
+          when :within
+            _validate_within(key, obj, value)
+          else
+            _validate_method(key, obj, opt, value) unless obj.nil?
+          end
+        end
+
+        nil
+      end
+
+      def _validate_type(key, obj, type)
+        case type
+        when :boolean
+          unless obj.is_a?(TrueClass) || obj.is_a?(FalseClass)
+            _error!("#{key} should be Boolean but got #{obj.class}")
+          end
+        else
+          unless obj.is_a?(type)
+            _error!("#{key} should be #{type} but got #{obj.class}")
+          end
         end
       end
 
