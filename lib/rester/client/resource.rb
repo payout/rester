@@ -54,6 +54,6 @@ module Rester
         verb, name = Utils.extract_method_verb(name)
         _request(verb, name, params)
       end
-    end # Object
+    end # Resource
   end # Client
 end # Rester

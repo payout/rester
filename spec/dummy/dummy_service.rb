@@ -3,7 +3,7 @@ require 'rester'
 module Rester
   class DummyService < Service
     module V1
-      class MountedObject < Service::Object
+      class MountedObject < Service::Resource
         def search(params)
           params.merge(method: :search)
         end
@@ -23,7 +23,7 @@ module Rester
         mount MountedObject
       end # MountedObject
 
-      class Test < Service::Object
+      class Test < Service::Resource
         id :token
         mount MountedObject
 
@@ -65,6 +65,24 @@ module Rester
           get(params)
         end
       end # Test
+
+      class TestWithDefaults < Service::Resource
+        params do
+          String  :string_with_default,  default: 'string'
+          Integer :integer_with_default, default: 1
+          Float   :float_with_default,   default: 3.14
+          Symbol  :symbol_with_default,  default: :default
+          Boolean :bool_with_default,    default: true
+        end
+
+        def search(params)
+          params.merge(method: :search)
+        end
+
+        def get(params)
+          { token: params.delete(:test_token), params: params, method: :get }
+        end
+      end # TestWithDefaults
     end # V1
   end # DummyService
 end # Rester

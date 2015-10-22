@@ -5,7 +5,7 @@ require 'active_support/inflector'
 module Rester
   class Service
     autoload(:Request, 'rester/service/request')
-    autoload(:Object,  'rester/service/object')
+    autoload(:Resource,  'rester/service/resource')
 
     ##
     # The base set of middleware to use for every service.
@@ -68,15 +68,15 @@ module Rester
         const_get(version.to_s.upcase)
       end
 
-      def objects(version_module)
-        (@__objects ||= {})[version_module] ||= _load_objects(version_module)
+      def resources(version_module)
+        (@__resources ||= {})[version_module] ||= _load_resources(version_module)
       end
 
-      def _load_objects(version_module)
+      def _load_resources(version_module)
         version_module.constants.map { |c|
           version_module.const_get(c)
         }.select { |c|
-          c.is_a?(Class) && c < Service::Object
+          c.is_a?(Class) && c < Service::Resource
         }
       end
     end # Class methods
@@ -119,7 +119,7 @@ module Rester
     end
 
     ##
-    # Validates the request, calls the appropriate Service::Object method and
+    # Validates the request, calls the appropriate Service::Resource method and
     # returns a valid Rack response.
     def _process_request(request)
       _error!(Errors::NotFoundError) unless request.valid?
@@ -138,14 +138,14 @@ module Rester
     end
 
     ##
-    # Calls the appropriate method on the appropriate Service::Object for the
+    # Calls the appropriate method on the appropriate Service::Resource for the
     # request.
     def _call_method(request)
       params = request.params
       retval = nil
 
       name, id, *object_chain = request.object_chain
-      obj = _load_object(request, name)
+      obj = _load_resource(request, name)
 
       loop {
         params.merge!(obj.id_param => id) if id
@@ -163,9 +163,9 @@ module Rester
     end
 
     ##
-    # Loads the appropriate Service::Object for the request. This will return
+    # Loads the appropriate Service::Resource for the request. This will return
     # the class, not an instance.
-    def _load_object(request, name)
+    def _load_resource(request, name)
       _version_module(request).const_get(name.camelcase.singularize).new
     rescue NameError
       _error!(Errors::NotFoundError)
@@ -178,7 +178,7 @@ module Rester
     end
 
     ##
-    # Prepares the retval from a Service::Object method to be returned to the
+    # Prepares the retval from a Service::Resource method to be returned to the
     # client (i.e., validates it and dumps it as JSON).
     def _prepare_response(retval)
       retval ||= {}

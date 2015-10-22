@@ -34,15 +34,15 @@ PaymentService.cards("card_token").credit!(amount_cents: 10)
 ```ruby
 class PaymentService < Rester::Service
   module v1
-    class Card < Rester::Object
+    class Card < Rester::Resource
       id :token
       mount Credit
-    
+
       params do
         String :str
         Integer :something
       end
-    
+
       def search(params)
         # Search for the card.
       end
@@ -69,8 +69,8 @@ class PaymentService < Rester::Service
         # Delete the card.
       end
     end
-    
-    class Credit < Rester::Object
+
+    class Credit < Rester::Resource
       ##
       # Can be called directly via: POST /v1/credits
       # Or can be called via POST /v1/cards/token/credits
@@ -78,7 +78,7 @@ class PaymentService < Rester::Service
       # automatically be passed to it.
       def create(params)
       end
-      
+
       ##
       # GET /v1/credits/token
       #
