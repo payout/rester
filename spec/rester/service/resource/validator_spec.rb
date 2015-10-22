@@ -288,6 +288,53 @@ module Rester
         end # #String
 
         describe '#Symbol' do
+          subject { validator.validate(params) }
+          let(:field) { :a_symbol }
+          let(:params) { {} }
+          let(:opts) { { default: default_value } }
+
+          context 'with valid default' do
+            let(:default_value) { :test_symbol }
+            before { validator.Symbol(field, opts) }
+
+            context 'with no value' do
+              it { is_expected.to eq(field.to_sym => default_value) }
+            end # with no value
+
+            context 'with value' do
+              let(:params) { { field => value } }
+
+              context 'with value of :hello' do
+                let(:value) { :hello }
+                it { is_expected.to eq(field.to_sym => value) }
+              end
+            end # with value
+          end # with valid default
+
+
+          context 'with invalid default' do
+            subject { validator.Symbol(field, opts) }
+
+            context 'wrong type' do
+              let(:default_value) { 1234 }
+
+              it 'should raise an error' do
+                expect { subject }.to raise_error Rester::Errors::ValidationError,
+                  "a_symbol should be Symbol but got Fixnum"
+              end
+
+              context 'with other options' do
+                let(:opts) { { default: default_value, within: [:this, :that] } }
+                let(:default_value) { :bad_default }
+
+                it 'should raise an error' do
+                  expect { subject }.to raise_error Rester::Errors::ValidationError,
+                    "a_symbol not within [:this, :that]"
+                end
+              end # with other options
+            end # wrong type
+
+          end # with invalid default
         end # #Symbol
 
         describe '#Float' do
