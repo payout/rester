@@ -1,9 +1,9 @@
 [![Gem Version](https://badge.fury.io/rb/rester.svg)](http://badge.fury.io/rb/rester) [![Build Status](https://semaphoreci.com/api/v1/projects/a4233ca0-25dd-49ff-8bde-4ed5218d8f60/559761/shields_badge.svg)](https://semaphoreci.com/payout/rester) [![Code Climate](https://codeclimate.com/github/payout/rester/badges/gpa.svg)](https://codeclimate.com/github/payout/rester) [![Test Coverage](https://codeclimate.com/github/payout/rester/badges/coverage.svg)](https://codeclimate.com/github/payout/rester/coverage)
 
 # Rester
-An opinionated framework for creating simple and effective RESTful interfaces between
-application services. The goal is to create a way to rapidly develop new services
-without needing to package SDKs into gems or interface directly with the web interface.
+An opinionated framework for creating simple and effective RESTful interfaces between application services. The goal is to create a way to rapidly develop new services without needing to package SDKs into gems or interface directly with the web interface.
+
+The intended use-case for Rester is inter-service communication, not to provide a publically accessible API. There are better libraries for doing that (e.g., grape). Rester is forces a particular API design and development pattern that enforces simplicity and predictability.
 
 ## Installation
 ```ruby
@@ -15,18 +15,28 @@ gem install rester
 ### Client-side
 ```ruby
 PaymentService = Rester.connect("http://url-to-service.com/v1")
+
+##
+# Retrieve individual records:
 PaymentService.cards("card_token").get
 # => GET http://url-to-service.com/v1/cards/card_token
 # <= { { "last_four": "1111", ... } }
 
+##
+# Create records
 PaymentService.cards!(number: "4111111111111111", exp: '07/20', customer_id: 'customer_id')
 # => POST http://url-to-service.com/v1/cards
 #    data: number=4111111111111111&exp=07/20
 
+##
+# Search for records:
 PaymentService.cards(customer_id: 'customer_id')
+# => GET http://url-to-service.com/v1/cards?customer_id=customer_id
 
-PaymentService.cards("card_token").credit!(amount_cents: 10)
-# => POST http://url-to-service.com/v1/cards/card_token/credit
+##
+# Mount resources in other resources.
+PaymentService.cards("card_token").credits!(amount_cents: 10)
+# => POST http://url-to-service.com/v1/cards/card_token/credits
 #    data: amount_cents=10
 ```
 
@@ -42,7 +52,7 @@ class PaymentService < Rester::Service
         String :str
         Integer :something
       end
-
+      
       def search(params)
         # Search for the card.
       end
