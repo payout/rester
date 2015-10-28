@@ -261,8 +261,7 @@ module Rester
         end
 
         it 'should return the context back to nil' do
-          client.with_context(context) do
-          end
+          client.with_context(context) {}
           expect(client.adapter.context).to eq nil
         end
       end # with StubAdapter
@@ -272,8 +271,7 @@ module Rester
 
         it 'should raise error' do
           expect {
-            client.with_context(context) do
-            end
+            client.with_context(context) {}
           }.to raise_error Errors::MethodError, 'Can only use "with_context" with a StubAdapter'
         end
       end # with non-StubAdapter
