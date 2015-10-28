@@ -268,7 +268,7 @@ module Rester
       end # with StubAdapter
 
       context 'with non-StubAdapter' do
-        before { client.connect(test_url); puts client.inspect }
+        before { client.connect(test_url) }
 
         it 'should raise error' do
           expect {
