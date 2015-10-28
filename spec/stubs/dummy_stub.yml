@@ -46,13 +46,22 @@ producer: core
             "token": "CTabcdef",
             "status": "ready"
           }
-    With non-existing card:
+    With non-existent card:
       response:
         code: 404
         body: |
           {
             "error": "validation_error",
             "message": "card not found"
+          }
+  DELETE:
+    With card existing:
+      response:
+        code: 200
+        body: |
+          {
+            "token": "CTabcdef",
+            "status": "deleted"
           }
 /v1/cards/CTabcdef/credits:
   POST:
@@ -68,4 +77,23 @@ producer: core
           {
             "token": "CCaoeu",
             "amount_cents": 100
+          }
+/v1/cards/CTabcdef/customers:
+  PUT:
+    Valid customer:
+      request:
+        body: |
+          {
+            "name": "John Smith",
+            "city": "San Francisco",
+            "state": "CA"
+          }
+      response:
+        code: 200
+        body: |
+          {
+            "name": "John Smith",
+            "city": "San Francisco",
+            "state": "CA",
+            "status": "valid_customer"
           }
