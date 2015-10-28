@@ -1,0 +1,71 @@
+version: 1.1
+consumer: api
+producer: core
+
+/v1/cards:
+  POST:
+    With valid card details:
+      request:
+        body: |
+          {
+            "card_number": "4111111111111111",
+            "exp_month": "08",
+            "exp_year": "2017"
+          }
+      response:
+        code: 200
+        body: |
+          {
+            "token": "CTABCDEFG",
+            "exp_month": "08",
+            "exp_year": "2017",
+            "status": "ready"
+          }
+    With expired card:
+      request:
+        body: |
+          {
+            "card_number": "411111111",
+            "exp_month": "01",
+            "exp_year": "2000"
+          }
+      response:
+        code: 400
+        body: |
+          {
+            "error": "validation_error",
+            "message": "card expired"
+          }
+/v1/cards/CTabcdef:
+  GET:
+    With card existing:
+      response:
+        code: 200
+        body: |
+          {
+            "token": "CTabcdef",
+            "status": "ready"
+          }
+    With non-existing card:
+      response:
+        code: 404
+        body: |
+          {
+            "error": "validation_error",
+            "message": "card not found"
+          }
+/v1/cards/CTabcdef/credits:
+  POST:
+    With card existing:
+      request:
+        body: |
+          {
+            "amount_cents": 100
+          }
+      response:
+        code: 200
+        body: |
+          {
+            "token": "CCaoeu",
+            "amount_cents": 100
+          }

@@ -1,0 +1,37 @@
+onsumer: api
+producer: core
+
+/v1/cards:
+  POST:
+    With valid card details:
+      request:
+        body: |
+          {
+            "card_number": "4111111111111111",
+            "exp_month": "08",
+            "exp_year": "2017"
+          }
+      response:
+        code: 200
+        body: |
+          {
+            "token": "CTABCDEFG",
+            "exp_month": "08",
+            "exp_year": "2017",
+            "status": "ready"
+          }
+    With expired card:
+      request:
+        body: |
+          {
+            "card_number": "411111111",
+            "exp_month": "01",
+            "exp_year": "2000"
+          }
+      response:
+        code: 400
+        body: |
+          {
+            "error": "validation_error",
+            "message": "card expired"
+          }
