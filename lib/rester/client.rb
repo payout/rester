@@ -31,6 +31,16 @@ module Rester
       _process_response(path, *adapter.request(verb, path, params, &block))
     end
 
+    def with_context(context, &block)
+      unless adapter.is_a?(Adapters::StubAdapter)
+        raise Errors::MethodError, 'Can only use "with_context" with a StubAdapter'
+      end
+
+      adapter.context = context
+      yield block
+      adapter.context = nil
+    end
+
     protected
 
     def adapter=(adapter)

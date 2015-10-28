@@ -39,7 +39,7 @@ module Rester
         before { client.connect(test_url) }
         it { is_expected.to be true }
       end
-    end # #connect?
+    end # #connected?
 
     describe '#tests', :tests do
       let(:tests) { client.tests(*args) }
@@ -246,5 +246,37 @@ module Rester
         end # with hash argument
       end # with connection
     end # #tests!
+
+    describe '#with_context' do
+      let(:stub_file_path) { 'spec/stubs/dummy_stub.yml' }
+      let(:context) { 'some_context' }
+
+      context 'with StubAdapter' do
+        let(:client) { Client.new(Client::Adapters::StubAdapter.new(stub_file_path)) }
+
+        it 'should set the context of the adapter' do
+          client.with_context(context) do
+            expect(client.adapter.context).to eq context
+          end
+        end
+
+        it 'should return the context back to nil' do
+          client.with_context(context) do
+          end
+          expect(client.adapter.context).to eq nil
+        end
+      end # with StubAdapter
+
+      context 'with non-StubAdapter' do
+        before { client.connect(test_url); puts client.inspect }
+
+        it 'should raise error' do
+          expect {
+            client.with_context(context) do
+            end
+          }.to raise_error Errors::MethodError, 'Can only use "with_context" with a StubAdapter'
+        end
+      end # with non-StubAdapter
+    end # #with_context
   end # Client
 end # Rester
