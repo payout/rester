@@ -266,16 +266,6 @@ module Rester
           expect(client.adapter.context).to eq nil
         end
       end # with StubAdapter
-
-      context 'with non-StubAdapter' do
-        before { client.connect(test_url) }
-
-        it 'should raise error' do
-          expect {
-            client.with_context(context) {}
-          }.to raise_error Errors::MethodError, 'Can only use "with_context" with a StubAdapter'
-        end
-      end # with non-StubAdapter
     end # #with_context
   end # Client
 end # Rester

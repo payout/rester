@@ -29,16 +29,6 @@ module Rester
       _process_response(path, *adapter.request(verb, path, params, &block))
     end
 
-    def with_context(context, &block)
-      unless adapter.is_a?(Adapters::StubAdapter)
-        raise Errors::MethodError, 'Can only use "with_context" with a StubAdapter'
-      end
-
-      adapter.context = context
-      yield block
-      adapter.context = nil
-    end
-
     protected
 
     def adapter=(adapter)
@@ -50,7 +40,11 @@ module Rester
     ##
     # Submits the method to the adapter.
     def method_missing(meth, *args, &block)
-      @_resource.send(:method_missing, meth, *args, &block)
+      if adapter.respond_to?(meth)
+        adapter.public_send(meth, *args, &block)
+      else
+        @_resource.send(:method_missing, meth, *args, &block)
+      end
     end
 
     def _path_with_version(path)
