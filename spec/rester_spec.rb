@@ -3,7 +3,7 @@ RSpec.describe Rester do
     subject { Rester.connect(*connect_args) }
 
     context 'with url' do
-      let(:url) { "#{RSpec.server_uri}" }
+      let(:url) { RSpec.server_uri }
       let(:connect_args) { [url] }
 
       it { is_expected.to be_a Rester::Client }
