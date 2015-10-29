@@ -6,12 +6,11 @@ module Rester
       autoload(:LocalAdapter, 'rester/client/adapters/local_adapter')
       autoload(:StubAdapter,  'rester/client/adapters/stub_adapter')
 
-      def self.list
-        self.constants.reject { |const|
-          const == :Adapter || !self.const_get(const).is_a?(Class)
-        }.map { |c|
-          self.const_get(c)
-        }
+      class << self
+        def list
+          constants.map { |c| const_get(c) }
+            .select { |c| c.is_a?(Class) && c < Adapter }
+        end
       end
     end
   end

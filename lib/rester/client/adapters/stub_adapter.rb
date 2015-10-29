@@ -11,9 +11,11 @@ module Rester
     class StubAdapter < Adapter
       attr_reader :stub
 
-      def self.can_connect_to?(service)
-        service.is_a?(String) && Pathname(service).file?
-      end
+      class << self
+        def can_connect_to?(service)
+          service.is_a?(String) && Pathname(service).file?
+        end
+      end # Class Methods
 
       def connect(stub_filepath, opts={})
         @stub = YAML.load_file(stub_filepath)

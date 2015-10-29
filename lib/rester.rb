@@ -17,9 +17,9 @@ module Rester
     end
 
     def connect(service, params={})
-      adapter_klass = Client::Adapters.list.find { |a| a.can_connect_to?(service) }
-      fail "unable to connect to #{service.inspect}" unless adapter_klass
-      adapter = adapter_klass.new(service)
+      klass = Client::Adapters.list.find { |a| a.can_connect_to?(service) }
+      fail "unable to connect to #{service.inspect}" unless klass
+      adapter = klass.new(service)
       Client.new(adapter, params)
     end
   end # Class Methods

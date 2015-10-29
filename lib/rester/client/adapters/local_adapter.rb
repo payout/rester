@@ -9,9 +9,11 @@ module Rester
     class LocalAdapter < Adapter
       attr_reader :service
 
-      def self.can_connect_to?(service)
-        service.is_a?(Class) && service < Service
-      end
+      class << self
+        def can_connect_to?(service)
+          service.is_a?(Class) && service < Service
+        end
+      end # Class Methods
 
       def connect(service, opts={})
         nil.tap { @service = service }

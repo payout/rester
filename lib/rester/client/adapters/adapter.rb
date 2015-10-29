@@ -2,11 +2,13 @@ module Rester
   module Client::Adapters
     class Adapter
 
-      ##
-      # Returns whether or not the Adapter can connect to the service
-      def self.can_connect_to?(service)
-        raise NotImplementedError
-      end
+      class << self
+        ##
+        # Returns whether or not the Adapter can connect to the service
+        def can_connect_to?(service)
+          raise NotImplementedError
+        end
+      end # Class Methods
 
       def initialize(*args)
         connect(*args) unless args.empty?
