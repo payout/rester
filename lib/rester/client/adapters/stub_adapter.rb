@@ -62,11 +62,11 @@ module Rester
       end
 
       def _validate_request(verb, path, params)
-        raise Errors::ValidationError, "#{path} not found" unless stub[path]
-        raise Errors::ValidationError, "#{verb} #{path} not found" unless stub[path][verb]
+        fail Errors::ValidationError, "#{path} not found" unless stub[path]
+        fail Errors::ValidationError, "#{verb} #{path} not found" unless stub[path][verb]
 
         unless (action = stub[path][verb][context])
-          raise Errors::ValidationError,
+          fail Errors::ValidationError,
             "#{verb} #{path} with context '#{context}' not found"
         end
 
@@ -74,7 +74,7 @@ module Rester
         if (request = action['request'])
           stub_params = JSON.parse(request['body'], symbolize_names: true)
           unless stub_params == params
-            raise Errors::ValidationError,
+            fail Errors::ValidationError,
               "#{verb} #{path} with context '#{context}' params don't match stub"
           end
         end
