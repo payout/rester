@@ -5,6 +5,26 @@ module Rester
       let(:stub_adapter) { StubAdapter.new(stub_file_path, opts) }
       let(:opts) { {} }
 
+      describe '::can_connect_to?' do
+        subject { StubAdapter.can_connect_to?(service) }
+        let(:service) { '' }
+
+        context 'with non-string' do
+          let(:service) { DummyService }
+          it { is_expected.to be false }
+        end # with non-string
+
+        context 'with valid file path' do
+          let(:service) { stub_file_path }
+          it { is_expected.to be true }
+        end # with valid file path
+
+        context 'with invalid directory path' do
+          let(:service) { 'spec/stubs' }
+          it { is_expected.to be false }
+        end # with invalid directory path
+      end # ::can_connect_to?
+
       describe '#connected?' do
         subject { stub_adapter.connected? }
 

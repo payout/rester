@@ -4,6 +4,26 @@ module Rester
       let(:adapter) { LocalAdapter.new(DummyService, opts) }
       let(:opts) { {} }
 
+      describe '::can_connect_to?' do
+        subject { LocalAdapter.can_connect_to?(service) }
+        let(:service) { '' }
+
+        context 'with non-class' do
+          let(:service) { 'dummy_service' }
+          it { is_expected.to be false }
+        end # with non-class
+
+        context 'with non-Service class' do
+          let(:service) { Object }
+          it { is_expected.to be false }
+        end # with non-Service class
+
+        context 'with valid Service class' do
+          let(:service) { DummyService }
+          it { is_expected.to be true }
+        end # with valid Service class
+      end # ::can_connect_to?
+
       describe '#get!' do
         let(:params) { {test: 'param'} }
         subject { adapter.get!(path, params) }
