@@ -3,13 +3,17 @@ RSpec.describe Rester do
     subject { Rester.connect(*connect_args) }
 
     context 'with url' do
-      let(:url) { RSpec.server_uri }
+      let(:url) { "#{RSpec.server_uri}" }
       let(:connect_args) { [url] }
 
       it { is_expected.to be_a Rester::Client }
 
       it 'should have HttpAdapter' do
         expect(subject.adapter).to be_a Rester::Client::Adapters::HttpAdapter
+      end
+
+      it 'should have its adapter connected' do
+        expect(subject.adapter.connected?).to eq true
       end
     end
 
@@ -25,7 +29,7 @@ RSpec.describe Rester do
       end
 
       it 'should default to version 1' do
-        expect(subject.adapter.version).to eq 1
+        expect(subject.version).to eq 1
       end
 
       it 'should send request correctly' do
@@ -38,13 +42,18 @@ RSpec.describe Rester do
         let(:opts) { { version: 1234 } }
 
         it 'should have specified version' do
-          expect(subject.adapter.version).to eq 1234
+          expect(subject.version).to eq 1234
         end
       end # with version specified
+
+      it 'should have its adapter connected' do
+        expect(subject.adapter.connected?).to eq true
+      end
     end # with service class
 
     context 'with file path' do
-      let(:connect_args) { ['spec/stubs/dummy_stub.yml'] }
+      let(:connect_args) { ['spec/stubs/dummy_stub.yml', opts] }
+      let(:opts) { {version: 1.1} }
 
       it { is_expected.to be_a Rester::Client }
 
@@ -52,25 +61,17 @@ RSpec.describe Rester do
         expect(subject.adapter).to be_a Rester::Client::Adapters::StubAdapter
       end
 
-      it 'should have the correct version' do
-        expect(subject.adapter.version).to eq 1.1
-      end
-
-      context 'with stub missing version' do
-        let(:connect_args) { ['spec/stubs/stub_without_version.yml'] }
-
-        it 'should default to version 1' do
-          expect(subject.adapter.version).to eq 1
-        end
-      end
-
-      context 'with invalid file' do
-        let(:connect_args) { ['spec/stubs/invalid_stub_file.rb'] }
+      context 'with invalid input' do
+        let(:connect_args) { ['spec/stubs/', opts] }
 
         it 'should raise an error' do
-          expect { subject }.to raise_error Rester::Errors::InvalidStubFileError, "Expected .yml, got .rb"
+          expect { subject }.to raise_error 'unable to connect to "spec/stubs/"'
         end
-      end # with invalid file
+      end # with invalid input
+
+      it 'should have its adapter connected' do
+        expect(subject.adapter.connected?).to eq true
+      end
     end  # with file path
   end # ::connect
 end # Rester

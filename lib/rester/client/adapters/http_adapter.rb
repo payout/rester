@@ -5,6 +5,10 @@ module Rester
 
       attr_reader :connection
 
+      def self.can_connect_to?(service)
+        service.is_a?(String) && ['http', 'https'].include?(URI(service).scheme)
+      end
+
       def connect(*args)
         nil.tap { @connection = Connection.new(*args) }
       end

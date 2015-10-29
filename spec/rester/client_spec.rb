@@ -7,8 +7,9 @@ module Rester
       JSON.parse(params.to_json, symbolize_names: true)
     end
 
-    let(:client) { Client.new }
-    let(:test_url) { "#{RSpec.server_uri}/v1" }
+    let(:adapter) { Client::Adapters::HttpAdapter.new }
+    let(:client) { Client.new(adapter, version: 1) }
+    let(:test_url) { "#{RSpec.server_uri}" }
 
     # Request Hash
     let(:req_hash) { {string: "string", integer: 1, float: 1.1, symbol: :symbol, bool: true, null: nil} }
@@ -80,7 +81,7 @@ module Rester
 
           it 'should raise error' do
             expect { subject.get }.to raise_error Errors::NotFoundError,
-              '/tests/token'
+              '/v1/tests/token'
           end
         end # with unsupported version
 
@@ -198,7 +199,7 @@ module Rester
               let(:mounted_objects!) { tests.mounted_objects!(arg: 'required') }
               subject { mounted_objects! }
               it { expect { subject }.to raise_error Errors::NotFoundError,
-                '/tests/token/mounted_objects'
+                '/v1/tests/token/mounted_objects'
               }
             end # mounted_objects!
           end # with string argument

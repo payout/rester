@@ -7,11 +7,13 @@ module Rester
     # An adapter for "connecting" to a service internally, without needing to
     # interface over a HTTP connection.
     class LocalAdapter < Adapter
-      attr_reader :version
       attr_reader :service
 
+      def self.can_connect_to?(service)
+        service.is_a?(Class) && service < Service
+      end
+
       def connect(service, opts={})
-        @version = opts[:version] || 1
         nil.tap { @service = service }
       end
 
@@ -43,7 +45,7 @@ module Rester
 
         response = service.call(
           'REQUEST_METHOD' => verb.to_s.upcase,
-          'PATH_INFO'      => Utils.join_paths("/v#{version}", path),
+          'PATH_INFO'      => path,
           'CONTENT_TYPE'   => 'application/x-www-form-urlencoded',
           'QUERY_STRING'   => query,
           'rack.input'     => StringIO.new(body)

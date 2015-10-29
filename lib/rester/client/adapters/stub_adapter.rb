@@ -1,5 +1,6 @@
 require 'yaml'
 require 'json'
+require 'pathname'
 
 module Rester
   module Client::Adapters
@@ -8,12 +9,14 @@ module Rester
     # requests via a yaml file. This will be used in spec tests to perform
     # "contractual testing"
     class StubAdapter < Adapter
-      attr_reader :version
       attr_reader :stub
+
+      def self.can_connect_to?(service)
+        service.is_a?(String) && Pathname(service).file?
+      end
 
       def connect(stub_filepath, opts={})
         @stub = YAML.load_file(stub_filepath)
-        @version = @stub['version'] || 1
       end
 
       def connected?

@@ -7,15 +7,11 @@ module Rester
     autoload(:Resource, 'rester/client/resource')
 
     attr_reader :adapter
+    attr_reader :version
 
-    def initialize(*args)
-      case args.first
-      when Adapters::Adapter
-        self.adapter = args.first
-      else
-        self.adapter = Adapters::HttpAdapter.new(*args)
-      end
-
+    def initialize(adapter, params={})
+      self.adapter = adapter
+      @version = params[:version] || 1
       @_resource = Resource.new(self)
     end
 
@@ -24,10 +20,12 @@ module Rester
     end
 
     def connected?
-      adapter.connected? && adapter.get('status').first == 200
+      adapter.connected? && adapter.get(_path_with_version('status')).first == 200
     end
 
     def request(verb, path, params={}, &block)
+      path = _path_with_version(path)
+
       _process_response(path, *adapter.request(verb, path, params, &block))
     end
 
@@ -55,13 +53,17 @@ module Rester
       @_resource.send(:method_missing, meth, *args, &block)
     end
 
+    def _path_with_version(path)
+      Utils.join_paths("/v#{version}", path)
+    end
+
     def _process_response(path, status, body)
       if status.between?(200, 299)
         _parse_json(body)
       elsif status == 400
         raise Errors::RequestError, _parse_json(body)[:message]
       elsif status == 404
-        raise Errors::NotFoundError, "/#{path}"
+        raise Errors::NotFoundError, "#{path}"
       else
         raise Errors::ServerError, _parse_json(body)[:message]
       end
