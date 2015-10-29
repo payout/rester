@@ -16,12 +16,11 @@ module Rester
       ].each { |rake_file| load rake_file }
     end
 
-    def connect(*args)
-      if (service = args.first).is_a?(Class) && service < Service
-        Client.new(Client::Adapters::LocalAdapter.new(*args))
-      else
-        Client.new(*args)
-      end
+    def connect(service, params={})
+      klass = Client::Adapters.list.find { |a| a.can_connect_to?(service) }
+      fail "unable to connect to #{service.inspect}" unless klass
+      adapter = klass.new(service)
+      Client.new(adapter, params)
     end
   end # Class Methods
 end # Rester

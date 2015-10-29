@@ -7,8 +7,9 @@ module Rester
       JSON.parse(params.to_json, symbolize_names: true)
     end
 
-    let(:client) { Client.new }
-    let(:test_url) { "#{RSpec.server_uri}/v1" }
+    let(:adapter) { Client::Adapters::HttpAdapter.new }
+    let(:client) { Client.new(adapter, version: 1) }
+    let(:test_url) { "#{RSpec.server_uri}" }
 
     # Request Hash
     let(:req_hash) { {string: "string", integer: 1, float: 1.1, symbol: :symbol, bool: true, null: nil} }
@@ -39,7 +40,7 @@ module Rester
         before { client.connect(test_url) }
         it { is_expected.to be true }
       end
-    end # #connect?
+    end # #connected?
 
     describe '#tests', :tests do
       let(:tests) { client.tests(*args) }
@@ -80,7 +81,7 @@ module Rester
 
           it 'should raise error' do
             expect { subject.get }.to raise_error Errors::NotFoundError,
-              '/tests/token'
+              '/v1/tests/token'
           end
         end # with unsupported version
 
@@ -198,7 +199,7 @@ module Rester
               let(:mounted_objects!) { tests.mounted_objects!(arg: 'required') }
               subject { mounted_objects! }
               it { expect { subject }.to raise_error Errors::NotFoundError,
-                '/tests/token/mounted_objects'
+                '/v1/tests/token/mounted_objects'
               }
             end # mounted_objects!
           end # with string argument
@@ -246,5 +247,25 @@ module Rester
         end # with hash argument
       end # with connection
     end # #tests!
+
+    describe '#with_context' do
+      let(:stub_file_path) { 'spec/stubs/dummy_stub.yml' }
+      let(:context) { 'some_context' }
+
+      context 'with StubAdapter' do
+        let(:client) { Client.new(Client::Adapters::StubAdapter.new(stub_file_path)) }
+
+        it 'should set the context of the adapter' do
+          client.with_context(context) do
+            expect(client.adapter.context).to eq context
+          end
+        end
+
+        it 'should return the context back to nil' do
+          client.with_context(context) {}
+          expect(client.adapter.context).to eq nil
+        end
+      end # with StubAdapter
+    end # #with_context
   end # Client
 end # Rester

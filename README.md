@@ -14,7 +14,7 @@ gem install rester
 
 ### Client-side
 ```ruby
-PaymentService = Rester.connect("http://url-to-service.com/v1")
+PaymentService = Rester.connect("http://url-to-service.com", version: 1)
 
 ##
 # Retrieve individual records:
@@ -52,7 +52,7 @@ class PaymentService < Rester::Service
         String :str
         Integer :something
       end
-      
+
       def search(params)
         # Search for the card.
       end
