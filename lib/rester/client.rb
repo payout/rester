@@ -29,6 +29,12 @@ module Rester
       _process_response(path, *adapter.request(verb, path, params, &block))
     end
 
+    ##
+    # This is only implemented by the StubAdapter.
+    def with_context(*args, &block)
+      adapter.with_context(*args, &block)
+    end
+
     protected
 
     def adapter=(adapter)
@@ -40,11 +46,7 @@ module Rester
     ##
     # Submits the method to the adapter.
     def method_missing(meth, *args, &block)
-      if adapter.respond_to?(meth)
-        adapter.public_send(meth, *args, &block)
-      else
-        @_resource.send(:method_missing, meth, *args, &block)
-      end
+      @_resource.send(:method_missing, meth, *args, &block)
     end
 
     def _path_with_version(path)

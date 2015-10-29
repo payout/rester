@@ -49,13 +49,20 @@ module Rester
         @_context = context
       end
 
+      def with_context(context, &block)
+        self.context = context
+        yield block
+        self.context = nil
+      end
+
       private
 
       def _request(verb, path, params)
         _validate_request(verb, path, params)
 
-        # At this point, the 'request' is valid by matching a corresponding request
-        # in the stub yaml file. Grab the response from the file and reset the context
+        # At this point, the 'request' is valid by matching a corresponding
+        # request in the stub yaml file. Grab the response from the file and
+        # reset the context
         response = stub[path][verb][context]['response']
         context = nil
         [response['code'], JSON.parse(response['body']).to_json]
