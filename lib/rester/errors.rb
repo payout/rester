@@ -16,8 +16,10 @@ module Rester
 
     #############
     # Stub Adapter Errors
-    class StubAdapterError < Error; end
-    class InvalidStubFileError < StubAdapterError; end
+    class StubError < Error; end
+
+    #############
+    # Stub Adapter Errors
 
     #############
     # Http Errors

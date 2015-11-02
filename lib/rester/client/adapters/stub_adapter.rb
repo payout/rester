@@ -65,23 +65,22 @@ module Rester
         # reset the context
         response = stub[path][verb][context]['response']
         context = nil
-        [response['code'], JSON.parse(response['body']).to_json]
+        [response['code'], response['body'].to_json]
       end
 
       def _validate_request(verb, path, params)
-        fail Errors::ValidationError, "#{path} not found" unless stub[path]
-        fail Errors::ValidationError, "#{verb} #{path} not found" unless stub[path][verb]
+        fail Errors::StubError, "#{path} not found" unless stub[path]
+        fail Errors::StubError, "#{verb} #{path} not found" unless stub[path][verb]
 
         unless (action = stub[path][verb][context])
-          fail Errors::ValidationError,
+          fail Errors::StubError,
             "#{verb} #{path} with context '#{context}' not found"
         end
 
         # Verify body, if there is one
         if (request = action['request'])
-          stub_params = JSON.parse(request['body'], symbolize_names: true)
-          unless stub_params == params
-            fail Errors::ValidationError,
+          unless Utils.symbolize_keys(request) == params
+            fail Errors::StubError,
               "#{verb} #{path} with context '#{context}' params don't match stub"
           end
         end
