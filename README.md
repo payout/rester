@@ -123,10 +123,9 @@ producer: some_service
   POST:
     With valid card details:
       request:
-        body:
-         card_number: "4111111111111111"
-         exp_month: "08"
-         exp_year: "2017"
+       card_number: "4111111111111111"
+       exp_month: "08"
+       exp_year: "2017"
       response:
         code: 200
         body:
@@ -187,16 +186,15 @@ The Service providers are responsible for verifying that the stubs created by th
   POST:
     With valid card details:
       request:
-        body:
-         card_number: "4111111111111111",
-         exp_month: "08",
-         exp_year: "2017"
+        card_number: "4111111111111111"
+        exp_month: "08"
+        exp_year: "2017"
       response:
         code: 200
         body:
-          token: "CTABCDEFG",
-          exp_month: "08",
-          exp_year: "2017",
+          token: "CTABCDEFG"
+          exp_month: "08"
+          exp_year: "2017"
           status: "ready"
 ```
 
