@@ -31,7 +31,7 @@ RSpec.configure do |config|
     #
     request_args = ex.example_group.parent_groups.map { |a|
       a.description unless a.metadata[:description] == a.described_class.to_s
-    }
+    }.compact
 
     context = request_args[0]
     verb    = request_args[1]
