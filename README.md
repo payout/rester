@@ -202,6 +202,8 @@ The Service providers are responsible for verifying that the stubs created by th
 
 #### Service RSpec Test Example:
 
+You need to `require 'rester/rspec' in your `spec_helper.rb` file.
+
 ```ruby
 RSpec.describe BusinessService, rester: "/path/to/stub/file.yml" do
   describe '/v1/cards' do
