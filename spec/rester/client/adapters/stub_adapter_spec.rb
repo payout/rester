@@ -47,7 +47,7 @@ module Rester
           let(:path) { '/v1/invalid_path' }
 
           it 'should raise an error' do
-            expect { subject }.to raise_error Errors::ValidationError, "#{path} not found"
+            expect { subject }.to raise_error Errors::StubError, "#{path} not found"
           end
         end # with invalid path
 
@@ -55,7 +55,7 @@ module Rester
           let(:path) { '/v1/cards' }
 
           it 'should raise an error' do
-            expect { subject }.to raise_error Errors::ValidationError, "GET #{path} not found"
+            expect { subject }.to raise_error Errors::StubError, "GET #{path} not found"
           end
         end # with invalid verb
 
@@ -64,7 +64,7 @@ module Rester
           let(:path) { '/v1/cards/CTabcdef' }
 
           it 'should raise an error' do
-            expect { subject }.to raise_error Errors::ValidationError,
+            expect { subject }.to raise_error Errors::StubError,
               "GET /v1/cards/CTabcdef with context '#{context}' not found"
           end
         end # with invalid context
@@ -75,7 +75,7 @@ module Rester
           let(:context) { 'With valid card details' }
 
           it 'should raise an error' do
-            expect { subject }.to raise_error Errors::ValidationError,
+            expect { subject }.to raise_error Errors::StubError,
               "POST #{path} with context '#{context}' params don't match stub"
           end
         end # with invalid params
@@ -190,8 +190,8 @@ module Rester
         describe '#put!' do
           let(:verb) { 'put' }
 
-          context 'with path /v1/cards/CTabcdef/customers' do
-            let(:path) { '/v1/cards/CTabcdef/customers' }
+          context 'with path /v1/cards/CTabcdef/customers/CUabc123' do
+            let(:path) { '/v1/cards/CTabcdef/customers/CUabc123' }
 
             context 'with valid customer' do
               let(:context) { 'Valid customer' }
