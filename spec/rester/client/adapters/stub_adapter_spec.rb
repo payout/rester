@@ -190,8 +190,8 @@ module Rester
         describe '#put!' do
           let(:verb) { 'put' }
 
-          context 'with path /v1/cards/CTabcdef/customers' do
-            let(:path) { '/v1/cards/CTabcdef/customers' }
+          context 'with path /v1/cards/CTabcdef/customers/CUabc123' do
+            let(:path) { '/v1/cards/CTabcdef/customers/CUabc123' }
 
             context 'with valid customer' do
               let(:context) { 'Valid customer' }

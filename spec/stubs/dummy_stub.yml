@@ -57,7 +57,7 @@ producer: core
         body:
           token: "CCaoeu"
           amount_cents: 100
-/v1/cards/CTabcdef/customers:
+/v1/cards/CTabcdef/customers/CUabc123:
   PUT:
     Valid customer:
       request:

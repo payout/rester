@@ -15,11 +15,8 @@ module Rester
     class MethodDefinitionError < Error; end
 
     #############
-    # Stub Adapter Errors
+    # Stub Errors
     class StubError < Error; end
-
-    #############
-    # Stub Adapter Errors
 
     #############
     # Http Errors
