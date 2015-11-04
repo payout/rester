@@ -3,14 +3,14 @@ require 'json'
 RSpec.configure do |config|
   config.before :all, rester: // do |ex|
     # Load the stub file
-    @stub_filepath = ex.class.metadata[:rester]
-    @stub = YAML.load_file(@stub_filepath)
+    @rester_stub_filepath = ex.class.metadata[:rester]
+    @rester_stub = YAML.load_file(@rester_stub_filepath)
 
     # Hook up the LocalAdapter with the Service being tested
     unless (klass = ex.class.described_class) < Rester::Service
       raise "invalid service to test"
     end
-    @adapter = Rester::Client::Adapters::LocalAdapter.new(klass, {})
+    @rester_adapter = Rester::Client::Adapters::LocalAdapter.new(klass, {})
   end
 
   config.before :each, rester: // do |ex|
@@ -38,16 +38,16 @@ RSpec.configure do |config|
     path    = request_args[2]
 
     begin
-      params   = @stub[path][verb][context]['request']
-      response = @stub[path][verb][context]['response']
-    rescue NoMethodError => e
-      raise Rester::Errors::StubError,
-        "Could not find path: #{path.inspect} verb: #{verb.inspect} context: #{context.inspect} in #{@stub_filepath}"
+      params   = @rester_stub[path][verb][context]['request']
+      response = @rester_stub[path][verb][context]['response']
+    rescue NoMethodError
+      fail Rester::Errors::StubError,
+        "Could not find path: #{path.inspect} verb: #{verb.inspect} context: #{context.inspect} in #{@rester_stub_filepath}"
     end
 
 
     ex.example_group.let(:subject) {
-      @adapter.request(verb.downcase.to_sym, path, params)
+      @rester_adapter.request(verb.downcase.to_sym, path, params)
     }
 
     ex.example_group.let(:stub_response) {
