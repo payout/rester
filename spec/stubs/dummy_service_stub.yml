@@ -20,6 +20,13 @@ producer: dummy_producer
           symbol: :some_symbol
           bool: true
           method: :search
+    With bad param:
+      request:
+        integer: 10000
+      response:
+        code: 400
+        body:
+          message: "integer failed between?(0,100) validation"
   POST:
     With some context:
       request:

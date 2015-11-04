@@ -29,7 +29,7 @@ module Rester
 
         params do
           String  :string
-          Integer :integer
+          Integer :integer, between?: [0,100]
           Float   :float
           Symbol  :symbol
           Boolean :bool

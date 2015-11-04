@@ -6,6 +6,10 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
       context 'With some context' do
         it { is_expected.to eq stub_response }
       end
+
+      context 'With bad param' do
+        it { is_expected.to eq stub_response }
+      end
     end # GET
 
     context 'POST' do
