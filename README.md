@@ -99,3 +99,124 @@ class PaymentService < Rester::Service
   end
 end
 ```
+
+## Contract Testing
+
+### Client-side Stub Testing
+
+The client is responsible for writing contracts for producer service requests that are in use in their application.
+
+1. Create a stubfile with the following format to stub the requests you expect to make in your application:
+2. Create RSpec unit tests for your application.
+3. Use `YourService.with_context` in your RSpec tests to point to the correct stub example you will need to use for yoru testing (a sample RSpec test is below)
+4. When testing, to connect to the Rester service that was stubbed, pass in the path to your Stubfile for the 'SERVICE_URL' like below:
+5. Rester will retrieve all responses made to your service from the Stubfile. If any requests in your application are made that don't exist in your Stubfile, then an error will be raised.
+
+
+#### Stub Example:
+```yml
+version: 1
+consumer: some_client
+producer: some_service
+
+/v1/cards:
+  POST:
+    With valid card details:
+      request:
+        body:
+         card_number: "4111111111111111"
+         exp_month: "08"
+         exp_year: "2017"
+      response:
+        code: 200
+        body:
+          token: "CTABCDEFG"
+          exp_month: "08"
+          exp_year: "2017"
+          status: "ready"
+    With expired card:
+      request:
+        card_number: "411111111"
+        exp_month: "01"
+        exp_year: "2000"
+      response:
+        code: 400
+        body:
+          error: "validation_error"
+          message: "card expired"
+
+```
+
+#### Spec Example:
+```ruby
+ENV['CORE_SERVICE_URL'] = '/path/to/stub/file.yml'
+CoreService = Rester.connect(ENV['CORE_SERVICE_URL'] , version: 1)
+
+...
+
+# spec/api/do_something_spec.rb
+describe '/v1/do_something' do
+  context "with something" do
+    around { |ex|
+      CoreService.with_context("With vaild card details") { ex.run }
+    }
+
+    let(:token) { 'CTabcdef' }
+
+    it 'should do something' do
+      lookup_card(token)
+        # CoreService.cards('CTabcdef').get
+
+      process_transaction
+        # CoreService.cards('CTabcdef').credits!(amount_cents: 100)
+    end
+
+  end
+end
+```
+
+
+### Service-side Stub Testing
+
+The Service providers are responsible for verifying that the stubs created by their clients are, in fact, accurate.
+
+#### Stub Example (written by client):
+```yml
+
+/v1/cards:
+  POST:
+    With valid card details:
+      request:
+        body:
+         card_number: "4111111111111111",
+         exp_month: "08",
+         exp_year: "2017"
+      response:
+        code: 200
+        body:
+          token: "CTABCDEFG",
+          exp_month: "08",
+          exp_year: "2017",
+          status: "ready"
+```
+
+#### Service RSpec Test Example:
+
+```ruby
+RSpec.describe BusinessService, rester: "/path/to/stub/file.yml" do
+  describe '/v1/cards' do
+    context 'POST' do
+      context 'With valid card details' do
+        before {
+          # Perform any operations needed for success
+        }
+
+        # The `subject` and `stub_response` variables are created by Rester so the
+        # line below is all that is needed to verify that the Service is providing
+        # what the Stubfile expects for this specific request
+        it { is_expected.to eq stub_response }
+      end
+    end
+  end
+end
+```
