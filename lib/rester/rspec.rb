@@ -65,28 +65,17 @@ RSpec.configure do |config|
   def _validate_test_coverage(ex)
     rester_service_tests = _rester_service_tests(ex)
     missing_tests = _missing_stub_tests(rester_service_tests)
-    puts missing_tests.inspect
 
     # Loop through each missing stub test and create a corresponding RSpect test
     # to display the missing tests as a failure to the user
     missing_tests.each { |missing_path, missing_verbs|
-      path_group = ex.class.children.find { |child_group|
-        child_group.description == missing_path
-      }
-      path_group = ex.class.describe(missing_path) if path_group.nil?
+      path_group = _find_or_create_child(ex.class, missing_path)
 
       missing_verbs.each { |missing_verb, missing_contexts|
-        verb_group = path_group.children.find { |child_group|
-          child_group.description == missing_verb
-        }
-        verb_group = path_group.context(missing_verb) if verb_group.nil?
+        verb_group = _find_or_create_child(path_group, missing_verb)
 
         missing_contexts.each { |missing_context, _|
-          context_group = verb_group.children.find { |child_group|
-            child_group.description == missing_context
-          }
-          context_group = verb_group.context(missing_context) if context_group.nil?
-
+          context_group = _find_or_create_child(verb_group, missing_context)
           context_group.it { is_expected.to eq stub_response }
         }
       }
@@ -148,5 +137,16 @@ RSpec.configure do |config|
         }.to_h.reject { |_, v| v.empty? }
       ]
     }.to_h.reject { |_, v| v.empty? }
+  end
+
+  def _find_child_with_description(group, description)
+    group.children.find { |child_group|
+      child_group.description == description
+    }
+  end
+
+  def _find_or_create_child(group, description)
+    child = _find_child_with_description(group, description)
+    child || group.describe(description)
   end
 end
