@@ -13,7 +13,7 @@ module Rester
     BASE_MIDDLEWARE = [
       Rack::Head,
       Middleware::ErrorHandling,
-      Middleware::StatusCheck
+      Middleware::Ping
     ].freeze
 
     ########################################################################
