@@ -44,6 +44,9 @@ module Rester
         end
 
         def get(params)
+          error! if params[:string] == 'testing_error'
+          error!(params[:string]) if params[:string] == 'testing_error_with_message'
+
           { token: params.delete(:test_token), params: params, method: :get }
         end
 

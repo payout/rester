@@ -110,6 +110,20 @@ module Rester
                   it { is_expected.to eq(expected_resp) }
                 end
 
+                context 'with triggered error!' do
+                  let(:params) { {string: 'testing_error'} }
+                  it 'should raise an error' do
+                    expect { subject }.to raise_error Rester::Errors::RequestError, 'Rester::Errors::RequestError'
+                  end
+
+                  context 'with message' do
+                    let(:params) { {string: 'testing_error_with_message'} }
+                    it 'should raise an error' do
+                      expect { subject }.to raise_error Rester::Errors::RequestError, 'testing_error_with_message'
+                    end
+                  end
+                end
+
                 context 'with nil argument' do
                   let(:params) { nil }
                   it { is_expected.to eq(token: 'token', params: {}, method: 'get') }

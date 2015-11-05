@@ -35,6 +35,28 @@ module Rester
           it { is_expected.to eq({}) }
         end
       end # #process
+
+      describe '#error!' do
+        let(:message) { nil }
+        let(:resource) { Rester::DummyService::V1::Test.new }
+        subject {
+          catch(:error) do
+            resource.error!(message)
+          end
+        }
+
+        it 'should raise an error' do
+          expect(subject).to be_a Rester::Errors::RequestError
+        end
+
+        context 'with message' do
+          let(:message) { "Error Message" }
+
+          it 'should raise an error' do
+            expect(subject).to eq Rester::Errors::RequestError.new(message)
+          end
+        end # with message
+      end # #error!
     end # Resource
   end # Service
 end # Rester
