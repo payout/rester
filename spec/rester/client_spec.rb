@@ -211,7 +211,7 @@ module Rester
 
           context 'with no arguments' do
             let(:args) { [] }
-            it { expect { subject }.to raise_error ArgumentError, 'wrong number of arguments (0 for 1)' }
+            it { is_expected.to eq(method: 'search') }
           end # with no arguments
         end # with supported version
       end # with connection
@@ -224,7 +224,7 @@ module Rester
       context 'without connection' do
         context 'with no arguments' do
           let(:args) { [] }
-          it { expect { subject }.to raise_error ArgumentError, 'wrong number of arguments (0 for 1)' }
+          it { expect { subject }.to raise_error RuntimeError, 'not connected' }
         end
 
         context 'with hash argument' do
@@ -238,7 +238,7 @@ module Rester
 
         context 'with no arguments' do
           let(:args) { [] }
-          it { expect { subject }.to raise_error ArgumentError, 'wrong number of arguments (0 for 1)' }
+          it { is_expected.to eq(method: 'create') }
         end
 
         context 'with hash argument' do
