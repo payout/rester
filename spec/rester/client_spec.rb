@@ -110,6 +110,20 @@ module Rester
                   it { is_expected.to eq(expected_resp) }
                 end
 
+                context 'with triggered error!' do
+                  let(:params) { {string: 'testing_error'} }
+                  it 'should raise an error' do
+                    expect { subject }.to raise_error Rester::Errors::RequestError, 'Rester::Errors::RequestError'
+                  end
+
+                  context 'with message' do
+                    let(:params) { {string: 'testing_error_with_message'} }
+                    it 'should raise an error' do
+                      expect { subject }.to raise_error Rester::Errors::RequestError, 'testing_error_with_message'
+                    end
+                  end
+                end
+
                 context 'with nil argument' do
                   let(:params) { nil }
                   it { is_expected.to eq(token: 'token', params: {}, method: 'get') }
@@ -211,7 +225,7 @@ module Rester
 
           context 'with no arguments' do
             let(:args) { [] }
-            it { expect { subject }.to raise_error ArgumentError, 'wrong number of arguments (0 for 1)' }
+            it { is_expected.to eq(method: 'search') }
           end # with no arguments
         end # with supported version
       end # with connection
@@ -224,7 +238,7 @@ module Rester
       context 'without connection' do
         context 'with no arguments' do
           let(:args) { [] }
-          it { expect { subject }.to raise_error ArgumentError, 'wrong number of arguments (0 for 1)' }
+          it { expect { subject }.to raise_error RuntimeError, 'not connected' }
         end
 
         context 'with hash argument' do
@@ -238,7 +252,7 @@ module Rester
 
         context 'with no arguments' do
           let(:args) { [] }
-          it { expect { subject }.to raise_error ArgumentError, 'wrong number of arguments (0 for 1)' }
+          it { is_expected.to eq(method: 'create') }
         end
 
         context 'with hash argument' do

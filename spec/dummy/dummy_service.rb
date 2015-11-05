@@ -44,6 +44,9 @@ module Rester
         end
 
         def get(params)
+          error! if params[:string] == 'testing_error'
+          error!(params[:string]) if params[:string] == 'testing_error_with_message'
+
           { token: params.delete(:test_token), params: params, method: :get }
         end
 
@@ -83,6 +86,16 @@ module Rester
           { token: params.delete(:test_token), params: params, method: :get }
         end
       end # TestWithDefaults
+
+      class TestWithNonHashValue < Service::Resource
+        params do
+          Boolean :nil_return_val, default: false
+        end
+
+        def search(params)
+          params[:nil_return_val] ? nil : [[:this, :that]]
+        end
+      end # TestWithNonHashValue
     end # V1
   end # DummyService
 end # Rester

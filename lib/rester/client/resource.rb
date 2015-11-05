@@ -25,16 +25,11 @@ module Rester
 
       def method_missing(meth, *args, &block)
         meth = meth.to_s
-
-        unless args.length == 1
-          raise ArgumentError, "wrong number of arguments (#{args.length} for 1)"
-        end
-
         arg = args.first
 
         case arg
-        when Hash
-          _handle_search_or_create(meth, arg)
+        when Hash, NilClass
+          _handle_search_or_create(meth, arg || {})
         when String, Symbol
           Resource.new(client, _path(meth, arg))
         else
