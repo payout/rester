@@ -43,7 +43,7 @@ PaymentService.cards("card_token").credits!(amount_cents: 10)
 ### Service-side
 ```ruby
 class PaymentService < Rester::Service
-  module v1
+  module V1
     class Card < Rester::Resource
       id :token
       mount Credit
@@ -104,11 +104,11 @@ end
 
 ### Client-side Stub Testing
 
-The client is responsible for writing contracts for producer service requests that are in use in their application.
+The client is responsible for writing contracts for producer service requests that are in used in their application.
 
 1. Create a stubfile with the following format to stub the requests you expect to make in your application:
 2. Create RSpec unit tests for your application.
-3. Use `YourService.with_context` in your RSpec tests to point to the correct stub example you will need to use for yoru testing (a sample RSpec test is below)
+3. Use `YourService.with_context` in your RSpec tests to point to the correct stub example you will need to use for your testing (a sample RSpec test is below)
 4. When testing, to connect to the Rester service that was stubbed, pass in the path to your Stubfile for the 'SERVICE_URL' like below:
 5. Rester will retrieve all responses made to your service from the Stubfile. If any requests in your application are made that don't exist in your Stubfile, then an error will be raised.
 
@@ -148,11 +148,10 @@ producer: some_service
 
 #### Spec Example:
 ```ruby
-ENV['CORE_SERVICE_URL'] = '/path/to/stub/file.yml'
-CoreService = Rester.connect(ENV['CORE_SERVICE_URL'] , version: 1)
+ENV['PAYMENT_SERVICE_URL'] = '/path/to/stub/file.yml'
+PaymentService = Rester.connect(ENV['PAYMENT_SERVICE_URL'] , version: 1)
 
 ...
-
 # spec/api/do_something_spec.rb
 describe '/v1/do_something' do
   context "with something" do
@@ -181,7 +180,6 @@ The Service providers are responsible for verifying that the stubs created by th
 
 #### Stub Example (written by client):
 ```yml
-
 /v1/cards:
   POST:
     With valid card details:
@@ -203,12 +201,12 @@ The Service providers are responsible for verifying that the stubs created by th
 You need to `require 'rester/rspec' in your `spec_helper.rb` file.
 
 ```ruby
-RSpec.describe BusinessService, rester: "/path/to/stub/file.yml" do
+RSpec.describe PaymentService, rester: "/path/to/stub/file.yml" do
   describe '/v1/cards' do
     context 'POST' do
       context 'With valid card details' do
         before {
-          # Perform any operations needed for success
+          # Perform any operations needed set the test up for success.
         }
 
         # The `subject` and `stub_response` variables are created by Rester so the
