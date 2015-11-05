@@ -77,7 +77,7 @@ module Rester
         meth = (id_provided ? REQUEST_METHOD_TO_IDENTIFIED_METHOD
           : REQUEST_METHOD_TO_UNIDENTIFIED_METHOD)[request_method]
 
-        _process(meth, params)
+        _process(meth, params).to_h
       end
 
       def mounts

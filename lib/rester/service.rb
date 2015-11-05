@@ -181,8 +181,6 @@ module Rester
     # Prepares the retval from a Service::Resource method to be returned to the
     # client (i.e., validates it and dumps it as JSON).
     def _prepare_response(retval)
-      retval ||= {}
-
       unless retval.is_a?(Hash)
         _error!(Errors::ServerError, "Invalid response: #{retval.inspect}")
       end
