@@ -2,14 +2,14 @@ module Rester
   module Middleware
     ##
     # Provides a basic status check. Used by the Client#connected? method.
-    class StatusCheck < Base
+    class Ping < Base
       def call(env)
-        if %r{\A/v[\d+]/status\z}.match(env['REQUEST_PATH'])
+        if %r{\A/ping\z}.match(env['REQUEST_PATH'])
           [200, {}, []]
         else
           super
         end
       end
-    end # StatusCheck
+    end # Ping
   end # Middleware
 end # Rester

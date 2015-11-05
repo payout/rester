@@ -20,7 +20,7 @@ module Rester
     end
 
     def connected?
-      adapter.connected? && adapter.get(_path_with_version('status')).first == 200
+      adapter.connected? && adapter.get('/ping').first == 200
     end
 
     def request(verb, path, params={}, &block)
