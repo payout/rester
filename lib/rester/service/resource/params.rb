@@ -24,11 +24,16 @@ module Rester
         !!options[:strict]
       end
 
+      def frozen?
+        !!@_frozen
+      end
+
       def freeze
         @_validators.freeze
         @_required_fields.freeze
         @_defaults.freeze
         @_all_fields.freeze
+        @_frozen = true
       end
 
       def required_params
