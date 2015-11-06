@@ -1,11 +1,11 @@
 module Rester
   class Service::Resource
-    class Validator
+    class Params
       BASIC_TYPES = [String, Symbol, Float, Integer].freeze
 
       attr_reader :options
 
-      def initialize(opts={})
+      def initialize(opts={}, &block)
         @options = opts.dup.freeze
         @_required_fields = []
         @_defaults = {}
@@ -13,6 +13,8 @@ module Rester
 
         # Default "validator" is to just treat the param as a string.
         @_validators = Hash.new([String, {}])
+
+        instance_eval(&block) if block_given?
       end
 
       ##
@@ -31,6 +33,18 @@ module Rester
 
       def required_params
         @_required_fields.dup
+      end
+
+      def defaults
+        @_defaults.dup
+      end
+
+      def all_fields
+        @_all_fields.dup
+      end
+
+      def validators
+        @_validators.dup
       end
 
       def validate(params)
@@ -58,6 +72,10 @@ module Rester
         _parse_with_class(klass, value).tap do |obj|
           _validate_obj(key, obj)
         end
+      end
+
+      def use(params)
+        _merge_params(params)
       end
 
       ##
@@ -188,6 +206,14 @@ module Rester
 
       def _error!(message)
         Errors.throw_error!(Errors::ValidationError, message)
+      end
+
+      def _merge_params(params)
+        @_validators      = @_validators.merge(params.validators)
+        @_defaults        = @_defaults.merge(params.defaults)
+        @_required_fields = @_required_fields | params.required_params
+        @_all_fields      = @_all_fields | params.all_fields
+        self
       end
     end
   end
