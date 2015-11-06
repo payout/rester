@@ -17,7 +17,7 @@ module Rester
         'POST'   => :create
       }.freeze
 
-      RESOURCE_METHODS = [:search, :create, :get, :update, :delete]
+      RESOURCE_METHODS = [:search, :create, :get, :update, :delete].freeze
 
       ########################################################################
       # DSL
@@ -38,7 +38,7 @@ module Rester
         end
 
         def params(opts={}, &block)
-          (@_next_params = Params.new(opts)).instance_eval(&block)
+          @_next_params = Params.new(opts, &block)
         end
       end # DSL
 
@@ -64,8 +64,7 @@ module Rester
 
         def method_added(method_name)
           if RESOURCE_METHODS.include?(method_name)
-            params = @_next_params || Params.new
-            method_params[method_name] = params.tap { |p| p.freeze }
+            method_params[method_name] = (@_next_params || Params.new).freeze
           end
           @_next_params = nil
         end
