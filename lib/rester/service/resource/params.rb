@@ -24,32 +24,12 @@ module Rester
         !!options[:strict]
       end
 
-      def frozen?
-        !!@_frozen
-      end
-
       def freeze
         @_validators.freeze
         @_required_fields.freeze
         @_defaults.freeze
         @_all_fields.freeze
-        @_frozen = true
-      end
-
-      def required_params
-        @_required_fields.dup
-      end
-
-      def defaults
-        @_defaults.dup
-      end
-
-      def all_fields
-        @_all_fields.dup
-      end
-
-      def validators
-        @_validators.dup
+        super
       end
 
       def validate(params)
@@ -102,6 +82,24 @@ module Rester
       # Boolean type, instead it has TrueClass and FalseClass...
       def Boolean(name, opts={})
         _add_validator(name, :boolean, opts)
+      end
+
+      protected
+
+      def required_params
+        @_required_fields.dup
+      end
+
+      def defaults
+        @_defaults.dup
+      end
+
+      def all_fields
+        @_all_fields.dup
+      end
+
+      def validators
+        @_validators.dup
       end
 
       private
