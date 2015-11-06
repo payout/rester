@@ -65,7 +65,7 @@ module Rester
         def method_added(method_name)
           if RESOURCE_METHODS.include?(method_name)
             params = @_next_params || Params.new
-            method_params[method_name] = params.dup.tap { |p| p.freeze }
+            method_params[method_name] = params.tap { |p| p.freeze }
           end
           @_next_params = nil
         end
