@@ -61,6 +61,7 @@ module Rester
 
       def use(params)
         _merge_params(params)
+        nil
       end
 
       ##
@@ -212,11 +213,10 @@ module Rester
       end
 
       def _merge_params(params)
-        @_validators      = @_validators.merge(params.validators)
-        @_defaults        = @_defaults.merge(params.defaults)
-        @_required_fields = @_required_fields | params.required_params
-        @_all_fields      = @_all_fields | params.all_fields
-        self
+        @_validators       = @_validators.merge!(params.validators)
+        @_defaults         = @_defaults.merge!(params.defaults)
+        @_required_fields |= params.required_params
+        @_all_fields      |= params.all_fields
       end
     end
   end
