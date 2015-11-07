@@ -63,8 +63,8 @@ module Rester
         end
 
         def method_added(method_name)
-          if RESOURCE_METHODS.include?(method_name)
-            method_params[method_name] = (@_next_params || Params.new).freeze
+          if RESOURCE_METHODS.include?(method_name.to_sym)
+            method_params[method_name.to_sym] = (@_next_params || Params.new).freeze
           end
           @_next_params = nil
         end
