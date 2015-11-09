@@ -5,6 +5,7 @@ module Rester
   class Client
     autoload(:Adapters, 'rester/client/adapters')
     autoload(:Resource, 'rester/client/resource')
+    autoload(:Response, 'rester/client/response')
 
     attr_reader :adapter
     attr_reader :version
@@ -79,15 +80,5 @@ module Rester
         {}
       end
     end
-
-    class Response < Hash
-      def initialize(status)
-        define_singleton_method(:status) { status }
-      end
-
-      def successful?
-        status && status.between?(200, 299)
-      end
-    end # Response
   end # Client
 end # Rester

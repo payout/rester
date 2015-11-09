@@ -84,10 +84,6 @@ module Rester
             expect(subject.get.successful?).to be false
           end
 
-          it 'should have status 404' do
-            expect(subject.get.status).to eq 404
-          end
-
           it 'should have an error message' do
             expect(subject.get[:error]).to eq Errors::NotFoundError
             expect(subject.get[:message]).to eq '/v2/tests/token'
@@ -129,10 +125,6 @@ module Rester
 
                   it 'should be unsuccessful' do
                     expect(subject.successful?).to be false
-                  end
-
-                  it 'should have status 400' do
-                    expect(subject.status).to eq 400
                   end
 
                   it 'should have an error message' do
@@ -241,10 +233,6 @@ module Rester
 
               it 'should be unsuccessful' do
                 expect(subject.successful?).to be false
-              end
-
-              it 'should have status 404' do
-                expect(subject.status).to eq 404
               end
 
               it 'should have an error message' do

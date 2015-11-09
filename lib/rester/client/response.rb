@@ -1,0 +1,13 @@
+module Rester
+  class Client
+    class Response < Hash
+      def initialize(status)
+        @_status = status
+      end
+
+      def successful?
+        @_status && @_status.between?(200, 299)
+      end
+    end # Response
+  end # Client
+end # Rester
