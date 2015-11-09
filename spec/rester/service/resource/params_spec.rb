@@ -191,6 +191,25 @@ module Rester
       end # #DateTime
 
       describe '#use' do
+        let(:other_params) {
+          Params.new({}) {
+            String  :other_string, required: true
+            Integer :other_integer, required: true
+            Float   :other_float,  required: true
+            Symbol  :other_symbol, required: true
+          }
+        }
+        let(:params) { Params.new({}) { Boolean :my_boolean, required: true } }
+        before { params.use(other_params) }
+        subject { params.validate({}) }
+
+        it 'should merge the params' do
+          error = catch(:error) do
+            subject
+          end
+          expect(error).to eq Rester::Errors::ValidationError.new(
+            'missing params: my_boolean, other_string, other_integer, other_float, other_symbol')
+        end
       end # #use
 
       context 'with default values' do
