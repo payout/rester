@@ -204,9 +204,7 @@ module Rester
         subject { params.validate({}) }
 
         it 'should merge the params' do
-          error = catch(:error) do
-            subject
-          end
+          error = catch(:error) { subject }
           expect(error).to eq Rester::Errors::ValidationError.new(
             'missing params: my_boolean, other_string, other_integer, other_float, other_symbol')
         end

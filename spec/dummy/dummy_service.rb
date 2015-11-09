@@ -121,6 +121,43 @@ module Rester
           params[:nil_return_val] ? nil : [[:this, :that]]
         end
       end # TestWithNonHashValue
+
+      class TestWithParams < Service::Resource
+        params do
+          String :my_string, default: "string"
+        end
+        def search(params)
+          params
+        end
+
+        params do
+          Integer :my_integer, default: 1
+        end
+        def create(params)
+          params
+        end
+
+        params do
+          Symbol :my_symbol, default: :symbol
+        end
+        def get(params)
+          params
+        end
+
+        params do
+          Float :my_float, default: 1.23
+        end
+        def update(params)
+          params
+        end
+
+        params do
+          Boolean :my_boolean, default: true
+        end
+        def delete(params)
+          params
+        end
+      end # TestWithParams
     end # V1
   end # DummyService
 end # Rester

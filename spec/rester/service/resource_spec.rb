@@ -229,6 +229,42 @@ module Rester
           let(:params) { { "nil_return_val" => "true" } }
           it { is_expected.to eq({}) }
         end
+
+        describe 'per-method params' do
+          let(:resource) { Rester::DummyService::V1::TestWithParams.new }
+          let(:request_method) { '' }
+          let(:id_provided) { nil }
+
+          subject { resource.process(request_method, id_provided) }
+
+          context 'search' do
+            let(:request_method) { 'GET' }
+            it { is_expected.to eq my_string: "string" }
+          end # search
+
+          context 'create' do
+            let(:request_method) { 'POST' }
+            it { is_expected.to eq my_integer: 1 }
+          end # create
+
+          context 'get' do
+            let(:request_method) { 'GET' }
+            let(:id_provided) { 'some_id' }
+            it { is_expected.to eq my_symbol: :symbol }
+          end # get
+
+          context 'update' do
+            let(:request_method) { 'PUT' }
+            let(:id_provided) { 'some_id' }
+            it { is_expected.to eq my_float: 1.23 }
+          end # update
+
+          context 'delete' do
+            let(:request_method) { 'DELETE' }
+            let(:id_provided) { 'some_id' }
+            it { is_expected.to eq my_boolean: true }
+          end # delete
+        end # per-method params
       end # #process
 
       describe '#error!' do
