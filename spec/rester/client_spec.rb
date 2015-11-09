@@ -243,7 +243,7 @@ module Rester
                 expect(subject.successful?).to be false
               end
 
-              it 'should have status 400' do
+              it 'should have status 404' do
                 expect(subject.status).to eq 404
               end
 
