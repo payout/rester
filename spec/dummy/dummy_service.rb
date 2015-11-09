@@ -27,22 +27,32 @@ module Rester
         id :token
         mount MountedObject
 
-        params do
+        shared_params = Params.new {
           String  :string
           Integer :integer, between?: [0,100]
           Float   :float
           Symbol  :symbol
           Boolean :bool
-        end
+        }
 
+        params do
+          use shared_params
+          String :my_string
+        end
         def search(params)
           params.merge(method: :search)
         end
 
+        params do
+          use shared_params
+        end
         def create(params)
           params.merge(method: :create)
         end
 
+        params do
+          use shared_params
+        end
         def get(params)
           error! if params[:string] == 'testing_error'
           error!(params[:string]) if params[:string] == 'testing_error_with_message'
@@ -50,6 +60,9 @@ module Rester
           { token: params.delete(:test_token), params: params, method: :get }
         end
 
+        params do
+          use shared_params
+        end
         def update(params)
           {
             method: :update,
@@ -58,6 +71,9 @@ module Rester
           }
         end
 
+        params do
+          use shared_params
+        end
         def delete(params)
           _a_private_method(params).merge(method: :delete)
         end
@@ -70,32 +86,78 @@ module Rester
       end # Test
 
       class TestWithDefaults < Service::Resource
-        params do
+        shared_params = Params.new {
           String  :string_with_default,  default: 'string'
           Integer :integer_with_default, default: 1
           Float   :float_with_default,   default: 3.14
           Symbol  :symbol_with_default,  default: :default
           Boolean :bool_with_default,    default: true
-        end
+        }
 
+        params do
+          use shared_params
+        end
         def search(params)
           params.merge(method: :search)
         end
 
+        params do
+          use shared_params
+        end
         def get(params)
           { token: params.delete(:test_token), params: params, method: :get }
         end
       end # TestWithDefaults
 
       class TestWithNonHashValue < Service::Resource
-        params do
+        shared_params = Params.new {
           Boolean :nil_return_val, default: false
-        end
+        }
 
+        params do
+          use shared_params
+        end
         def search(params)
           params[:nil_return_val] ? nil : [[:this, :that]]
         end
       end # TestWithNonHashValue
+
+      class TestWithParams < Service::Resource
+        params do
+          String :my_string, default: "string"
+        end
+        def search(params)
+          params
+        end
+
+        params do
+          Integer :my_integer, default: 1
+        end
+        def create(params)
+          params
+        end
+
+        params do
+          Symbol :my_symbol, default: :symbol
+        end
+        def get(params)
+          params
+        end
+
+        params do
+          Float :my_float, default: 1.23
+        end
+        def update(params)
+          params
+        end
+
+        params do
+          Boolean :my_boolean, default: true
+        end
+        def delete(params)
+          params
+        end
+      end # TestWithParams
     end # V1
   end # DummyService
 end # Rester

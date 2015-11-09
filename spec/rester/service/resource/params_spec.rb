@@ -2,14 +2,14 @@ require 'date'
 
 module Rester
   class Service::Resource
-    RSpec.describe Validator do
-      let(:validator) { Validator.new(validator_opts) }
-      let(:validator_opts) { {} }
+    RSpec.describe Params do
+      let(:resource_params) { Params.new(params_opts) }
+      let(:params_opts) { {} }
 
       describe '#Integer' do
-        before { validator.Integer(field, opts) }
+        before { resource_params.Integer(field, opts) }
         let(:field) { :an_integer }
-        subject { validator.validate(field => value) }
+        subject { resource_params.validate(field => value) }
 
         context 'with between?(1,10)' do
           let(:opts) { { between?: [1, 10] } }
@@ -32,9 +32,9 @@ module Rester
       end # #Integer
 
       describe '#String' do
-        before { validator.String(field, opts) }
+        before { resource_params.String(field, opts) }
         let(:field) { :a_string }
-        subject { validator.validate(field => value) }
+        subject { resource_params.validate(field => value) }
 
         context 'with match(/\A\w+\z/)' do
           let(:opts) { { match: /\A\w+\z/ } }
@@ -57,9 +57,9 @@ module Rester
       end # #String
 
       describe '#Symbol' do
-        before { validator.Symbol(field, opts) }
+        before { resource_params.Symbol(field, opts) }
         let(:field) { :a_symbol }
-        subject { validator.validate(field => value) }
+        subject { resource_params.validate(field => value) }
 
         context 'with within [:one, :two]' do
           let(:opts) { { within: [:one, :two] } }
@@ -82,9 +82,9 @@ module Rester
       end # #Symbol
 
       describe '#Float' do
-        before { validator.Float(field, opts) }
+        before { resource_params.Float(field, opts) }
         let(:field) { :a_float }
-        subject { validator.validate(field => value) }
+        subject { resource_params.validate(field => value) }
 
         context 'with zero?()' do
           let(:opts) { { zero?: [] } }
@@ -112,9 +112,9 @@ module Rester
       end # #Float
 
       describe '#Boolean' do
-        before { validator.Boolean(field, opts) }
+        before { resource_params.Boolean(field, opts) }
         let(:field) { :a_boolean }
-        subject { validator.validate(field => value) }
+        subject { resource_params.validate(field => value) }
 
         let(:opts) { {} }
 
@@ -141,9 +141,9 @@ module Rester
       end # #Boolean
 
       describe '#DateTime' do
-        before { validator.DateTime(field, opts) }
+        before { resource_params.DateTime(field, opts) }
         let(:field) { :a_datetime }
-        subject { validator.validate(field => value) }
+        subject { resource_params.validate(field => value) }
 
         context 'with between?(2015-10-08, 2015-10-10)' do
           let(:opts) {
@@ -190,19 +190,39 @@ module Rester
         end # with match(/\A\w+\z/)
       end # #DateTime
 
+      describe '#use' do
+        let(:other_params) {
+          Params.new({}) {
+            String  :other_string, required: true
+            Integer :other_integer, required: true
+            Float   :other_float,  required: true
+            Symbol  :other_symbol, required: true
+          }
+        }
+        let(:params) { Params.new({}) { Boolean :my_boolean, required: true } }
+        before { params.use(other_params) }
+        subject { params.validate({}) }
+
+        it 'should merge the params' do
+          error = catch(:error) { subject }
+          expect(error).to eq Rester::Errors::ValidationError.new(
+            'missing params: my_boolean, other_string, other_integer, other_float, other_symbol')
+        end
+      end # #use
+
       context 'with default values' do
-        let(:validator) { Validator.new(validator_opts) }
-        let(:validator_opts) { {} }
+        let(:resource_params) { Params.new(params_opts) }
+        let(:params_opts) { {} }
 
         describe '#Integer' do
-          subject { validator.validate(params) }
+          subject { resource_params.validate(params) }
           let(:params) { {} }
           let(:field) { :an_integer }
           let(:opts) { { default: default_value } }
 
           context 'with valid default' do
             let(:default_value) { 5 }
-            before { validator.Integer(field, opts) }
+            before { resource_params.Integer(field, opts) }
 
             context 'with no value' do
               it { is_expected.to eq(field.to_sym => default_value) }
@@ -219,7 +239,7 @@ module Rester
           end # with valid default
 
           context 'with invalid default' do
-            subject { validator.Integer(field, opts) }
+            subject { resource_params.Integer(field, opts) }
 
             context 'wrong type' do
               let(:default_value) { "hello" }
@@ -242,14 +262,14 @@ module Rester
         end # #Integer
 
         describe '#String' do
-          subject { validator.validate(params) }
+          subject { resource_params.validate(params) }
           let(:field) { :a_string }
           let(:params) { {} }
           let(:opts) { { default: default_value } }
 
           context 'with valid default' do
             let(:default_value) { "hello" }
-            before { validator.String(field, opts) }
+            before { resource_params.String(field, opts) }
 
             context 'with no value' do
               it { is_expected.to eq(field.to_sym => default_value) }
@@ -266,7 +286,7 @@ module Rester
           end # with valid default
 
           context 'with invalid default' do
-            subject { validator.String(field, opts) }
+            subject { resource_params.String(field, opts) }
 
             context 'wrong type' do
               let(:default_value) { 5 }
@@ -288,14 +308,14 @@ module Rester
         end # #String
 
         describe '#Symbol' do
-          subject { validator.validate(params) }
+          subject { resource_params.validate(params) }
           let(:field) { :a_symbol }
           let(:params) { {} }
           let(:opts) { { default: default_value } }
 
           context 'with valid default' do
             let(:default_value) { :test_symbol }
-            before { validator.Symbol(field, opts) }
+            before { resource_params.Symbol(field, opts) }
 
             context 'with no value' do
               it { is_expected.to eq(field.to_sym => default_value) }
@@ -313,7 +333,7 @@ module Rester
 
 
           context 'with invalid default' do
-            subject { validator.Symbol(field, opts) }
+            subject { resource_params.Symbol(field, opts) }
 
             context 'wrong type' do
               let(:default_value) { 1234 }
@@ -338,14 +358,14 @@ module Rester
         end # #Symbol
 
         describe '#Float' do
-          subject { validator.validate(params) }
+          subject { resource_params.validate(params) }
           let(:field) { :a_float }
           let(:params) { {} }
           let(:opts) { { default: default_value } }
 
           context 'with valid default' do
             let(:default_value) { 3.14 }
-            before { validator.Float(field, opts) }
+            before { resource_params.Float(field, opts) }
 
             context 'with no value' do
               it { is_expected.to eq(field.to_sym => default_value) }
@@ -362,7 +382,7 @@ module Rester
           end # with valid default
 
           context 'with invalid default' do
-            subject { validator.Float(field, opts) }
+            subject { resource_params.Float(field, opts) }
 
             context 'wrong type' do
               let(:default_value) { 'bad_value' }
@@ -384,14 +404,14 @@ module Rester
         end # #Float
 
         describe '#Boolean' do
-          subject { validator.validate(params) }
+          subject { resource_params.validate(params) }
           let(:field) { :a_boolean }
           let(:params) { {} }
           let(:opts) { { default: default_value } }
 
           context 'with valid default' do
             let(:default_value) { true }
-            before { validator.Boolean(field, opts) }
+            before { resource_params.Boolean(field, opts) }
 
             context 'with no value' do
               it { is_expected.to eq(field.to_sym => default_value) }
@@ -408,7 +428,7 @@ module Rester
           end # with valid default
 
           context 'with invalid default' do
-            subject { validator.Boolean(field, opts) }
+            subject { resource_params.Boolean(field, opts) }
 
             context 'wrong type' do
               let(:default_value) { 'bad_value' }
@@ -421,14 +441,14 @@ module Rester
         end # #Boolean
 
         describe '#Datetime' do
-          subject { validator.validate(params) }
+          subject { resource_params.validate(params) }
           let(:field) { :a_datetime }
           let(:params) { {} }
           let(:opts) { { default: default_value } }
 
           context 'with valid default' do
             let(:default_value) { DateTime.parse('2015-10-09T08:30:30-07:00') }
-            before { validator.DateTime(field, opts) }
+            before { resource_params.DateTime(field, opts) }
 
             context 'with no value' do
               it { is_expected.to eq(field.to_sym => default_value) }
@@ -445,7 +465,7 @@ module Rester
           end # with valid default
 
           context 'with invalid default' do
-            subject { validator.DateTime(field, opts) }
+            subject { resource_params.DateTime(field, opts) }
 
             context 'wrong type' do
               let(:default_value) { 'bad_value' }
@@ -474,12 +494,12 @@ module Rester
 
       context 'with required field' do
         before {
-          validator.Integer :int, required: true
-          validator.String :str
-          validator.Float :float, required: true
+          resource_params.Integer :int, required: true
+          resource_params.String :str
+          resource_params.Float :float, required: true
         }
 
-        subject { validator.validate(params) }
+        subject { resource_params.validate(params) }
 
         context 'with all params' do
           let(:params) { { int: '1234', str: 'hello there', float: '3.14159' } }
@@ -501,14 +521,14 @@ module Rester
       end # with required field
 
       context 'with strict validation' do
-        let(:validator_opts) { { strict: true } }
+        let(:params_opts) { { strict: true } }
 
         before {
-          validator.Integer(:an_integer)
-          validator.String(:a_string)
+          resource_params.Integer(:an_integer)
+          resource_params.String(:a_string)
         }
 
-        subject { validator.validate(params) }
+        subject { resource_params.validate(params) }
 
         context 'with expected params' do
           let(:params) { { an_integer: '1', a_string: 'hello' } }
@@ -529,6 +549,6 @@ module Rester
           end
         end # with extra params
       end # with strict validation
-    end # Validator
+    end # Params
   end # Service::Resource
 end # Rester

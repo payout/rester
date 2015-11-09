@@ -4,7 +4,7 @@ require 'active_support/inflector'
 module Rester
   class Service
     class Resource
-      autoload(:Validator, 'rester/service/resource/validator')
+      autoload(:Params, 'rester/service/resource/params')
 
       REQUEST_METHOD_TO_IDENTIFIED_METHOD = {
         'GET'    => :get,
@@ -16,6 +16,8 @@ module Rester
         'GET'    => :search,
         'POST'   => :create
       }.freeze
+
+      RESOURCE_METHODS = [:search, :create, :get, :update, :delete].freeze
 
       ########################################################################
       # DSL
@@ -36,8 +38,7 @@ module Rester
         end
 
         def params(opts={}, &block)
-          (@_validator = Validator.new(opts)).instance_eval(&block)
-          @_validator.freeze
+          @_next_params = Params.new(opts, &block)
         end
       end # DSL
 
@@ -57,8 +58,15 @@ module Rester
           (@__mounts ||= {})
         end
 
-        def validator
-          @_validator ||= Validator.new
+        def method_params
+          @_method_params ||= {}
+        end
+
+        def method_added(method_name)
+          if RESOURCE_METHODS.include?(method_name.to_sym)
+            method_params[method_name.to_sym] = (@_next_params || Params.new).freeze
+          end
+          @_next_params = nil
         end
       end # Class Methods
 
@@ -84,8 +92,8 @@ module Rester
         self.class.mounts
       end
 
-      def validator
-        self.class.validator
+      def method_params_for(method_name)
+        self.class.method_params[method_name.to_sym]
       end
 
       def error!(message=nil)
@@ -99,7 +107,7 @@ module Rester
       # an argument. Allows for the arity of the method to be 0, 1 or -1.
       def _process(meth, params)
         if meth && respond_to?(meth)
-          params = validator.validate(params)
+          params = method_params_for(meth).validate(params)
           meth = method(meth)
 
           case meth.arity.abs
