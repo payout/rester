@@ -54,15 +54,22 @@ module Rester
     end
 
     def _process_response(path, status, body)
-      if status.between?(200, 299)
-        _parse_json(body)
+      response = Response.new(status)
+
+      if response.successful?
+        response.merge!(_parse_json(body))
       elsif status == 400
-        raise Errors::RequestError, _parse_json(body)[:message]
+        response[:error] = Errors::RequestError
+        response[:message] = _parse_json(body)[:message]
       elsif status == 404
-        raise Errors::NotFoundError, "#{path}"
+        response[:error] = Errors::NotFoundError
+        response[:message] = "#{path}"
       else
-        raise Errors::ServerError, _parse_json(body)[:message]
+        response[:error] = Errors::ServerError
+        response[:message] = _parse_json(body)[:message]
       end
+
+      response
     end
 
     def _parse_json(data)
@@ -72,5 +79,15 @@ module Rester
         {}
       end
     end
+
+    class Response < Hash
+      def initialize(status)
+        define_singleton_method(:status) { status }
+      end
+
+      def successful?
+        status && status.between?(200, 299)
+      end
+    end # Response
   end # Client
 end # Rester
