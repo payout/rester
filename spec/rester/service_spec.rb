@@ -57,6 +57,33 @@ module Rester
           expect(subject.first).to eq 400
         end
       end
+
+      context 'with DummyService' do
+        let(:service) { Rester::DummyService }
+        subject {
+          service.call(
+            'REQUEST_METHOD' => 'GET',
+            'PATH_INFO'      => path,
+            'CONTENT_TYPE'   => 'application/x-www-form-urlencoded',
+            'QUERY_STRING'   => '',
+            'rack.input'     => StringIO.new('')
+          )
+        }
+
+        context 'with valid version' do
+          let(:path) { '/v1/tests' }
+          it 'should return a 200' do
+            expect(subject.first).to eq 200
+          end
+        end # with valid version
+
+        context 'with invalid version' do
+          let(:path) { '/v2/tests' }
+          it 'should return a 404' do
+            expect(subject.first).to eq 404
+          end
+        end # with invalid version
+      end # with DummyService
     end # ::call
   end # Service
 end # Rester

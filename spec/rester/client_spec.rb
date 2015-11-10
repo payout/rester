@@ -8,7 +8,8 @@ module Rester
     end
 
     let(:adapter) { Client::Adapters::HttpAdapter.new }
-    let(:client) { Client.new(adapter, version: 1) }
+    let(:client) { Client.new(adapter, version: version) }
+    let(:version) { 1 }
     let(:test_url) { "#{RSpec.server_uri}" }
 
     # Request Hash
@@ -76,12 +77,11 @@ module Rester
         before { client.connect(test_url) }
 
         context 'with unsupported version' do
-          let(:test_url) { "#{RSpec.server_uri}/v2" }
+          let(:version) { 2 }
           let(:args) { ['token'] }
 
-          it 'should raise error' do
-            expect { subject.get }.to raise_error Errors::NotFoundError,
-              '/v1/tests/token'
+          it 'should raise an error' do
+            expect { subject.get }.to raise_error Errors::NotFoundError, '/v2/tests/token'
           end
         end # with unsupported version
 
@@ -107,19 +107,32 @@ module Rester
 
                 context 'with params' do
                   let(:params) { req_hash }
+
+                  it 'should be successful' do
+                    expect(subject.successful?).to be true
+                  end
+
                   it { is_expected.to eq(expected_resp) }
                 end
 
                 context 'with triggered error!' do
                   let(:params) { {string: 'testing_error'} }
-                  it 'should raise an error' do
-                    expect { subject }.to raise_error Rester::Errors::RequestError, 'Rester::Errors::RequestError'
+
+                  it 'should be unsuccessful' do
+                    expect(subject.successful?).to be false
+                  end
+
+                  it 'should have an error message' do
+                    expect(subject[:error]).to eq 'request'
+                    expect(subject[:message]).to eq 'Rester::Errors::RequestError'
                   end
 
                   context 'with message' do
                     let(:params) { {string: 'testing_error_with_message'} }
-                    it 'should raise an error' do
-                      expect { subject }.to raise_error Rester::Errors::RequestError, 'testing_error_with_message'
+
+                    it 'should have an error message' do
+                      expect(subject[:error]).to eq 'request'
+                      expect(subject[:message]).to eq 'testing_error_with_message'
                     end
                   end
                 end
@@ -212,9 +225,11 @@ module Rester
             describe '#mounted_objects!' do
               let(:mounted_objects!) { tests.mounted_objects!(arg: 'required') }
               subject { mounted_objects! }
-              it { expect { subject }.to raise_error Errors::NotFoundError,
-                '/v1/tests/token/mounted_objects'
-              }
+
+              it 'should raise an error' do
+                expect { subject.get }.to raise_error Errors::NotFoundError,
+                  '/v1/tests/token/mounted_objects'
+              end
             end # mounted_objects!
           end # with string argument
 

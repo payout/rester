@@ -27,6 +27,7 @@ producer: dummy_producer
         code: 400
         body:
           message: "integer failed between?(0,100) validation"
+          error: "validation"
   POST:
     With some context:
       request:

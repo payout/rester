@@ -5,6 +5,7 @@ module Rester
   class Client
     autoload(:Adapters, 'rester/client/adapters')
     autoload(:Resource, 'rester/client/resource')
+    autoload(:Response, 'rester/client/response')
 
     attr_reader :adapter
     attr_reader :version
@@ -54,15 +55,22 @@ module Rester
     end
 
     def _process_response(path, status, body)
-      if status.between?(200, 299)
-        _parse_json(body)
-      elsif status == 400
-        raise Errors::RequestError, _parse_json(body)[:message]
-      elsif status == 404
-        raise Errors::NotFoundError, "#{path}"
-      else
-        raise Errors::ServerError, _parse_json(body)[:message]
+      response = Response.new(status, _parse_json(body))
+
+      unless [200, 201, 400].include?(status)
+        case status
+        when 401
+          fail Errors::AuthenticationError
+        when 403
+          fail Errors::ForbiddenError
+        when 404
+          fail Errors::NotFoundError, path
+        else
+          fail Errors::ServerError, response[:message]
+        end
       end
+
+      response
     end
 
     def _parse_json(data)

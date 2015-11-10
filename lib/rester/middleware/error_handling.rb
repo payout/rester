@@ -23,11 +23,13 @@ module Rester
       def _error_to_response(error)
         code = _error_to_http_code(error)
 
-        unless code == 404
-          body_h = { message: error.message }
+        unless [401, 403, 404].include?(code)
+          body_h = {
+            message: error.message,
+            error: _error_name(error)
+          }
 
           if code == 500
-            body_h[:error] = error.class.name
             body_h[:backtrace] = error.backtrace
           end
         end
@@ -51,6 +53,10 @@ module Rester
         else
           500
         end
+      end
+
+      def _error_name(exception)
+        Utils.underscore(exception.class.name.split('::').last.sub('Error', ''))
       end
     end # ErrorHandling
   end # Middleware
