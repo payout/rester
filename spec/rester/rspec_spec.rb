@@ -10,7 +10,7 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
 
       context 'With bad param' do
         it { is_expected.to eq stub_response }
-        it { is_expected.to eq [400, '{"message":"integer failed between?(0,100) validation"}'] }
+        it { is_expected.to eq [400, '{"message":"integer failed between?(0,100) validation","error":"validation"}'] }
       end
     end # GET
 

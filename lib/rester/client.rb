@@ -55,19 +55,19 @@ module Rester
     end
 
     def _process_response(path, status, body)
-      response = Response.new(status)
+      response = Response.new(status, _parse_json(body))
 
-      if response.successful?
-        response.merge!(_parse_json(body))
-      elsif status == 400
-        response[:error] = Errors::RequestError
-        response[:message] = _parse_json(body)[:message]
-      elsif status == 404
-        response[:error] = Errors::NotFoundError
-        response[:message] = "#{path}"
-      else
-        response[:error] = Errors::ServerError
-        response[:message] = _parse_json(body)[:message]
+      unless [200, 201, 400].include?(status)
+        case status
+        when 401
+          fail Errors::AuthenticationError
+        when 403
+          fail Errors::ForbiddenError
+        when 404
+          fail Errors::NotFoundError, path
+        else
+          fail Errors::ServerError, response[:message]
+        end
       end
 
       response

@@ -1,8 +1,9 @@
 module Rester
   class Client
     class Response < Hash
-      def initialize(status)
+      def initialize(status, hash={})
         @_status = status
+        merge!(hash)
       end
 
       def successful?

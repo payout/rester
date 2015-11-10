@@ -80,13 +80,8 @@ module Rester
           let(:version) { 2 }
           let(:args) { ['token'] }
 
-          it 'should be unsuccessful' do
-            expect(subject.get.successful?).to be false
-          end
-
-          it 'should have an error message' do
-            expect(subject.get[:error]).to eq Errors::NotFoundError
-            expect(subject.get[:message]).to eq '/v2/tests/token'
+          it 'should raise an error' do
+            expect { subject.get }.to raise_error Errors::NotFoundError, '/v2/tests/token'
           end
         end # with unsupported version
 
@@ -128,7 +123,7 @@ module Rester
                   end
 
                   it 'should have an error message' do
-                    expect(subject[:error]).to eq Errors::RequestError
+                    expect(subject[:error]).to eq 'request'
                     expect(subject[:message]).to eq 'Rester::Errors::RequestError'
                   end
 
@@ -136,7 +131,7 @@ module Rester
                     let(:params) { {string: 'testing_error_with_message'} }
 
                     it 'should have an error message' do
-                      expect(subject[:error]).to eq Errors::RequestError
+                      expect(subject[:error]).to eq 'request'
                       expect(subject[:message]).to eq 'testing_error_with_message'
                     end
                   end
@@ -231,13 +226,9 @@ module Rester
               let(:mounted_objects!) { tests.mounted_objects!(arg: 'required') }
               subject { mounted_objects! }
 
-              it 'should be unsuccessful' do
-                expect(subject.successful?).to be false
-              end
-
-              it 'should have an error message' do
-                expect(subject[:error]).to eq Errors::NotFoundError
-                expect(subject[:message]).to eq '/v1/tests/token/mounted_objects'
+              it 'should raise an error' do
+                expect { subject.get }.to raise_error Errors::NotFoundError,
+                  '/v1/tests/token/mounted_objects'
               end
             end # mounted_objects!
           end # with string argument

@@ -49,6 +49,10 @@ module Rester
       def classify(str)
         str.to_s.split("_").map(&:capitalize).join
       end
+
+      def underscore(str)
+        str.scan(/[A-Z][a-z]*/).map(&:downcase).join('_')
+      end
     end # Class methods
   end # Utils
 end # Rester
