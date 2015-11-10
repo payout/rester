@@ -7,6 +7,40 @@ module Rester
 
       it { is_expected.to be_a Hash }
 
+      describe '#initalize' do
+        def frozen?(object)
+          expect(object.frozen?).to be true if object.respond_to?(:frozen)
+
+          case object
+          when Hash
+            object.values.each { |v| frozen?(v) }
+          when Array
+            object.each { |v| frozen?(v) }
+          end
+        end
+
+        let(:response) { Response.new(status, body) }
+        let(:body) {
+          {
+            integer: 1,
+            string: 'hello',
+            symbol: :hello,
+            array: [1, 'hello', [:this, 'that'], { here: 'there'}],
+            hash: {
+              hello: 'world',
+              sizes: ['small', 'medium', 'large'],
+              another: {
+                here: 'there'
+              }
+            }
+          }
+        }
+
+        it 'should be deep frozen' do
+          frozen?(response)
+        end
+      end # #initialize
+
       describe '#successful?' do
         subject { response.successful? }
         it { is_expected.to be true }
