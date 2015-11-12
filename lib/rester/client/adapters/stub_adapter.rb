@@ -72,6 +72,8 @@ module Rester
         fail Errors::StubError, "#{path} not found" unless stub[path]
         fail Errors::StubError, "#{verb} #{path} not found" unless stub[path][verb]
 
+        _find_request_by_params(verb, path, params) unless context
+
         unless (action = stub[path][verb][context])
           fail Errors::StubError,
             "#{verb} #{path} with context '#{context}' not found"
@@ -83,6 +85,16 @@ module Rester
           fail Errors::StubError,
             "#{verb} #{path} with context '#{context}' params don't match stub. Expected: #{request} Got: #{params}"
         end
+      end
+
+      ##
+      # Find the first request object with the same params as what's passed in.
+      # Useful for testing without having to set the context.
+      def _find_request_by_params(verb, path, params)
+        stub[path][verb].each { |context, action|
+          req = action['request'] || {}
+          return self.context = context if Utils.symbolize_keys(req) == params
+        }
       end
     end # StubAdapter
   end # Client::Adapters
