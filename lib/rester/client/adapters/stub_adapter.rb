@@ -78,11 +78,10 @@ module Rester
         end
 
         # Verify body, if there is one
-        if (request = action['request'])
-          unless Utils.symbolize_keys(request) == params
-            fail Errors::StubError,
-              "#{verb} #{path} with context '#{context}' params don't match stub"
-          end
+        request = action['request'] || {}
+        unless Utils.symbolize_keys(request) == params
+          fail Errors::StubError,
+            "#{verb} #{path} with context '#{context}' params don't match stub. Expected: #{request} Got: #{params}"
         end
       end
     end # StubAdapter
