@@ -27,7 +27,6 @@ module Rester
 
       describe '#connected?' do
         subject { stub_adapter.connected? }
-
         it { is_expected.to eq true }
       end # #connected?
 
@@ -39,9 +38,7 @@ module Rester
         let(:context) { nil }
         let(:params) { {} }
 
-        before {
-          stub_adapter.context = context
-        }
+        around { |ex| stub_adapter.with_context(context) { ex.run } }
 
         context 'with invalid path' do
           let(:path) { '/v1/invalid_path' }
@@ -76,9 +73,39 @@ module Rester
 
           it 'should raise an error' do
             expect { subject }.to raise_error Errors::StubError,
-              "POST #{path} with context '#{context}' params don't match stub"
+              "POST /v1/cards with context 'With valid card details' params don't match stub. Expected: #{ {'card_number' => '4111111111111111', 'exp_month' => '08', 'exp_year' => '2017' } } Got: {}"
           end
         end # with invalid params
+
+        context 'without specifying context' do
+          let(:verb) { 'post' }
+          let(:path) { '/v1/cards' }
+
+          context 'with matching params' do
+            let(:params) {
+              {
+                card_number: "4111111111111111",
+                exp_month: "08",
+                exp_year: "2017"
+              }
+            }
+
+            it 'should return a 200', :test do
+              expect(subject.first).to eq 200
+            end
+
+            it 'should return json body' do
+              expect(subject.last).to eq '{"token":"CTABCDEFG","exp_month":"08","exp_year":"2017","status":"ready"}'
+            end
+          end # matching params
+
+          context 'without matching params' do
+            it 'should raise an error' do
+              expect { subject }.to raise_error Errors::StubError,
+              "POST /v1/cards with context '#{context}' not found"
+            end
+          end # without matching params
+        end # without specifying context
       end # request validation
 
       describe 'requests' do
@@ -89,9 +116,7 @@ module Rester
         let(:context) { nil }
         let(:params) { {} }
 
-        before {
-          stub_adapter.context = context
-        }
+        around { |ex| stub_adapter.with_context(context) { ex.run } }
 
         describe '#get!' do
           let(:verb) { 'get' }
@@ -122,6 +147,16 @@ module Rester
                 expect(body).to eq '{"error":"validation_error","message":"card not found"}'
               end
             end # with non-existent card
+
+            context 'with invalid params' do
+              let(:params) {{ bad_field: 'bad_field' }}
+              let(:context) { 'With card existing' }
+
+              it 'should raise an error' do
+                expect { subject }.to raise_error Errors::StubError,
+                  "GET /v1/cards/CTabcdef with context 'With card existing' params don't match stub. Expected: {} Got: {:bad_field=>\"bad_field\"}"
+              end
+            end # with invalid params
           end # with path /v1/cards/CTabcdef
         end # #get!
 

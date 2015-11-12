@@ -284,15 +284,9 @@ module Rester
       context 'with StubAdapter' do
         let(:client) { Client.new(Client::Adapters::StubAdapter.new(stub_file_path)) }
 
-        it 'should set the context of the adapter' do
-          client.with_context(context) do
-            expect(client.adapter.context).to eq context
-          end
-        end
-
-        it 'should return the context back to nil' do
+        it 'should send the method down to its stub_adapter' do
+          expect(client.adapter).to receive(:with_context).with(context).once
           client.with_context(context) {}
-          expect(client.adapter.context).to eq nil
         end
       end # with StubAdapter
     end # #with_context
