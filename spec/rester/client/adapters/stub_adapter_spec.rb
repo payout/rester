@@ -84,9 +84,9 @@ module Rester
           context 'with matching params' do
             let(:params) {
               {
-                card_number: "4111111111111111",
-                exp_month: "08",
-                exp_year: "2017"
+                'card_number' => "4111111111111111",
+                'exp_month' => "08",
+                'exp_year' => "2017"
               }
             }
 
@@ -149,12 +149,12 @@ module Rester
             end # with non-existent card
 
             context 'with invalid params' do
-              let(:params) {{ bad_field: 'bad_field' }}
+              let(:params) {{ 'bad_field' => 'bad_field' }}
               let(:context) { 'With card existing' }
 
               it 'should raise an error' do
                 expect { subject }.to raise_error Errors::StubError,
-                  "GET /v1/cards/CTabcdef with context 'With card existing' params don't match stub. Expected: {} Got: {:bad_field=>\"bad_field\"}"
+                  "GET /v1/cards/CTabcdef with context 'With card existing' params don't match stub. Expected: {} Got: {\"bad_field\"=>\"bad_field\"}"
               end
             end # with invalid params
           end # with path /v1/cards/CTabcdef
@@ -189,9 +189,9 @@ module Rester
             context 'with valid card details' do
               let(:context) { 'With valid card details' }
               let(:params) { {
-                card_number: "4111111111111111",
-                exp_month: "08",
-                exp_year: "2017"
+                'card_number' => "4111111111111111",
+                'exp_month' => "08",
+                'exp_year' => "2017"
               }}
 
               it 'should return 200 status' do
@@ -206,9 +206,9 @@ module Rester
             context 'with expired card' do
               let(:context) { 'With expired card' }
               let(:params) { {
-                card_number: "411111111",
-                exp_month: "01",
-                exp_year: "2000"
+                'card_number' => "411111111",
+                'exp_month' => "01",
+                'exp_year' => "2000"
               }}
 
               it 'should return 400 status' do
@@ -231,9 +231,9 @@ module Rester
             context 'with valid customer' do
               let(:context) { 'Valid customer' }
               let(:params) { {
-                name: "John Smith",
-                city: "San Francisco",
-                state: "CA"
+                'name' => "John Smith",
+                'city' => "San Francisco",
+                'state' => "CA"
               }}
 
               it 'should return 200 status' do
