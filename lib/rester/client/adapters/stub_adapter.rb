@@ -41,38 +41,24 @@ module Rester
         _request('DELETE', path, params)
       end
 
-      def context
-        @_context
-      end
-
-      def context=(context)
-        @_context = context
-      end
-
       def with_context(context, &block)
-        self.context = context
+        @_context = context
         yield block
-        self.context = nil
+        @_context = nil
       end
 
       private
 
       def _request(verb, path, params)
-        _validate_request(verb, path, params)
-
-        # At this point, the 'request' is valid by matching a corresponding
-        # request in the stub yaml file. Grab the response from the file and
-        # reset the context
-        response = stub[path][verb][context]['response']
-        context = nil
+        response = _process_request(path, verb, params)
         [response['code'], response['body'].to_json]
       end
 
-      def _validate_request(verb, path, params)
+      def _process_request(path, verb, params)
         fail Errors::StubError, "#{path} not found" unless stub[path]
         fail Errors::StubError, "#{verb} #{path} not found" unless stub[path][verb]
 
-        _find_request_by_params(verb, path, params) unless context
+        context = @_context || _find_context_by_params(path, verb, params)
 
         unless (action = stub[path][verb][context])
           fail Errors::StubError,
@@ -85,16 +71,20 @@ module Rester
           fail Errors::StubError,
             "#{verb} #{path} with context '#{context}' params don't match stub. Expected: #{request} Got: #{params}"
         end
+
+        # At this point, the 'request' is valid by matching a corresponding
+        # request in the stub yaml file. Grab the response from the file and
+        # reset the context
+        stub[path][verb][context]['response']
       end
 
       ##
       # Find the first request object with the same params as what's passed in.
       # Useful for testing without having to set the context.
-      def _find_request_by_params(verb, path, params)
-        stub[path][verb].each { |context, action|
-          req = action['request'] || {}
-          return self.context = context if Utils.symbolize_keys(req) == params
-        }
+      def _find_context_by_params(path, verb, params)
+        (stub[path][verb].find { |context, action|
+          Utils.symbolize_keys(action['request'] || {}) == params
+        } || []).first
       end
     end # StubAdapter
   end # Client::Adapters

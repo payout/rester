@@ -38,7 +38,7 @@ module Rester
         let(:context) { nil }
         let(:params) { {} }
 
-        before { stub_adapter.context = context }
+        around { |ex| stub_adapter.with_context(context) { ex.run } }
 
         context 'with invalid path' do
           let(:path) { '/v1/invalid_path' }
@@ -116,7 +116,7 @@ module Rester
         let(:context) { nil }
         let(:params) { {} }
 
-        before { stub_adapter.context = context }
+        around { |ex| stub_adapter.with_context(context) { ex.run } }
 
         describe '#get!' do
           let(:verb) { 'get' }
