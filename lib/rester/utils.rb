@@ -46,6 +46,18 @@ module Rester
         hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
       end
 
+      def stringify_vals(hash={})
+        hash.inject({}) { |memo,(k,v)|
+          case v
+          when Hash
+            memo[k] = stringify_vals(v)
+          else
+            memo[k] = v.to_s
+          end
+          memo
+        }
+      end
+
       def classify(str)
         str.to_s.split("_").map(&:capitalize).join
       end

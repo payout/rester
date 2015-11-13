@@ -29,35 +29,56 @@ RSpec.configure do |config|
     #
     # would produce:
     #
-    # request_args = ['With some context', 'GET', '/v1/tests']
-    #
-    request_args = ex.example_group.parent_groups.map { |a|
+    # context, verb, path = ['With some context', 'GET', '/v1/tests']
+    context, verb, path = ex.example_group.parent_groups.map { |a|
       a.description unless a.metadata[:description] == a.described_class.to_s
     }.compact
 
-    context = request_args[0]
-    verb    = request_args[1]
-    path    = request_args[2]
-
     begin
-      params   = @rester_stub[path][verb][context]['request']
-      response = @rester_stub[path][verb][context]['response']
+      stub_params       = @rester_stub[path][verb][context]['request']
+      raw_stub_response = @rester_stub[path][verb][context]['response']
     rescue NoMethodError
       fail Rester::Errors::StubError,
-        "Could not find path: #{path.inspect} verb: #{verb.inspect} context: #{context.inspect} in #{@rester_stub_filepath}"
+        "Could not find path: #{path.inspect} verb: #{verb.inspect} context: "\
+          "#{context.inspect} in #{@rester_stub_filepath}"
     end
 
-    ex.example_group.let(:subject) {
-      @rester_adapter.request(verb.downcase.to_sym, path, params)
+    ##
+    # Raw response from the service.
+    # [HTTP CODE, JSON String]
+    ex.example_group.let(:raw_service_response) {
+      @rester_adapter.request(verb.downcase.to_sym, path, stub_params)
     }
 
-    ex.example_group.let(:stub_response) {
-      [response['code'], response['body'].to_json]
+    ##
+    # Parsed service response
+    ex.example_group.let(:service_response) {
+      JSON.parse(raw_service_response.last, symbolize_names: true)
     }
+
+    ##
+    # HTTP status code returned by service.
+    ex.example_group.let(:service_response_code) { raw_service_response.first }
+
+    ##
+    # Expected response body specified in by the stub.
+    ex.example_group.let(:stub_response) {
+      JSON.parse((raw_stub_response['body'] || {}).to_json,
+        symbolize_names: true)
+    }
+
+    ##
+    # HTTP status code expected by the stub.
+    ex.example_group.let(:stub_response_code) { raw_stub_response['code'] }
+
+    ##
+    # Set the subject to be the service response (parsed ruby hash of the
+    # returned data).
+    ex.example_group.let(:subject) { service_response }
   end
 
   config.after :each, rester: // do |ex|
-    expect(subject).to eq stub_response
+    expect(service_response_code).to eq stub_response_code
   end
 
   ##
@@ -76,7 +97,7 @@ RSpec.configure do |config|
 
         missing_contexts.each { |missing_context, _|
           context_group = _find_or_create_child(verb_group, missing_context)
-          context_group.it { is_expected.to eq stub_response }
+          context_group.it { is_expected.to include stub_response }
         }
       }
     }

@@ -45,8 +45,10 @@ module Rester
 
         params do
           use shared_params
+          Boolean :create_token
         end
         def create(params)
+          params.merge!(token: 'ATrandomtoken') if params[:create_token]
           params.merge(method: :create)
         end
 

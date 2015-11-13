@@ -6,9 +6,9 @@ producer: core
   POST:
     With valid card details:
       request:
-        card_number: "4111111111111111"
+        card_number: 4111111111111111
         exp_month: "08"
-        exp_year: "2017"
+        exp_year: 2017
       response:
         code: 200
         body:
@@ -18,9 +18,9 @@ producer: core
           status: "ready"
     With expired card:
       request:
-        card_number: "411111111"
+        card_number: 411111111
         exp_month: "01"
-        exp_year: "2000"
+        exp_year: 2000
       response:
         code: 400
         body:
@@ -61,9 +61,9 @@ producer: core
   PUT:
     Valid customer:
       request:
-        name: "John Smith"
-        city: "San Francisco"
-        state: "CA"
+        name: John Smith
+        city: San Francisco
+        state: CA
       response:
         code: 200
         body:
