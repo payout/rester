@@ -139,7 +139,7 @@ module Rester
             context 'with non-existent card' do
               let(:context) { 'With non-existent card' }
 
-              it 'should return 400 status' do
+              it 'should return 404 status' do
                 expect(status).to eq 404
               end
 

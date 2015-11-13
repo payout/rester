@@ -66,7 +66,7 @@ module Rester
         end
 
         # Verify body, if there is one
-        unless (request = action['request'] || {}) == params
+        unless (request = Utils.stringify_vals(action['request'] || {})) == params
           fail Errors::StubError,
             "#{verb} #{path} with context '#{context}' params don't match stub. Expected: #{request} Got: #{params}"
         end
@@ -82,7 +82,7 @@ module Rester
       # Useful for testing without having to set the context.
       def _find_context_by_params(path, verb, params)
         (stub[path][verb].find { |_, action|
-          (action['request'] || {}) == params
+          (Utils.stringify_vals(action['request'] || {})) == params
         } || []).first
       end
     end # StubAdapter
