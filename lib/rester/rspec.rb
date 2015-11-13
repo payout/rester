@@ -53,7 +53,7 @@ RSpec.configure do |config|
     ##
     # Parsed service response
     ex.example_group.let(:service_response) {
-      JSON.parse(raw_service_response.last)
+      JSON.parse(raw_service_response.last, symbolize_names: true)
     }
 
     ##
@@ -63,7 +63,8 @@ RSpec.configure do |config|
     ##
     # Expected response body specified in by the stub.
     ex.example_group.let(:stub_response) {
-      JSON.parse((raw_stub_response['body'] || {}).to_json)
+      JSON.parse((raw_stub_response['body'] || {}).to_json,
+        symbolize_names: true)
     }
 
     ##

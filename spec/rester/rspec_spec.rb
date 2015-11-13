@@ -7,12 +7,12 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
         it { is_expected.to include stub_response }
         it {
           is_expected.to include(
-            "string" => "some_string",
-            "integer" => 1,
-            "float" => 1.23,
-            "symbol" => "some_symbol",
-            "bool" => true,
-            "method" => "search"
+            :string => "some_string",
+            :integer => 1,
+            :float => 1.23,
+            :symbol => "some_symbol",
+            :bool => true,
+            :method => "search"
           )
         }
       end
@@ -21,8 +21,8 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
         it { is_expected.to include stub_response }
         it {
           is_expected.to include(
-            "string" => "some_string",
-            "method" => "search"
+            :string => "some_string",
+            :method => "search"
           )
         }
       end
@@ -36,8 +36,8 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
         it { is_expected.to include stub_response }
         it {
           is_expected.to include(
-            "message" => "integer failed between?(0,100) validation",
-            "error" => "validation"
+            :message => "integer failed between?(0,100) validation",
+            :error => "validation"
           )
         }
       end
@@ -48,19 +48,19 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
         it { is_expected.to include stub_response }
         it {
           is_expected.to include(
-            "string" => "some_string",
-            "integer" => 1,
-            "float" => 1.23,
-            "symbol" => "some_symbol",
-            "bool" => true,
-            "method" => "create"
+            :string => "some_string",
+            :integer => 1,
+            :float => 1.23,
+            :symbol => "some_symbol",
+            :bool => true,
+            :method => "create"
           )
         }
       end
 
       context 'With generated token' do
-        it { expect(stub_response).to include("token" => "ATabc123") }
-        it { is_expected.to include(stub_response.merge("token" => /\AAT\w+\z/)) }
+        it { expect(stub_response).to include(:token => "ATabc123") }
+        it { is_expected.to include(stub_response.merge(:token => /\AAT\w+\z/)) }
       end
     end # POST
   end # /v1/tests
@@ -71,15 +71,15 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
         it { is_expected.to include stub_response }
         it {
           is_expected.to include(
-            "token" => "abc123",
-            "params" => {
-              "string" => "some_string",
-              "integer" => 1,
-              "float" => 1.23,
-              "symbol" => "some_symbol",
-              "bool" => true
+            :token => "abc123",
+            :params => {
+              :string => "some_string",
+              :integer => 1,
+              :float => 1.23,
+              :symbol => "some_symbol",
+              :bool => true
             },
-            "method" => "get"
+            :method => "get"
           )
         }
       end
@@ -90,18 +90,18 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
         it { is_expected.to include stub_response }
         it {
           is_expected.to include(
-            "method" => "update",
-            "int" => 1,
-            "float" => 1.1,
-            "bool" => true,
-            "null" => nil,
-            "params" => {
-              "string" => "some_string",
-              "integer" => 1,
-              "float" => 1.23,
-              "symbol" => "some_symbol",
-              "bool" => true,
-              "test_token" => "abc123"
+            :method => "update",
+            :int => 1,
+            :float => 1.1,
+            :bool => true,
+            :null => nil,
+            :params => {
+              :string => "some_string",
+              :integer => 1,
+              :float => 1.23,
+              :symbol => "some_symbol",
+              :bool => true,
+              :test_token => "abc123"
             }
           )
         }
@@ -113,15 +113,15 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
         it { is_expected.to include stub_response }
         it {
           is_expected.to include(
-            "token" => "abc123",
-            "params" => {
-              "string" => "some_string",
-              "integer" => 1,
-              "float" => 1.23,
-              "symbol" => "some_symbol",
-              "bool" => true
+            :token => "abc123",
+            :params => {
+              :string => "some_string",
+              :integer => 1,
+              :float => 1.23,
+              :symbol => "some_symbol",
+              :bool => true
             },
-            "method" => "delete"
+            :method => "delete"
           )
         }
       end
@@ -134,9 +134,9 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
         it { is_expected.to include stub_response }
         it {
           is_expected.to include(
-            "some_param" => "some_param",
-            "test_token" => "abc123",
-            "method" => "search"
+            :some_param => "some_param",
+            :test_token => "abc123",
+            :method => "search"
           )
         }
       end
