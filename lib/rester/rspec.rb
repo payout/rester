@@ -47,17 +47,21 @@ RSpec.configure do |config|
         "Could not find path: #{path.inspect} verb: #{verb.inspect} context: #{context.inspect} in #{@rester_stub_filepath}"
     end
 
-    ex.example_group.let(:subject) {
+    ex.example_group.let(:request) {
       @rester_adapter.request(verb.downcase.to_sym, path, params)
     }
 
+    # Subject should just be the response body. The code is checked separately
+    ex.example_group.let(:subject) { JSON.parse(request.last) }
     ex.example_group.let(:stub_response) {
-      [response['code'], response['body'].to_json]
+      JSON.parse((response['body'] || {}).to_json)
     }
+    ex.example_group.let(:stub_response_code) { response['code'] }
   end
 
   config.after :each, rester: // do |ex|
-    expect(subject).to eq stub_response
+    expect(request.first).to eq stub_response_code
+    expect(subject).to include stub_response
   end
 
   ##

@@ -20,6 +20,28 @@ producer: dummy_producer
           symbol: :some_symbol
           bool: true
           method: :search
+    With fewer fields in response:
+      request:
+        string: "some_string"
+        integer: 1
+        float: 1.23
+        symbol: :some_symbol
+        bool: true
+      response:
+        code: 200
+        body:
+          string: "some_string"
+          method: :search
+    With no fields in response:
+      request:
+        string: "some_string"
+        integer: 1
+        float: 1.23
+        symbol: :some_symbol
+        bool: true
+      response:
+        code: 200
+        body:
     With bad param:
       request:
         integer: 10000
