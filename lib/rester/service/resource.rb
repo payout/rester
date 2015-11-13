@@ -96,8 +96,8 @@ module Rester
         self.class.method_params[method_name.to_sym]
       end
 
-      def error!(message=nil)
-        Errors.throw_error!(Errors::RequestError, message)
+      def error!(error, message = nil)
+        Errors.throw_error!(Errors::RequestError.new(error, message))
       end
 
       private

@@ -24,10 +24,11 @@ module Rester
         code = _error_to_http_code(error)
 
         unless [401, 403, 404].include?(code)
-          body_h = {
-            message: error.message,
-            error: _error_name(error)
-          }
+          body_h = { error: _error_name(error) }
+
+          if error.message && error.message != error.class.name
+            body_h.merge!(message: error.message)
+          end
 
           if code == 500
             body_h[:backtrace] = error.backtrace
@@ -40,14 +41,14 @@ module Rester
 
       def _error_to_http_code(error)
         case error
-        when Errors::NotFoundError
-          404
-        when Errors::ForbiddenError
-          403
-        when Errors::AuthenticationError
-          401
         when Errors::RequestError
           400
+        when Errors::AuthenticationError
+          401
+        when Errors::ForbiddenError
+          403
+        when Errors::NotFoundError
+          404
         when Errors::ServerError
           500
         else
@@ -55,8 +56,16 @@ module Rester
         end
       end
 
-      def _error_name(exception)
-        Utils.underscore(exception.class.name.split('::').last.sub('Error', ''))
+      ##
+      # Takes an exception and returns an appropriate name to return to the
+      # client.
+      def _error_name(error)
+        case error
+        when Errors::RequestError
+          error.error
+        else
+          Utils.underscore(error.class.name.split('::').last.sub('Error', ''))
+        end
       end
     end # ErrorHandling
   end # Middleware
