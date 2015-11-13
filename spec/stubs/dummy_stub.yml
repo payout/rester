@@ -7,7 +7,7 @@ producer: core
     With valid card details:
       request:
         card_number: 4111111111111111
-        exp_month: 08
+        exp_month: "08"
         exp_year: 2017
       response:
         code: 200
@@ -19,7 +19,7 @@ producer: core
     With expired card:
       request:
         card_number: 411111111
-        exp_month: 01
+        exp_month: "01"
         exp_year: 2000
       response:
         code: 400
