@@ -67,6 +67,15 @@ producer: dummy_producer
           symbol: :some_symbol
           bool: true
           method: :create
+    With generated token:
+      request:
+        create_token: true
+      response:
+        code: 201
+        body:
+          create_token: true
+          token: "ATabc123"
+          method: :create
 /v1/tests/abc123:
   GET:
     With some context:

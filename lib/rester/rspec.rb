@@ -61,7 +61,6 @@ RSpec.configure do |config|
 
   config.after :each, rester: // do |ex|
     expect(request.first).to eq stub_response_code
-    expect(subject).to include stub_response
   end
 
   ##
