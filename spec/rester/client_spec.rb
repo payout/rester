@@ -123,16 +123,16 @@ module Rester
                   end
 
                   it 'should have an error message' do
-                    expect(subject[:error]).to eq 'request'
-                    expect(subject[:message]).to eq 'Rester::Errors::RequestError'
+                    expect(subject[:error]).to eq 'testing_error'
+                    expect(subject.key?(:message)).to be false
                   end
 
                   context 'with message' do
                     let(:params) { {string: 'testing_error_with_message'} }
 
                     it 'should have an error message' do
-                      expect(subject[:error]).to eq 'request'
-                      expect(subject[:message]).to eq 'testing_error_with_message'
+                      expect(subject[:error]).to eq 'testing_error'
+                      expect(subject[:message]).to eq 'with_message'
                     end
                   end
                 end

@@ -4,8 +4,8 @@ module Rester
       ##
       # Throws an error instead of raising it, which is more performant. Must
       # be caught by an appropriate error handling wrapper.
-      def throw_error!(klass, message=nil)
-        error = message ? klass.new(message) : klass.new
+      def throw_error!(error, message = nil)
+        error = error.new(message) if error.is_a?(Class)
         throw :error, error
       end
     end # Class Methods
@@ -23,22 +23,36 @@ module Rester
     class HttpError < Error; end
 
     ##
-    # Request Errors
+    # 400 Errors
+    class RequestError < HttpError
+      attr_reader :error
 
-    # 400 Error
-    class RequestError < HttpError; end
-    class ValidationError < RequestError; end
+      def initialize(error, message = nil)
+        @error = error
+        super(message)
+      end
+    end
 
+    class ValidationError < RequestError
+      def initialize(message = nil)
+        super('validation', message)
+      end
+    end
+
+    ##
     # 401 Error
-    class AuthenticationError < RequestError; end
+    class AuthenticationError < HttpError; end
 
+    ##
     # 403 Error
-    class ForbiddenError < RequestError; end
+    class ForbiddenError < HttpError; end
 
+    ##
     # 404 Not Found
-    class NotFoundError < RequestError; end
+    class NotFoundError < HttpError; end
 
+    ##
     # 500 ServerError
-    class ServerError < RequestError; end
+    class ServerError < HttpError; end
   end # Errors
 end # Rester

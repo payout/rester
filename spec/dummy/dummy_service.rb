@@ -54,8 +54,11 @@ module Rester
           use shared_params
         end
         def get(params)
-          error! if params[:string] == 'testing_error'
-          error!(params[:string]) if params[:string] == 'testing_error_with_message'
+          error!('testing_error') if params[:string] == 'testing_error'
+
+          if params[:string] == 'testing_error_with_message'
+            error!('testing_error', 'with_message')
+          end
 
           { token: params.delete(:test_token), params: params, method: :get }
         end
