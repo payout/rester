@@ -4,18 +4,26 @@ module Rester
   class DummyService < Service
     module V1
       class MountedObject < Service::Resource
+        params strict: false do
+        end
         def search(params)
           params.merge(method: :search)
         end
 
+        params strict: false do
+        end
         def get(params)
           params
         end
 
+        params strict: false do
+        end
         def update(params)
           params
         end
 
+        params strict: false do
+        end
         def delete
           { no: 'params accepted' }
         end
@@ -35,7 +43,7 @@ module Rester
           Boolean :bool
         }
 
-        params do
+        params strict: false do
           use shared_params
           String :my_string
         end
@@ -43,7 +51,7 @@ module Rester
           params.merge(method: :search)
         end
 
-        params do
+        params strict: false do
           use shared_params
           Boolean :create_token
         end
@@ -52,7 +60,7 @@ module Rester
           params.merge(method: :create)
         end
 
-        params do
+        params strict: false do
           use shared_params
         end
         def get(params)
@@ -65,7 +73,7 @@ module Rester
           { token: params.delete(:test_token), params: params, method: :get }
         end
 
-        params do
+        params strict: false do
           use shared_params
         end
         def update(params)
@@ -76,7 +84,7 @@ module Rester
           }
         end
 
-        params do
+        params strict: false do
           use shared_params
         end
         def delete(params)

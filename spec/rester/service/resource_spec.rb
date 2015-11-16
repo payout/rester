@@ -221,7 +221,9 @@ module Rester
       describe '#process' do
         let(:resource) { Rester::DummyService::V1::TestWithNonHashValue.new }
         let(:params) { {} }
-        subject { resource.process('GET', nil, params) }
+        let(:request_method) { 'GET' }
+        let(:id_provided) { nil }
+        subject { resource.process(request_method, id_provided, params) }
 
         it { is_expected.to eq(this: :that) }
 
@@ -232,10 +234,18 @@ module Rester
 
         describe 'per-method params' do
           let(:resource) { Rester::DummyService::V1::TestWithParams.new }
-          let(:request_method) { '' }
-          let(:id_provided) { nil }
 
-          subject { resource.process(request_method, id_provided) }
+          describe 'strict by default' do
+            context 'with extra argument' do
+              let(:params) { { extra_key: 'some_value' } }
+
+              it 'should throw an error' do
+                error = catch(:error) { subject }
+                expect(error).to be_a Rester::Errors::ValidationError
+                expect(error.message).to eq 'unexpected params: extra_key'
+              end
+            end # with extra argument
+          end # strict by default
 
           context 'search' do
             let(:request_method) { 'GET' }

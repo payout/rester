@@ -6,7 +6,9 @@ module Rester
       attr_reader :options
 
       def initialize(opts={}, &block)
-        @options = opts.dup.freeze
+        @options = opts.dup.tap { |o|
+          o[:strict] = true unless o.has_key?(:strict)
+        }.freeze
         @_required_fields = []
         @_defaults = {}
         @_all_fields = []
