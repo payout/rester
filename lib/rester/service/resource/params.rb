@@ -21,7 +21,7 @@ module Rester
       # Whether or not validation will be done strictly (i.e., only specified
       # params will be allowed).
       def strict?
-        !!options[:strict]
+        !!options.fetch(:strict, true)
       end
 
       def freeze
