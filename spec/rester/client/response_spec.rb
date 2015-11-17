@@ -1,15 +1,18 @@
 module Rester
   class Client
     RSpec.describe Response do
-      let(:response) { Response.new(status) }
+      let(:response) { Response.new(status, params) }
       let(:status) { 200 }
-      subject { response }
+      let(:params) { {} }
 
-      it { is_expected.to be_a Hash }
+      describe '#to_h' do
+        subject { response.to_h }
+        it { is_expected.to be_a Hash }
+      end # #to_h
 
       describe '#initalize' do
         def frozen?(object)
-          expect(object.frozen?).to be true if object.respond_to?(:frozen)
+          expect(object.frozen?).to be true if object.respond_to?(:frozen?)
 
           case object
           when Hash
@@ -65,6 +68,23 @@ module Rester
           it { is_expected.to be false }
         end
       end # #successful?
+
+      describe '#==' do
+        subject { response == other_hash }
+        let(:params) { {} }
+        let(:other_hash) { {} }
+
+        context 'with equal hashes' do
+          let(:params) { { some_key: 'some_value' } }
+          it { is_expected.to be false }
+        end # with equal hashes
+
+        context 'with unequal hashes' do
+          let(:params) { { some_key: 'some_value' } }
+          let(:other_hash) { { some_key: 'some_value' } }
+          it { is_expected.to be true }
+        end # with unequal hashes
+      end  # #==
     end # Response
   end # Client
 end # Rester

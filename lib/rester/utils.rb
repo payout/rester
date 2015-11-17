@@ -67,6 +67,17 @@ module Rester
       def underscore(str)
         str.scan(/[A-Z][a-z]*/).map(&:downcase).join('_')
       end
+
+      def deep_freeze(value)
+        value.freeze
+
+        case value
+        when Hash
+          value.values.each { |v| deep_freeze(v) }
+        when Array
+          value.each { |v| deep_freeze(v) }
+        end
+      end
     end # Class methods
   end # Utils
 end # Rester
