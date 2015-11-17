@@ -1,9 +1,9 @@
 module Rester
   class Client
-    class Response < Hash
+    class Response
       def initialize(status, hash={})
         @_status = status
-        merge!(hash)
+        @_data = hash || {}
         _deep_freeze
       end
 
@@ -11,9 +11,25 @@ module Rester
         @_status && @_status.between?(200, 299)
       end
 
+      def to_h
+        @_data.dup
+      end
+
+      def ==(obj)
+        @_data == obj
+      end
+
       private
 
-      def _deep_freeze(value=self)
+      def method_missing(meth, *args, &block)
+        if @_data.respond_to?(meth)
+          @_data.public_send(meth, *args, &block)
+        else
+          super
+        end
+      end
+
+      def _deep_freeze(value=@_response)
         value.freeze
 
         case value
