@@ -33,6 +33,9 @@ module Rester
           Float   :float
           Symbol  :symbol
           Boolean :bool
+          String  :test_token
+          String  :null
+          String  :test
         }
 
         params do

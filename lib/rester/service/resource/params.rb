@@ -1,12 +1,13 @@
 module Rester
   class Service::Resource
     class Params
+      DEFAULT_OPTS = { strict: true }.freeze
       BASIC_TYPES = [String, Symbol, Float, Integer].freeze
 
       attr_reader :options
 
       def initialize(opts={}, &block)
-        @options = opts.dup.freeze
+        @options = DEFAULT_OPTS.merge(opts).freeze
         @_required_fields = []
         @_defaults = {}
         @_all_fields = []
