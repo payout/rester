@@ -9,54 +9,42 @@ producer: core
         card_number: 4111111111111111
         exp_month: "08"
         exp_year: 2017
-      response:
-        code: 200
-        body:
-          token: "CTABCDEFG"
-          exp_month: "08"
-          exp_year: "2017"
-          status: "ready"
+      response[successful=true]:
+        token: "CTABCDEFG"
+        exp_month: "08"
+        exp_year: "2017"
+        status: "ready"
     With expired card:
       request:
         card_number: 411111111
         exp_month: "01"
         exp_year: 2000
       response:
-        code: 400
-        body:
-          error: "validation_error"
-          message: "card expired"
+        error: "validation_error"
+        message: "card expired"
 /v1/cards/CTabcdef:
   GET:
     With card existing:
-      response:
-        code: 200
-        body:
-          token: "CTabcdef"
-          status: "ready"
+      response[successful=true]:
+        token: "CTabcdef"
+        status: "ready"
     With non-existent card:
       response:
-        code: 404
-        body:
-          error: "validation_error"
-          message: "card not found"
+        error: "validation_error"
+        message: "card not found"
   DELETE:
     With card existing:
-      response:
-        code: 200
-        body:
-          token: "CTabcdef"
-          status: "deleted"
+      response[successful=true]:
+        token: "CTabcdef"
+        status: "deleted"
 /v1/cards/CTabcdef/credits:
   POST:
     With card existing:
       request:
         amount_cents: 100
-      response:
-        code: 200
-        body:
-          token: "CCaoeu"
-          amount_cents: 100
+      response[successful=true]:
+        token: "CCaoeu"
+        amount_cents: 100
 /v1/cards/CTabcdef/customers/CUabc123:
   PUT:
     Valid customer:
@@ -64,10 +52,8 @@ producer: core
         name: John Smith
         city: San Francisco
         state: CA
-      response:
-        code: 200
-        body:
-          name: "John Smith"
-          city: "San Francisco"
-          state: "CA"
-          status: "valid_customer"
+      response[successful=true]:
+        name: "John Smith"
+        city: "San Francisco"
+        state: "CA"
+        status: "valid_customer"
