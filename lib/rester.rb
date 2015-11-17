@@ -7,6 +7,7 @@ module Rester
   autoload(:Errors,      'rester/errors')
   autoload(:Client,      'rester/client')
   autoload(:Utils,       'rester/utils')
+  autoload(:StubUtils,   'rester/stub_utils')
   autoload(:Middleware,  'rester/middleware')
 
   class << self

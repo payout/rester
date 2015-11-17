@@ -35,8 +35,26 @@ RSpec.configure do |config|
     }.compact
 
     begin
-      stub_params       = @rester_stub[path][verb][context]['request']
-      raw_stub_response = @rester_stub[path][verb][context]['response']
+      # The stub file can have various response keys depending on the options
+      # For example:
+      #
+      # /v1/tests:
+      #   GET:
+      #     With some context:
+      #       request:
+      #         bool: true
+      #       response[success=true]:
+      #         bool: true
+      #     With another context:
+      #       request:
+      #         bool: true
+      #       response:
+      #         bool: true
+      action            = @rester_stub[path][verb][context]
+      stub_params       = action['request']
+      response_key      = action.keys.detect { |k| k =~ /response/ }
+      response_options  = Rester::StubUtils.parse_response_options(response_key)
+      raw_stub_response = action[response_key]
     rescue NoMethodError
       fail Rester::Errors::StubError,
         "Could not find path: #{path.inspect} verb: #{verb.inspect} context: "\
@@ -58,18 +76,21 @@ RSpec.configure do |config|
 
     ##
     # HTTP status code returned by service.
-    ex.example_group.let(:service_response_code) { raw_service_response.first }
+    ex.example_group.let(:service_response_code) { raw_service_response.first  }
 
     ##
     # Expected response body specified in by the stub.
     ex.example_group.let(:stub_response) {
-      JSON.parse((raw_stub_response['body'] || {}).to_json,
+      JSON.parse((raw_stub_response || {}).to_json,
         symbolize_names: true)
     }
 
     ##
     # HTTP status code expected by the stub.
-    ex.example_group.let(:stub_response_code) { raw_stub_response['code'] }
+    ex.example_group.let(:stub_response_code) {
+      is_successful = response_options['successful'] == 'true'
+      Rester::StubUtils.determine_status_code(verb, is_successful)
+    }
 
     ##
     # Set the subject to be the service response (parsed ruby hash of the

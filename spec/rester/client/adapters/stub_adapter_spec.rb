@@ -90,8 +90,8 @@ module Rester
               }
             }
 
-            it 'should return a 200', :test do
-              expect(subject.first).to eq 200
+            it 'should return a 201' do
+              expect(subject.first).to eq 201
             end
 
             it 'should return json body' do
@@ -139,8 +139,8 @@ module Rester
             context 'with non-existent card' do
               let(:context) { 'With non-existent card' }
 
-              it 'should return 404 status' do
-                expect(status).to eq 404
+              it 'should return 400 status' do
+                expect(status).to eq 400
               end
 
               it 'should return json body' do
@@ -194,8 +194,8 @@ module Rester
                 'exp_year' => "2017"
               }}
 
-              it 'should return 200 status' do
-                expect(status).to eq 200
+              it 'should return 201 status' do
+                expect(status).to eq 201
               end
 
               it 'should return json body' do

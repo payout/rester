@@ -50,8 +50,10 @@ module Rester
       private
 
       def _request(verb, path, params)
-        response = _process_request(path, verb, params)
-        [response['code'], response['body'].to_json]
+        response_options, response = _process_request(path, verb, params)
+        is_successful = response_options['successful'] == 'true'
+        status_code = StubUtils.determine_status_code(verb, is_successful)
+        [status_code, response.to_json]
       end
 
       def _process_request(path, verb, params)
@@ -72,9 +74,10 @@ module Rester
         end
 
         # At this point, the 'request' is valid by matching a corresponding
-        # request in the stub yaml file. Grab the response from the file and
-        # reset the context
-        stub[path][verb][context]['response']
+        # request in the stub yaml file. Grab the response from the file.
+        response_key = action.keys.detect { |k| k =~ /response/ }
+        response_options = StubUtils.parse_response_options(response_key)
+        [response_options, action[response_key]]
       end
 
       ##
