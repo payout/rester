@@ -3,8 +3,9 @@ module Rester
     class Response
       def initialize(status, hash={})
         @_status = status
-        @_data = hash || {}
-        _deep_freeze
+        @_data = hash.dup || {}
+        Utils.deep_freeze(@_data)
+        freeze
       end
 
       def successful?
@@ -26,17 +27,6 @@ module Rester
           @_data.public_send(meth, *args, &block)
         else
           super
-        end
-      end
-
-      def _deep_freeze(value=@_data)
-        value.freeze
-
-        case value
-        when Hash
-          value.values.each { |v| _deep_freeze(v) }
-        when Array
-          value.each { |v| _deep_freeze(v) }
         end
       end
     end # Response

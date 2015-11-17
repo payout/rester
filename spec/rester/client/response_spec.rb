@@ -12,7 +12,7 @@ module Rester
 
       describe '#initalize' do
         def frozen?(object)
-          expect(object.frozen?).to be true if object.respond_to?(:frozen)
+          expect(object.frozen?).to be true if object.respond_to?(:frozen?)
 
           case object
           when Hash
