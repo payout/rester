@@ -56,7 +56,7 @@ module Rester
             fail Errors::StubError, "#{verb.upcase} #{path} is missing a " \
               "response for the context #{context.inspect}"
           elsif responses.count > 1
-            fail Errors::StubError, "#{verb.upcase} #{path} has too many" \
+            fail Errors::StubError, "#{verb.upcase} #{path} has too many " \
               "responses defined for the context #{context.inspect}"
           end
 
