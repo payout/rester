@@ -29,7 +29,7 @@ module Rester
         end
       end
 
-      def _deep_freeze(value=@_response)
+      def _deep_freeze(value=@_data)
         value.freeze
 
         case value
