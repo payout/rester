@@ -2,6 +2,8 @@ require 'date'
 
 module Rester
   module Utils
+    autoload(:StubFile,  'rester/utils/stub_file')
+
     class << self
       ##
       # Determines the HTTP method/verb based on the method name.

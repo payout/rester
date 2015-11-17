@@ -18,7 +18,7 @@ module Rester
       end # Class Methods
 
       def connect(stub_filepath, opts={})
-        @stub = YAML.load_file(stub_filepath)
+        @stub = Utils::StubFile.new(stub_filepath)
       end
 
       def connected?
@@ -41,17 +41,17 @@ module Rester
         _request('DELETE', path, params)
       end
 
-      def with_context(context, &block)
+      def with_context(context)
         @_context = context
-        yield block
+        yield
         @_context = nil
       end
 
       private
 
       def _request(verb, path, params)
-        response = _process_request(path, verb, params)
-        [response['code'], response['body'].to_json]
+        spec = _process_request(path, verb, params)
+        [spec['response_code'], spec['response'].to_json]
       end
 
       def _process_request(path, verb, params)
@@ -72,9 +72,8 @@ module Rester
         end
 
         # At this point, the 'request' is valid by matching a corresponding
-        # request in the stub yaml file. Grab the response from the file and
-        # reset the context
-        stub[path][verb][context]['response']
+        # request in the stub yaml file.
+        stub[path][verb][context]
       end
 
       ##

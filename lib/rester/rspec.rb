@@ -4,12 +4,13 @@ RSpec.configure do |config|
   config.before :all, rester: // do |ex|
     # Load the stub file
     @rester_stub_filepath = ex.class.metadata[:rester]
-    @rester_stub = YAML.load_file(@rester_stub_filepath)
+    @rester_stub = Rester::Utils::StubFile.new(@rester_stub_filepath)
 
     # Hook up the LocalAdapter with the Service being tested
     unless (klass = ex.class.described_class) < Rester::Service
       raise "invalid service to test"
     end
+
     @rester_adapter = Rester::Client::Adapters::LocalAdapter.new(klass, {})
 
     _validate_test_coverage(ex)
@@ -35,8 +36,7 @@ RSpec.configure do |config|
     }.compact
 
     begin
-      stub_params       = @rester_stub[path][verb][context]['request']
-      raw_stub_response = @rester_stub[path][verb][context]['response']
+      spec = @rester_stub[path][verb][context]
     rescue NoMethodError
       fail Rester::Errors::StubError,
         "Could not find path: #{path.inspect} verb: #{verb.inspect} context: "\
@@ -47,7 +47,7 @@ RSpec.configure do |config|
     # Raw response from the service.
     # [HTTP CODE, JSON String]
     ex.example_group.let(:raw_service_response) {
-      @rester_adapter.request(verb.downcase.to_sym, path, stub_params)
+      @rester_adapter.request(verb.downcase.to_sym, path, spec['request'])
     }
 
     ##
@@ -63,13 +63,12 @@ RSpec.configure do |config|
     ##
     # Expected response body specified in by the stub.
     ex.example_group.let(:stub_response) {
-      JSON.parse((raw_stub_response['body'] || {}).to_json,
-        symbolize_names: true)
+      JSON.parse((spec['response'] || {}).to_json, symbolize_names: true)
     }
 
     ##
     # HTTP status code expected by the stub.
-    ex.example_group.let(:stub_response_code) { raw_stub_response['code'] }
+    ex.example_group.let(:stub_response_code) { spec['response_code'] }
 
     ##
     # Set the subject to be the service response (parsed ruby hash of the

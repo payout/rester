@@ -12,14 +12,12 @@ producer: dummy_producer
         symbol: :some_symbol
         bool: true
       response:
-        code: 200
-        body:
-          string: "some_string"
-          integer: 1
-          float: 1.23
-          symbol: :some_symbol
-          bool: true
-          method: :search
+        string: "some_string"
+        integer: 1
+        float: 1.23
+        symbol: :some_symbol
+        bool: true
+        method: :search
     With fewer fields in response:
       request:
         string: "some_string"
@@ -28,10 +26,8 @@ producer: dummy_producer
         symbol: :some_symbol
         bool: true
       response:
-        code: 200
-        body:
-          string: "some_string"
-          method: :search
+        string: "some_string"
+        method: :search
     With no fields in response:
       request:
         string: "some_string"
@@ -40,16 +36,12 @@ producer: dummy_producer
         symbol: :some_symbol
         bool: true
       response:
-        code: 200
-        body:
     With bad param:
       request:
         integer: 10000
-      response:
-        code: 400
-        body:
-          error: "validation"
-          message: "integer failed between?(0,100) validation"
+      response[successful=false]:
+        error: "validation"
+        message: "integer failed between?(0,100) validation"
   POST:
     With some context:
       request:
@@ -59,23 +51,19 @@ producer: dummy_producer
         symbol: :some_symbol
         bool: true
       response:
-        code: 201
-        body:
-          string: "some_string"
-          integer: 1
-          float: 1.23
-          symbol: :some_symbol
-          bool: true
-          method: :create
+        string: "some_string"
+        integer: 1
+        float: 1.23
+        symbol: :some_symbol
+        bool: true
+        method: :create
     With generated token:
       request:
         create_token: true
       response:
-        code: 201
-        body:
-          create_token: true
-          token: "ATabc123"
-          method: :create
+        create_token: true
+        token: "ATabc123"
+        method: :create
 /v1/tests/abc123:
   GET:
     With some context:
@@ -86,16 +74,14 @@ producer: dummy_producer
         symbol: :some_symbol
         bool: true
       response:
-        code: 200
-        body:
-          token: "abc123"
-          params:
-            string: "some_string"
-            integer: 1
-            float: 1.23
-            symbol: :some_symbol
-            bool: true
-          method: :get
+        token: "abc123"
+        params:
+          string: "some_string"
+          integer: 1
+          float: 1.23
+          symbol: :some_symbol
+          bool: true
+        method: :get
   PUT:
     With some context:
       request:
@@ -105,20 +91,18 @@ producer: dummy_producer
         symbol: :some_symbol
         bool: true
       response:
-        code: 200
-        body:
-          method: :update
-          int: 1
-          float: 1.1
+        method: :update
+        int: 1
+        float: 1.1
+        bool: true
+        "null": null
+        params:
+          string: "some_string"
+          integer: 1
+          float: 1.23
+          symbol: :some_symbol
           bool: true
-          "null": null
-          params:
-            string: "some_string"
-            integer: 1
-            float: 1.23
-            symbol: :some_symbol
-            bool: true
-            test_token: "abc123"
+          test_token: "abc123"
   DELETE:
     With some context:
       request:
@@ -128,24 +112,20 @@ producer: dummy_producer
         symbol: :some_symbol
         bool: true
       response:
-        code: 200
-        body:
-          token: "abc123"
-          params:
-            string: "some_string"
-            integer: 1
-            float: 1.23
-            symbol: :some_symbol
-            bool: true
-          method: :delete
+        token: "abc123"
+        params:
+          string: "some_string"
+          integer: 1
+          float: 1.23
+          symbol: :some_symbol
+          bool: true
+        method: :delete
 /v1/tests/abc123/mounted_objects:
   GET:
     With some context:
       request:
         some_param: "some_param"
       response:
-        code: 200
-        body:
-          some_param: "some_param"
-          test_token: "abc123"
-          method: :search
+        some_param: "some_param"
+        test_token: "abc123"
+        method: :search
