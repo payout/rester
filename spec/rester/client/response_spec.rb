@@ -88,7 +88,6 @@ module Rester
 
       describe 'respond_to_missing?' do
         subject { response.respond_to?(:fetch) }
-
         it { is_expected.to be true }
       end
     end # Response
