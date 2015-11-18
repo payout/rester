@@ -85,6 +85,11 @@ module Rester
           it { is_expected.to be true }
         end # with unequal hashes
       end  # #==
+
+      describe 'respond_to_missing?' do
+        subject { response.respond_to?(:fetch) }
+        it { is_expected.to be true }
+      end
     end # Response
   end # Client
 end # Rester
