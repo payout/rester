@@ -31,7 +31,7 @@ module Rester
       end
 
       def respond_to_missing?(meth, include_private=false)
-        @_data.respond_to?(meth)
+        @_data.respond_to?(meth) || super
       end
     end # Response
   end # Client
