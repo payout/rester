@@ -47,28 +47,46 @@ class PaymentService < Rester::Service
     class Card < Rester::Resource
       id :token
       mount Credit
+      
+      # Set of params that can be used for multiple endpoints
+      shared_params = Params.new {
+        String :token
+        Integer :id
+      }
 
       params do
         String :str
         Integer :something
       end
-
       def search(params)
         # Search for the card.
       end
 
+      # Strict params which only allow the params specified 
+      params strict: true do
+        String :some_field
+      end
       def create(params)
         # Create the card.
       end
 
       ##
       # GET /v1/cards/:token
+      # Using the shared params
+      params do
+        use shared_params
+      end
       def get(params)
         # Lookup card based on params[:card_token].
       end
 
       ##
       # PUT /v1/cards/:token
+      # Using the shared params and another param
+      params do
+        use shared_params
+        Integer :an_additional_field
+      end
       def update(params={})
         # Update the card.
       end
@@ -127,22 +145,18 @@ producer: some_service
         exp_month: "08"
         exp_year: "2017"
       response:
-        code: 200
-        body:
-          token: "CTABCDEFG"
-          exp_month: "08"
-          exp_year: "2017"
-          status: "ready"
+        token: "CTABCDEFG"
+        exp_month: "08"
+        exp_year: "2017"
+        status: "ready"
     With expired card:
       request:
         card_number: "411111111"
         exp_month: "01"
         exp_year: "2000"
-      response:
-        code: 400
-        body:
-          error: "validation_error"
-          message: "card expired"
+      response[successful=false]:
+        error: "validation_error"
+        message: "card expired"
 
 ```
 
@@ -188,12 +202,17 @@ The Service providers are responsible for verifying that the stubs created by th
         exp_month: "08"
         exp_year: "2017"
       response:
-        code: 200
-        body:
-          token: "CTABCDEFG"
-          exp_month: "08"
-          exp_year: "2017"
-          status: "ready"
+        token: "CTABCDEFG"
+        exp_month: "08"
+        exp_year: "2017"
+        status: "ready"
+    With invalid card details:
+      request:
+        card_number: "4111111111111111"
+        exp_month: "08"
+        exp_year: "2017"
+      response[successful=false]:
+        error: card_declined
 ```
 
 #### Service RSpec Test Example:
