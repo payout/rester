@@ -1,5 +1,6 @@
 require 'stringio'
 require 'rack'
+require 'timeout'
 
 module Rester
   module Client::Adapters
@@ -15,7 +16,7 @@ module Rester
         end
       end # Class Methods
 
-      def connect(service, opts={})
+      def connect(service)
         nil.tap { @service = service }
       end
 
@@ -45,13 +46,15 @@ module Rester
         body = URI.encode_www_form(opts[:data] || {})
         query = URI.encode_www_form(opts[:query] || {})
 
-        response = service.call(
-          'REQUEST_METHOD' => verb.to_s.upcase,
-          'PATH_INFO'      => path,
-          'CONTENT_TYPE'   => 'application/x-www-form-urlencoded',
-          'QUERY_STRING'   => query,
-          'rack.input'     => StringIO.new(body)
-        )
+        response = Timeout::timeout(timeout) do
+          service.call(
+            'REQUEST_METHOD' => verb.to_s.upcase,
+            'PATH_INFO'      => path,
+            'CONTENT_TYPE'   => 'application/x-www-form-urlencoded',
+            'QUERY_STRING'   => query,
+            'rack.input'     => StringIO.new(body)
+          )
+        end
 
         body = response.last
         body = body.body if body.respond_to?(:body)
@@ -62,6 +65,8 @@ module Rester
           response.first, # The status code
           body            # The response body.
         ]
+      rescue Timeout::Error
+        fail Errors::TimeoutError
       end
     end # LocalAdapter
   end # Client::Adapters

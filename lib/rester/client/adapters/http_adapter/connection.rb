@@ -10,39 +10,56 @@ module Rester
       }.freeze
 
       attr_reader :url
+      attr_reader :timeout
 
-      def initialize(url)
+      def initialize(url, opts={})
         @url = url.is_a?(String) ? URI(url) : url
         @url.path = @url.path[0..-2] if @url.path[-1] == '/'
+        @timeout = opts[:timeout]
       end
 
       def get(path, params={})
-        _http.get(
+        _request(
+          :get,
           _path(path, params[:query]),
           _prepare_headers(params[:headers])
         )
       end
 
       def delete(path, params={})
-        _http.delete(
+        _request(
+          :delete,
           _path(path, params[:query]),
           _prepare_headers(params[:headers])
         )
       end
 
       def put(path, params={})
-        encoded_data = _encode_data(params[:data])
-        headers = _prepare_data_headers(params[:headers])
-        _http.put(_path(path), encoded_data, headers)
+        _request(
+          :put,
+          _path(path),
+          _prepare_data_headers(params[:headers]),
+          _encode_data(params[:data])
+        )
       end
 
       def post(path, params={})
-        encoded_data = _encode_data(params[:data])
-        headers = _prepare_data_headers(params[:headers])
-        _http.post(_path(path), encoded_data, headers)
+        _request(
+          :post,
+          _path(path),
+          _prepare_data_headers(params[:headers]),
+          _encode_data(params[:data])
+        )
       end
 
       private
+
+      def _request(verb, path, headers={}, data='')
+        data = nil if [:get, :delete].include?(verb)
+        _http.public_send(verb, *[path, data, headers].compact)
+      rescue Net::ReadTimeout, Net::OpenTimeout
+        fail Errors::TimeoutError
+      end
 
       def _path(path, query=nil)
         u = url.dup
@@ -68,6 +85,8 @@ module Rester
               s.set_default_paths
             }
           end
+
+          http.open_timeout = http.read_timeout = timeout
         }
       end
 

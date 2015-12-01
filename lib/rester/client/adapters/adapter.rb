@@ -1,7 +1,6 @@
 module Rester
   module Client::Adapters
     class Adapter
-
       class << self
         ##
         # Returns whether or not the Adapter can connect to the service
@@ -10,8 +9,11 @@ module Rester
         end
       end # Class Methods
 
-      def initialize(*args)
-        connect(*args) unless args.empty?
+      attr_reader :timeout
+
+      def initialize(service=nil, opts={})
+        @timeout = opts[:timeout]
+        connect(service) if service
       end
 
       ##

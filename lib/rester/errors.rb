@@ -12,7 +12,12 @@ module Rester
 
     class Error < StandardError; end
     class MethodError < Error; end
-    class MethodDefinitionError < Error; end
+    class MethodDefinitionError < MethodError; end
+
+    ################
+    # Adapter Errors
+    class AdapterError < Error; end
+    class TimeoutError < AdapterError; end
 
     #############
     # Stub Errors
