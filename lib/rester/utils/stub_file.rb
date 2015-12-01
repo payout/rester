@@ -48,6 +48,23 @@ module Rester
         # StubAdapter (i.e., removes tags from "response" key and puts them in
         # a "response_tags" key).
         def _update_context(path, verb, context, spec)
+          _update_request(path, verb, context, spec)
+          _update_response(path, verb, context, spec)
+        end
+
+        ##
+        # Converts all the values in the request hash to strings, which mimics
+        # how the data will be received on the service side.
+        def _update_request(path, verb, context, spec)
+          spec['request'] = Utils.stringify_vals(spec['request'] || {})
+        end
+
+        ##
+        # Parses response tags (e.g., response[successful=true]).
+        #
+        # Currently supported tags:
+        #   successful    must be 'true' or 'false'
+        def _update_response(path, verb, context, spec)
           responses = spec.select { |k,_|
             k =~ /\Aresponse(\[(\w+) *= *(\w+)(, *(\w+) *= *(\w+))*\])?\z/
           }

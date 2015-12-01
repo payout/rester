@@ -60,13 +60,13 @@ module Rester
 
         context = @_context || _find_context_by_params(path, verb, params)
 
-        unless (action = stub[path][verb][context])
+        unless (spec = stub[path][verb][context])
           fail Errors::StubError,
             "#{verb} #{path} with context '#{context}' not found"
         end
 
         # Verify body, if there is one
-        unless (request = Utils.stringify_vals(action['request'] || {})) == params
+        unless (request = spec['request']) == params
           fail Errors::StubError,
             "#{verb} #{path} with context '#{context}' params don't match stub. Expected: #{request} Got: #{params}"
         end
@@ -80,9 +80,8 @@ module Rester
       # Find the first request object with the same params as what's passed in.
       # Useful for testing without having to set the context.
       def _find_context_by_params(path, verb, params)
-        (stub[path][verb].find { |_, action|
-          (Utils.stringify_vals(action['request'] || {})) == params
-        } || []).first
+        (stub[path][verb].find { |_, spec| spec['request'] == params } || []
+          ).first
       end
     end # StubAdapter
   end # Client::Adapters
