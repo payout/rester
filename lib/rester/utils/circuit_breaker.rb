@@ -1,13 +1,15 @@
 module Rester
   module Utils
     class CircuitBreaker
+      class Error < StandardError; end
+      class CircuitOpenError < Error; end
+
       attr_reader :threshold
       attr_reader :retry_period
       attr_reader :block
 
       attr_reader :failure_count
       attr_reader :last_failed_at
-      attr_reader :last_exception
 
       def initialize(opts={}, &block)
         @_mutex = Mutex.new
@@ -36,12 +38,12 @@ module Rester
         if closed?
           begin
             block.call(*args).tap { record_success }
-          rescue Exception => e
-            _record_failure(e)
+          rescue
+            _record_failure
             raise
           end
         else
-          raise last_exception
+          raise CircuitOpenError
         end
       end
 
@@ -49,7 +51,6 @@ module Rester
         _synchronize {
           @failure_count = 0
           @last_failed_at = nil
-          @last_exception = nil
         }
       end
 
@@ -68,11 +69,10 @@ module Rester
         end
       end
 
-      def _record_failure(error)
+      def _record_failure
         _synchronize {
           @failure_count += 1 if @failure_count < threshold
           @last_failed_at = Time.now
-          @last_exception = error.dup
         }
       end
     end # CircuitBreaker

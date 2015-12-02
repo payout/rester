@@ -10,11 +10,9 @@ module Rester
       let(:threshold) { 5 }
       let(:retry_period) { 1 }
 
-      let(:error_message) { 'hi' }
-
       def failure_call
-        allow(breaker.block).to receive(:call).and_raise error_message
-        expect { breaker.call }.to raise_error error_message
+        allow(breaker.block).to receive(:call).and_raise 'hi'
+        expect { breaker.call }.to raise_error
       end
 
       def success_call
@@ -124,20 +122,6 @@ module Rester
         end
       end # #last_failed_at
 
-      describe '#last_exception' do
-        subject { breaker.last_exception }
-
-        context 'with no failures' do
-          it { is_expected.to be nil }
-        end
-
-        context 'with failure' do
-          before { failure_call }
-          it { is_expected.to be_a RuntimeError }
-          it { is_expected.to have_attributes(message: 'hi') }
-        end
-      end # #last_exception
-
       describe '#closed?' do
         subject { breaker.closed? }
 
@@ -216,10 +200,6 @@ module Rester
         it 'should set last_failed_at = nil' do
           expect(breaker.last_failed_at).to be nil
         end
-
-        it 'should set last_exception = nil' do
-          expect(breaker.last_exception).to be nil
-        end
       end # #reset
 
       describe '#call' do
@@ -234,24 +214,19 @@ module Rester
         end
 
         context 'with failed call' do
-          before do
-            allow(breaker.block).to receive(:call).and_raise "#{error_message}2"
-          end
+          before { allow(breaker.block).to receive(:call).and_raise 'hi' }
 
           it 'should raise exception raised by block' do
-            expect { subject }.to raise_error RuntimeError, "#{error_message}2"
+            expect { subject }.to raise_error RuntimeError, 'hi'
           end
 
           context 'with threshold reached' do
             before { threshold.times { failure_call } }
 
-            it 'should raise last exception' do
-              # Note here it's raising the exception raised in `failure_call`
-              # and not the exception that would be raised if it actually called
-              # the block.
-              expect { subject }.to raise_error RuntimeError, error_message
+            it 'should raise CircuitOpenError' do
+              expect { subject }.to raise_error CircuitBreaker::CircuitOpenError
             end
-          end
+          end # with threshold reached
         end
       end # #call
     end # CircuitBreaker
