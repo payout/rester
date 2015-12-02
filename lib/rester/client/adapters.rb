@@ -6,6 +6,12 @@ module Rester
       autoload(:LocalAdapter, 'rester/client/adapters/local_adapter')
       autoload(:StubAdapter,  'rester/client/adapters/stub_adapter')
 
+      ##
+      # Default connection options.
+      DEFAULT_OPTS = {
+        timeout: 10 # time in seconds (may be float)
+      }.freeze
+
       class << self
         ##
         # Returns a list of available adapter classes.
@@ -22,12 +28,6 @@ module Rester
           fail "unable to connect to #{service.inspect}" unless klass
           klass.new(service, opts)
         end
-
-        ##
-        # Default connection options.
-        DEFAULT_OPTS = {
-          timeout: 10 # time in seconds (may be float)
-        }.freeze
 
         ##
         # Given a hash, extracts the options that are part of the adapter

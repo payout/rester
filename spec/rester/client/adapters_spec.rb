@@ -67,16 +67,35 @@ module Rester
 
         context 'with timeout' do
           let(:opts) { { timeout: 1234.1234 } }
-          let(:service) { DummyService }
+          let(:service) { RSpec.server_uri.to_s }
           it { is_expected.to have_attributes(timeout: 1234.1234) }
         end # with timeout
 
         context 'without timeout specified' do
           let(:opts) { {} }
-          let(:service) { DummyService }
+          let(:service) { RSpec.server_uri.to_s }
           it { is_expected.to have_attributes(timeout: nil) }
         end # without timeout specified
       end # ::connect
+
+      describe '::extract_opts', :extract_opts do
+        subject { Adapters.extract_opts(opts) }
+
+        context 'with empty hash' do
+          let(:opts) { {} }
+          it { is_expected.to eq Adapters::DEFAULT_OPTS }
+        end # with empty hash
+
+        context 'with timeout specified' do
+          let(:opts) { { timeout: 12.34 } }
+          it { is_expected.to eq(timeout: 12.34) }
+
+          it 'should have extracted the timeout' do
+            subject
+            expect(opts).to eq({})
+          end
+        end # with timeout specified
+      end # ::extract_opts
     end # Adapters
   end # Client::Adapters
 end # Rester
