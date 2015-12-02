@@ -1,6 +1,7 @@
 RSpec.describe Rester do
   describe '::connect' do
     subject { Rester.connect(*connect_args) }
+    let(:adapter) { subject.adapter }
 
     context 'with url' do
       let(:url) { RSpec.server_uri }
@@ -9,11 +10,11 @@ RSpec.describe Rester do
       it { is_expected.to be_a Rester::Client }
 
       it 'should have HttpAdapter' do
-        expect(subject.adapter).to be_a Rester::Client::Adapters::HttpAdapter
+        expect(adapter).to be_a Rester::Client::Adapters::HttpAdapter
       end
 
       it 'should have its adapter connected' do
-        expect(subject.adapter.connected?).to eq true
+        expect(adapter.connected?).to eq true
       end
     end
 
@@ -24,8 +25,8 @@ RSpec.describe Rester do
       it { is_expected.to be_a Rester::Client }
 
       it 'should have LocalAdapter' do
-        expect(subject.adapter).to be_a Rester::Client::Adapters::LocalAdapter
-        expect(subject.adapter.service).to eq Rester::DummyService
+        expect(adapter).to be_a Rester::Client::Adapters::LocalAdapter
+        expect(adapter.service).to eq Rester::DummyService
       end
 
       it 'should default to version 1' do
@@ -47,7 +48,7 @@ RSpec.describe Rester do
       end # with version specified
 
       it 'should have its adapter connected' do
-        expect(subject.adapter.connected?).to eq true
+        expect(adapter.connected?).to eq true
       end
     end # with service class
 
@@ -58,7 +59,7 @@ RSpec.describe Rester do
       it { is_expected.to be_a Rester::Client }
 
       it 'should have StubAdapter' do
-        expect(subject.adapter).to be_a Rester::Client::Adapters::StubAdapter
+        expect(adapter).to be_a Rester::Client::Adapters::StubAdapter
       end
 
       context 'with invalid input' do
@@ -70,8 +71,24 @@ RSpec.describe Rester do
       end # with invalid input
 
       it 'should have its adapter connected' do
-        expect(subject.adapter.connected?).to eq true
+        expect(adapter.connected?).to eq true
       end
     end  # with file path
+
+    context 'with timeout' do
+      let(:connect_args) { [RSpec.server_uri, timeout: 12.34] }
+
+      it 'should pass timeout to adapter' do
+        expect(adapter).to have_attributes(timeout: 12.34)
+      end
+    end # with timeout
+
+    context 'without timeout' do
+      let(:connect_args) { [RSpec.server_uri] }
+
+      it 'should pass default timeout to adapter' do
+        expect(adapter).to have_attributes(timeout: 10)
+      end
+    end # without timeout
   end # ::connect
 end # Rester
