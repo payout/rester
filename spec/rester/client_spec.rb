@@ -10,7 +10,7 @@ module Rester
     let(:adapter) { Client::Adapters::HttpAdapter.new }
     let(:client) { Client.new(adapter, version: version) }
     let(:version) { 1 }
-    let(:test_url) { "#{RSpec.server_uri}" }
+    let(:test_url) { RSpec.server_uri.to_s }
 
     # Request Hash
     let(:req_hash) { {string: "string", integer: 1, float: 1.1, symbol: :symbol, bool: true, null: nil} }
