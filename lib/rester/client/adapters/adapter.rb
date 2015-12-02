@@ -36,7 +36,7 @@ module Rester
         raise NotImplementedError
       end
 
-      def request(verb, path, params={}, &block)
+      def request(verb, path, params={})
         params ||= {}
         _validate_verb(verb)
         params = _validate_params(params)
@@ -46,14 +46,14 @@ module Rester
       [:get, :post, :put, :delete].each do |verb|
         ##
         # Define helper methods: get, post, put, delete
-        define_method(verb) { |*args, &block|
-          request(verb, *args, &block)
+        define_method(verb) { |*args|
+          request(verb, *args)
         }
 
         ##
         # Define implementation methods: get!, post!, put!, delete!
         # These methods should be overridden by the specific adapter.
-        define_method("#{verb}!") { |*args, &block|
+        define_method("#{verb}!") { |*args|
           raise NotImplementedError
         }
       end
