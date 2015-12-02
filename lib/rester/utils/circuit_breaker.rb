@@ -19,10 +19,24 @@ module Rester
         reset
       end
 
-      ##
-      # Signifies that is "live".
+      def on_open(&block)
+        _callbacks[:open] = block
+      end
+
+      def on_close(&block)
+        _callbacks[:close] = block
+      end
+
       def closed?
-        !reached_threshold? || retry_period_passed?
+        !reached_threshold?
+      end
+
+      def half_open?
+        !closed? && retry_period_passed?
+      end
+
+      def open?
+        !closed? && !half_open?
       end
 
       def reached_threshold?
@@ -35,16 +49,8 @@ module Rester
       end
 
       def call(*args)
-        if closed?
-          begin
-            block.call(*args).tap { record_success }
-          rescue
-            _record_failure
-            raise
-          end
-        else
-          raise CircuitOpenError
-        end
+        fail CircuitOpenError if open?
+        _call(*args)
       end
 
       def reset
@@ -56,22 +62,47 @@ module Rester
 
       private
 
+      def _call(*args)
+        begin
+          block.call(*args).tap { _record_success }
+        rescue
+          _record_failure
+          raise
+        end
+      end
+
+      def _callbacks
+        @__callbacks ||= {}
+      end
+
+      def _call_on(type)
+        (cb = _callbacks[type]) && cb.call
+      end
+
       def _synchronize(&block)
         @_mutex.synchronize(&block)
       end
 
-      ##
-      # For each attempt we decrease the failure count if necessary.
-      # This allows for a gradual recovery.
-      def record_success
+      def _record_success
         if @failure_count > 0
-          _synchronize { @failure_count -= 1 if @failure_count > 0 }
+          # If the threshold had been reached, we're now closing the circuit.
+          if @failure_count == threshold
+            _synchronize { _call_on(:close) if @failure_count == threshold }
+          end
+
+          @failure_count = 0
         end
       end
 
       def _record_failure
         _synchronize {
-          @failure_count += 1 if @failure_count < threshold
+          if @failure_count < threshold
+            @failure_count += 1
+
+            # If the threshold has now been reached, we're opening the circuit.
+            _call_on(:open) if @failure_count == threshold
+          end
+
           @last_failed_at = Time.now
         }
       end

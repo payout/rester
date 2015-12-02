@@ -20,6 +20,10 @@ module Rester
         expect(breaker.call).to eq 'hi'
       end
 
+      def let_retry_period_pass
+        sleep(retry_period * 2)
+      end
+
       describe '#threshold' do
         subject { breaker.threshold }
 
@@ -102,10 +106,10 @@ module Rester
           it { is_expected.to eq 5 }
         end
 
-        context 'with 4 failed calls, 2 successful calls and threshold = 5' do
+        context 'with failed calls followed by 1 successful call' do
           let(:threshold) { 5 }
-          before { 4.times { failure_call }; 2.times { success_call } }
-          it { is_expected.to eq 2 }
+          before { 4.times { failure_call }; success_call }
+          it { is_expected.to eq 0 }
         end
       end # #failure_count
 
@@ -125,11 +129,11 @@ module Rester
       describe '#closed?' do
         subject { breaker.closed? }
 
-        context 'never called' do
+        context 'when never called' do
           it { is_expected.to be true }
         end
 
-        context 'successfully called' do
+        context 'when successfully called' do
           before { threshold.times { success_call } }
           it { is_expected.to be true }
         end
@@ -143,7 +147,67 @@ module Rester
           before { threshold.times { failure_call } }
           it { is_expected.to be false }
         end
+
+        context 'with threshold reached and retry period passed' do
+          let(:retry_period) { 0.001 }
+          before { threshold.times { failure_call }; let_retry_period_pass }
+          it { is_expected.to be false }
+        end
       end # #closed?
+
+      describe '#half_open?' do
+        subject { breaker.half_open? }
+
+        context 'when never called' do
+          it { is_expected.to be false }
+        end
+
+        context 'when called but closed' do
+          before { success_call; expect(breaker.closed?).to be true }
+          it { is_expected.to be false }
+        end
+
+        context 'when threshold reached' do
+          let(:retry_period) { 5 }
+          before { threshold.times { failure_call } }
+          it { is_expected.to be false }
+        end
+
+        context 'when threshold reached and retry period passed' do
+          let(:retry_period) { 0.001 }
+          before { threshold.times { failure_call }; let_retry_period_pass }
+          it { is_expected.to be true }
+        end
+      end # half_open?
+
+      describe '#open?' do
+        subject { breaker.open? }
+
+        context 'when never called' do
+          it { is_expected.to be false }
+        end
+
+        context 'when successfully called' do
+          before { success_call }
+          it { is_expected.to be false }
+        end
+
+        context 'when successfully called threshold times' do
+          before { threshold.times { success_call } }
+          it { is_expected.to be false }
+        end
+
+        context 'when threshold reached' do
+          before { threshold.times { failure_call } }
+          it { is_expected.to be true }
+        end
+
+        context 'when threshold reached but retry period passed' do
+          let(:retry_period) { 0.001 }
+          before { threshold.times { failure_call }; let_retry_period_pass }
+          it { is_expected.to be false }
+        end
+      end # #open?
 
       describe '#reached_threshold?' do
         subject { breaker.reached_threshold? }
@@ -182,7 +246,7 @@ module Rester
 
         context 'with a failure past retry period' do
           let(:retry_period) { 0.001 }
-          before { failure_call; sleep(retry_period * 2) }
+          before { failure_call; let_retry_period_pass }
           it { is_expected.to be true }
         end
       end # #retry_period_passed?
@@ -202,6 +266,146 @@ module Rester
         end
       end # #reset
 
+      describe '#on_open', :on_open do
+        let(:callback) { proc {} }
+        subject { breaker.on_open(&callback) }
+        before { subject }
+
+        it 'should return callback' do
+          is_expected.to be callback
+        end
+
+        context 'with only successful calls' do
+          after { threshold.times { success_call } }
+
+          it 'should not call callback' do
+            expect(callback).not_to receive :call
+          end
+        end
+
+        context 'without reaching threshold' do
+          after { (threshold - 1).times { failure_call } }
+
+          it 'should not call callback' do
+            expect(callback).not_to receive :call
+          end
+        end
+
+        context 'with threshold reached' do
+          after { threshold.times { failure_call } }
+
+          it 'should call callback once' do
+            expect(callback).to receive(:call).once
+          end
+        end
+
+        context 'with threshold surpassed' do
+          after { (threshold * 3).times { failure_call } }
+
+          it 'should call callback once' do
+            expect(callback).to receive(:call).once
+          end
+        end
+
+        context 'with circuit opened and closed 5 times' do
+          let(:retry_period) { 0.001 }
+          after do
+            5.times {
+              threshold.times { failure_call }
+              let_retry_period_pass
+              success_call
+            }
+          end
+
+          it 'should call callback 5 times' do
+            expect(callback).to receive(:call).exactly(5).times
+          end
+        end # with circuit opened and closed 5 times
+      end # #on_open
+
+      describe '#on_close', :on_close do
+        let(:callback) { proc {} }
+        subject { breaker.on_close(&callback) }
+        before { subject }
+
+        it 'should return callback' do
+          is_expected.to be callback
+        end
+
+        context 'with only successful calls' do
+          after { threshold.times { success_call } }
+
+          it 'should not call callback' do
+            expect(callback).not_to receive :call
+          end
+        end
+
+        context 'without reaching threshold' do
+          after { (threshold - 1).times { failure_call } }
+
+          it 'should not call callback' do
+            expect(callback).not_to receive :call
+          end
+        end
+
+        context 'with threshold reached' do
+          after { threshold.times { failure_call } }
+
+          it 'should not call callback' do
+            expect(callback).not_to receive :call
+          end
+        end
+
+        context 'with threshold surpassed' do
+          after { (threshold * 3).times { failure_call } }
+
+          it 'should not call callback' do
+            expect(callback).not_to receive :call
+          end
+        end
+
+        context 'with successful call after threshold reached' do
+          let(:retry_period) { 0.001 }
+          after do
+            threshold.times { failure_call }
+            let_retry_period_pass
+            success_call
+          end
+
+          it 'should call callback once' do
+            expect(callback).to receive(:call).once
+          end
+        end # with successful call after threshold reached
+
+        context 'with many successful call after threshold reached' do
+          let(:retry_period) { 0.001 }
+          after do
+            threshold.times { failure_call }
+            let_retry_period_pass
+            (threshold * 3).times { success_call }
+          end
+
+          it 'should call callback once' do
+            expect(callback).to receive(:call).once
+          end
+        end # with many successful call after threshold reached
+
+        context 'with circuit opened and closed 5 times' do
+          let(:retry_period) { 0.001 }
+          after do
+            5.times {
+              threshold.times { failure_call }
+              let_retry_period_pass
+              success_call
+            }
+          end
+
+          it 'should call callback 5 times' do
+            expect(callback).to receive(:call).exactly(5).times
+          end
+        end # with circuit opened and closed 5 times
+      end # #on_close
+
       describe '#call' do
         subject { breaker.call }
 
@@ -211,7 +415,7 @@ module Rester
           it 'should return retval of block' do
             is_expected.to eq 'hi'
           end
-        end
+        end # with successful call
 
         context 'with failed call' do
           before { allow(breaker.block).to receive(:call).and_raise 'hi' }
@@ -227,7 +431,7 @@ module Rester
               expect { subject }.to raise_error CircuitBreaker::CircuitOpenError
             end
           end # with threshold reached
-        end
+        end # with failed call
       end # #call
     end # CircuitBreaker
   end # Utils
