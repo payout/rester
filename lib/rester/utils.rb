@@ -2,7 +2,8 @@ require 'date'
 
 module Rester
   module Utils
-    autoload(:StubFile,  'rester/utils/stub_file')
+    autoload(:StubFile,       'rester/utils/stub_file')
+    autoload(:CircuitBreaker, 'rester/utils/circuit_breaker')
 
     class << self
       ##
