@@ -13,8 +13,8 @@ module Rester
 
       def initialize(opts={}, &block)
         @_mutex = Mutex.new
-        @threshold = (opts[:threshold] || 5).to_i
-        @retry_period = (opts[:retry_period] || 1).to_f
+        self.threshold = opts[:threshold]
+        self.retry_period = opts[:retry_period]
         @block = block
         reset
       end
@@ -58,6 +58,20 @@ module Rester
           @failure_count = 0
           @last_failed_at = nil
         }
+      end
+
+      protected
+
+      def threshold=(threshold)
+        unless (@threshold = (threshold || 3).to_i) > 0
+          fail ArgumentError, 'threshold must be > 0'
+        end
+      end
+
+      def retry_period=(retry_period)
+        unless (@retry_period = (retry_period || 1).to_f) > 0
+          fail ArgumentError, 'retry_period must be > 0'
+        end
       end
 
       private

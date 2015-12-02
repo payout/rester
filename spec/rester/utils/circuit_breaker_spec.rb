@@ -24,27 +24,79 @@ module Rester
         sleep(retry_period * 2)
       end
 
+      describe '#new' do
+        subject { breaker }
+
+        context 'with negative threshold' do
+          let(:threshold) { -10 }
+
+          it 'should raise ArgumentError' do
+            expect { subject }.to raise_error ArgumentError,
+              'threshold must be > 0'
+          end
+        end # with negative threshold
+
+        context 'with zero threshold' do
+          let(:threshold) { 0 }
+
+          it 'should raise ArgumentError' do
+            expect { subject }.to raise_error ArgumentError,
+              'threshold must be > 0'
+          end
+        end # with zero theshold
+
+        context 'with threshold = 0.001' do
+          let(:threshold) { 0.001 }
+
+          it 'should raise ArgumentError' do
+            expect { subject }.to raise_error ArgumentError,
+              'threshold must be > 0'
+          end
+        end # with theshold = 0.001
+
+        context 'with negative retry_period' do
+          let(:retry_period) { -10 }
+
+          it 'should raise ArgumentError' do
+            expect { subject }.to raise_error ArgumentError,
+              'retry_period must be > 0'
+          end
+        end # with negative threshold
+
+        context 'with zero retry_period' do
+          let(:retry_period) { 0 }
+
+          it 'should raise ArgumentError' do
+            expect { subject }.to raise_error ArgumentError,
+              'retry_period must be > 0'
+          end
+        end # with zero retry_period
+
+        context 'with retry_period = 0.001' do
+          let(:retry_period) { 0.001 }
+
+          it 'should raise ArgumentError' do
+            expect { subject }.not_to raise_error
+          end
+        end # with retry_period = 0.001
+      end # #new
+
       describe '#threshold' do
         subject { breaker.threshold }
 
         context 'with no threshold option passed' do
           let(:breaker_opts) { {} }
-          it { is_expected.to eq 5 }
+          it { is_expected.to eq 3 }
         end
 
         context 'with threshold option passed as nil' do
           let(:threshold) { nil }
-          it { is_expected.to eq 5 }
+          it { is_expected.to eq 3 }
         end
 
         context 'with threshold option passed as 10' do
           let(:threshold) { 10 }
           it { is_expected.to eq 10 }
-        end
-
-        context 'with threshold option passed as 0.001' do
-          let(:threshold) { 0.001 }
-          it { is_expected.to eq 0 }
         end
       end # #threshold
 
