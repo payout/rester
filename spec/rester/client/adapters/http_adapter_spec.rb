@@ -1,7 +1,9 @@
 module Rester
   module Client::Adapters
     RSpec.describe HttpAdapter do
-      # let(:adapter) { HttpAdapter }
+      let(:url) { RSpec.server_uri.to_s }
+      let(:opts) { {} }
+      let(:adapter) { HttpAdapter.new(url, opts) }
 
       describe '::can_connect_to?' do
         subject { HttpAdapter.can_connect_to?(service) }
@@ -42,6 +44,20 @@ module Rester
           it { is_expected.to be false }
         end # with invalid URI scheme
       end # ::can_connect_to?
+
+      describe '#get!', :get! do
+        let(:params) { {} }
+        subject { adapter.get!(path, params) }
+
+        context 'with request timeout' do
+          let(:opts) { { timeout: 0.001 } }
+          let(:path) { '/v1/commands/sleep' }
+
+          it 'should raise timeout error' do
+            expect { subject }.to raise_error Errors::TimeoutError
+          end
+        end # with request timeout
+      end # #get!
     end # HttpAdapter
   end # Client::Adapters
 end # Rester
