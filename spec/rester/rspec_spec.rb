@@ -27,7 +27,7 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
         }
       end
 
-      context 'With no fields in response', :test do
+      context 'With no fields in response' do
         it { is_expected.to include stub_response }
         it { is_expected.to include({}) }
       end
@@ -42,7 +42,7 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
         }
       end
 
-      context 'With list returned', :test do
+      context 'With list returned' do
         it { is_expected.to include_stub_response }
         it {
           is_expected.to include_stub_response(

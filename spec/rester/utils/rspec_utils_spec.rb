@@ -24,7 +24,6 @@ module Rester
         let(:test_array) { [1, 2, 3] }
         let(:test_array_with_extra) { test_array + [4] }
 
-
         context 'with failures' do
           context 'with missing Hash' do
             let(:response) { {} }
@@ -97,7 +96,7 @@ module Rester
               expect { subject }.to raise_error Errors::StubError, "Stub[:some_array][0]=3 doesn't match Response[:some_array][0]=1"
             end
           end
-        end
+        end # with failures
 
         context 'with successes' do
           context 'with extra fields in response' do
