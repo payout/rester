@@ -19,7 +19,7 @@ module Rester
             }
 
             it 'should raise an error' do
-              expect { subject }.to raise_error Errors::StubError, "Stub[:some_hash]={:some_key=>:some_value} doesn't match Subject[:some_hash]=nil"
+              expect { subject }.to raise_error Errors::StubError, "Stub[:some_hash]={:some_key=>:some_value} doesn't match Response[:some_hash]=nil"
             end
           end # with missing Hash
 
@@ -33,7 +33,7 @@ module Rester
             }
 
             it 'should raise an error' do
-              expect { subject }.to raise_error Errors::StubError, "Stub[:some_array]=[1, 2, 3] doesn't match Subject[:some_array]=nil"
+              expect { subject }.to raise_error Errors::StubError, "Stub[:some_array]=[1, 2, 3] doesn't match Response[:some_array]=nil"
             end
           end # with missing Array
 
@@ -56,7 +56,7 @@ module Rester
             }
 
             it 'should raise an error' do
-              expect { subject }.to raise_error Errors::StubError, "Stub[:some_hash][:some_array]=[1, 2, 3] doesn't match Subject[:some_hash][:some_array]=nil"
+              expect { subject }.to raise_error Errors::StubError, "Stub[:some_hash][:some_array]=[1, 2, 3] doesn't match Response[:some_hash][:some_array]=nil"
             end
           end # with missing Array in Hash
 
@@ -79,7 +79,7 @@ module Rester
             }
 
             it 'should raise an error' do
-              expect { subject }.to raise_error Errors::StubError, "Stub[:some_hash][:some_key]=:some_value doesn't match Subject[:some_hash][:some_key]=nil"
+              expect { subject }.to raise_error Errors::StubError, "Stub[:some_hash][:some_key]=:some_value doesn't match Response[:some_hash][:some_key]=nil"
             end
           end # with missing hash key
 
@@ -98,7 +98,7 @@ module Rester
             }
 
             it 'should raise an error' do
-              expect { subject }.to raise_error Errors::StubError, "Stub[:some_array][2]=3 doesn't match Subject[:some_array][2]=nil"
+              expect { subject }.to raise_error Errors::StubError, "Stub[:some_array][2]=3 doesn't match Response[:some_array][2]=nil"
             end
           end # with missing array element
 
@@ -121,7 +121,7 @@ module Rester
             }
 
             it 'should raise an error' do
-              expect { subject }.to raise_error Errors::StubError, "Stub[:some_hash][:some_key]=:some_value doesn't match Subject[:some_hash][:some_key]=:a_different_value"
+              expect { subject }.to raise_error Errors::StubError, "Stub[:some_hash][:some_key]=:some_value doesn't match Response[:some_hash][:some_key]=:a_different_value"
             end
           end # with different hash value
 
@@ -140,7 +140,7 @@ module Rester
             }
 
             it 'should raise an error' do
-              expect { subject }.to raise_error Errors::StubError, "Stub[:some_array][2]=3 doesn't match Subject[:some_array][2]=4"
+              expect { subject }.to raise_error Errors::StubError, "Stub[:some_array][2]=3 doesn't match Response[:some_array][2]=4"
             end
           end # with different array element
         end # with failures
@@ -198,9 +198,7 @@ module Rester
                   string: 'hello',
                   symbol: :hello,
                   boolean: true,
-                  another_boolean: false,
-                  extra_string: 'extra',
-                  extra_symbol: :extra
+                  another_boolean: false
                 }
               }
             }

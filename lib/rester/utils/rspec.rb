@@ -35,7 +35,7 @@ module Rester
 
         def _match_error(subject, stub, accessors=[])
           accessors_str = _pretty_print_accessors(accessors)
-          fail Errors::StubError, "Stub#{accessors_str}=#{stub.inspect} doesn't match Subject#{accessors_str}=#{subject.inspect}"
+          fail Errors::StubError, "Stub#{accessors_str}=#{stub.inspect} doesn't match Response#{accessors_str}=#{subject.inspect}"
         end
 
         def _pretty_print_accessors(accessors=[])
