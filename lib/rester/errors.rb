@@ -19,6 +19,11 @@ module Rester
     class AdapterError < Error; end
     class TimeoutError < AdapterError; end
 
+    ###############
+    # Client Errors
+    class ClientError < Error; end
+    class CircuitOpenError < ClientError; end
+
     #############
     # Stub Errors
     class StubError < Error; end
