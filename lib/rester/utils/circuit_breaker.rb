@@ -12,7 +12,8 @@ module Rester
       attr_reader :last_failed_at
 
       def initialize(opts={}, &block)
-        @_mutex = Mutex.new
+        @_synchronizer = Mutex.new
+        @_retry_lock = Mutex.new
         self.threshold = opts[:threshold]
         self.retry_period = opts[:retry_period]
         @block = block
@@ -49,15 +50,25 @@ module Rester
       end
 
       def call(*args)
-        fail CircuitOpenError if open?
-        _call(*args)
+        if closed?
+          _call(*args)
+        elsif half_open? && @_retry_lock.try_lock
+          # Ensure only one thread can retry.
+          begin
+            _call(*args)
+          ensure
+            @_retry_lock.unlock
+          end
+        else
+          fail CircuitOpenError
+        end
       end
 
       def reset
-        _synchronize {
+        _synchronize do
           @failure_count = 0
           @last_failed_at = nil
-        }
+        end
       end
 
       protected
@@ -94,7 +105,7 @@ module Rester
       end
 
       def _synchronize(&block)
-        @_mutex.synchronize(&block)
+        @_synchronizer.synchronize(&block)
       end
 
       def _record_success
