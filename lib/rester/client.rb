@@ -80,7 +80,7 @@ module Rester
     def _init_request_breaker
       @_request_breaker = Utils::CircuitBreaker.new(
         threshold: error_threshold, retry_period: retry_period
-      ) { |v, p, pm| _request(v, p, pm) }
+      ) { |*args| _request(*args) }
 
       @_request_breaker.on_open do
         logger.error("circuit opened")
