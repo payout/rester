@@ -1,7 +1,9 @@
 require 'json'
 
 ##
-# deep_include custom matcher which enables
+# include_stub_response custom matcher which checks inclusion on nested arrays
+# and objects as opposed to the top level object which RSpec's include only
+# checks
 RSpec::Matchers.define :include_stub_response do |stub|
   failure = nil
 
