@@ -99,26 +99,27 @@ module Rester
 
       def _record_success
         if @failure_count > 0
-          # If the threshold had been reached, we're now closing the circuit.
-          if @failure_count == threshold
-            _synchronize { _call_on(:close) if @failure_count == threshold }
+          _synchronize do
+            # If the threshold had been reached, we're now closing the circuit.
+            _call_on(:close) if @failure_count == threshold
+            @failure_count = 0
           end
-
-          @failure_count = 0
         end
       end
 
       def _record_failure
-        _synchronize {
-          if @failure_count < threshold
-            @failure_count += 1
+        if @failure_count < threshold
+          _synchronize do
+            if @failure_count < threshold
+              @failure_count += 1
 
-            # If the threshold has now been reached, we're opening the circuit.
-            _call_on(:open) if @failure_count == threshold
+              # If the threshold has now been reached, we're opening the circuit.
+              _call_on(:open) if @failure_count == threshold
+            end
           end
+        end
 
-          @last_failed_at = Time.now
-        }
+        @last_failed_at = Time.now
       end
     end # CircuitBreaker
   end # Utils
