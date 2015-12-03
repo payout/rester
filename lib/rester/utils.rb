@@ -3,6 +3,7 @@ require 'date'
 module Rester
   module Utils
     autoload(:StubFile,       'rester/utils/stub_file')
+    autoload(:RSpec,          'rester/utils/rspec')
     autoload(:CircuitBreaker, 'rester/utils/circuit_breaker')
 
     class << self
@@ -50,14 +51,15 @@ module Rester
       end
 
       def stringify_vals(hash={})
-        hash.inject({}) { |memo,(k,v)|
+        hash.each_with_object({}) { |(k,v), memo|
           case v
           when Hash
             memo[k] = stringify_vals(v)
+          when NilClass
+            memo[k] = 'null'
           else
             memo[k] = v.to_s
           end
-          memo
         }
       end
 

@@ -64,9 +64,31 @@ module Rester
         params do
           use shared_params
           String :my_string
+          Boolean :return_list
         end
         def search(params)
-          params.merge(method: :search)
+          if params[:return_list]
+            {
+              some_key: :some_value,
+              some_array: [
+                {
+                  some_hash: {
+                    a: 'a',
+                    b: :b,
+                    c: 3,
+                    d: 'd'
+                  }
+                },
+                10
+              ],
+              another_hash: {
+                this: :that,
+                hello: 'world'
+              }
+            }
+          else
+            params.merge(method: :search)
+          end
         end
 
         params do
