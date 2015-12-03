@@ -1,5 +1,25 @@
 require 'json'
 
+##
+# include_stub_response custom matcher which checks inclusion on nested arrays
+# and objects as opposed to the top level object which RSpec's include only
+# checks
+RSpec::Matchers.define :include_stub_response do |stub|
+  failure = nil
+
+  match { |actual|
+    begin
+      Rester::Utils::RSpec.assert_deep_include(actual, stub || stub_response)
+      true
+    rescue Rester::Errors::StubError => e
+      failure = e
+      false
+    end
+  }
+
+  failure_message { |actual| failure }
+end
+
 RSpec.configure do |config|
   config.before :all, rester: // do |ex|
     # Load the stub file
@@ -96,7 +116,7 @@ RSpec.configure do |config|
 
         missing_contexts.each { |missing_context, _|
           context_group = _find_or_create_child(verb_group, missing_context)
-          context_group.it { is_expected.to include stub_response }
+          context_group.it { is_expected.to include_stub_response }
         }
       }
     }
