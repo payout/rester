@@ -41,6 +41,30 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
           )
         }
       end
+
+      context 'With list returned', :test do
+        it { is_expected.to include_stub_response }
+        it {
+          is_expected.to include_stub_response(
+            {
+              some_key: 'some_value',
+              some_array: [
+                {
+                  some_hash: {
+                    a: 'a',
+                    b: 'b',
+                    c: 3
+                  }
+                },
+                10
+              ],
+              another_hash: {
+                this: 'that'
+              }
+            }
+          )
+        }
+      end
     end # GET
 
     context 'POST' do

@@ -1,5 +1,11 @@
 require 'json'
 
+##
+# deep_include custom matcher which enables
+RSpec::Matchers.define :include_stub_response do
+  match { |actual| Rester::Utils::RSpec.deep_include?(actual, stub_response) }
+end
+
 RSpec.configure do |config|
   config.before :all, rester: // do |ex|
     # Load the stub file
@@ -96,7 +102,7 @@ RSpec.configure do |config|
 
         missing_contexts.each { |missing_context, _|
           context_group = _find_or_create_child(verb_group, missing_context)
-          context_group.it { is_expected.to include stub_response }
+          context_group.it { is_expected.to deep_include stub_response }
         }
       }
     }
