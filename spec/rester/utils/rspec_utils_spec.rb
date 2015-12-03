@@ -254,7 +254,7 @@ module Rester
             let(:subj) {
               {
                 this: :that,
-                some_array: [1, 2, { hello: :world }],
+                some_array: [1, 2, { hello: :world, something_extra: :extra }],
                 extra_field: 1
               }
             }
