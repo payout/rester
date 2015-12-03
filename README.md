@@ -12,7 +12,7 @@ Where possible, we've tried to avoid the use of custom DSL and rely on standard 
 gem install rester
 ```
 
-## Interface
+## Basic Usage
 
 ### Client-side
 ```ruby
@@ -120,6 +120,28 @@ class PaymentService < Rester::Service
 end
 ```
 
+## Advanced Client Usage
+### Timeouts
+By default the Rester client has a timeout of 10 seconds. This can be configured when connecting.
+
+For example:
+```ruby
+# Set a timeout of 30 seconds.
+MyService = Rester.connect('http://example.com', version: 1, timeout: 30)
+```
+
+If the timeout is exceeded, a `Rester::Errors::TimeoutError` is raised.
+
+### CircuitBreaker
+The Rester client has a built circuit breaker. It has two options: `error_threshold` and `retry_period`. The former is an integer representing the number of exceptions that can be raised while processing the request before breaking the circuit and the later is the amount of time in seconds (may be specified as a float) to wait before retrying. The defaults are `3` and `1.0`, respectively.
+
+For example:
+```ruby
+MyService = Rester.connect('http://example.com', version: 1, error_threshold: 5, retry_period: 2.0)
+```
+
+In this example, the circuit will open if 5 consecutive errors occur (e.g., timeout errors or errors raised on the server). Once the circuit is open, any request made to the client will raise a `Rester::Errors::CircuitOpenError` without actually making the request. This reduces the load on recovering downstream systems and helps prevent timeouts from propagating (i.e., timeouts in one service causing timeouts in another service). Once the `retry_period` of 2 seconds has passed, the next request will be allowed through. If it succeeds, the circuit will close again and all requests will be permitted through again. If it fails, the circuit will remain open.
+
 ## Contract Testing
 
 ### Client-side Stub Testing
@@ -189,7 +211,6 @@ describe '/v1/do_something' do
 end
 ```
 
-
 ### Service-side Stub Testing
 
 The Service providers are responsible for verifying that the stubs created by their clients are, in fact, accurate.
@@ -219,7 +240,7 @@ The Service providers are responsible for verifying that the stubs created by th
 
 #### Service RSpec Test Example:
 
-You need to `require 'rester/rspec' in your `spec_helper.rb` file.
+You need to `require 'rester/rspec'` in your `spec_helper.rb` file.
 
 ```ruby
 RSpec.describe PaymentService, rester: "/path/to/stub/file.yml" do
