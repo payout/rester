@@ -2,8 +2,20 @@ require 'json'
 
 ##
 # deep_include custom matcher which enables
-RSpec::Matchers.define :include_stub_response do
-  match { |actual| Rester::Utils::RSpec.deep_include?(actual, stub_response) }
+RSpec::Matchers.define :include_stub_response do |stub|
+  failure = nil
+
+  match { |actual|
+    begin
+      Rester::Utils::RSpec.assert_deep_include(actual, stub || stub_response)
+      true
+    rescue Rester::Errors::StubError => e
+      failure = e
+      false
+    end
+  }
+
+  failure_message { |actual| failure }
 end
 
 RSpec.configure do |config|

@@ -2,40 +2,42 @@ module Rester
   module Utils
     module RSpec
       class << self
-        def deep_include?(subject, stub, accessors=[])
+        def assert_deep_include(response, stub, accessors=[])
           case stub
           when Hash
-            _match_error(subject, stub, accessors) unless subject.is_a?(Hash)
-
-            stub.all? { |k,v|
-              case v
-              when Array
-                unless subject[k].is_a?(Array)
-                  _match_error(subject[k], v, accessors + [k])
-                end
-
-                v.each_with_index.all? { |e,i|
-                  deep_include?(subject[k][i], e, accessors + [k, i])
-                }
-              else
-                deep_include?(subject[k], v, accessors + [k])
-              end
-            }
+            _type_error(response, stub, accessors) unless response.is_a?(Hash)
+            stub.all? { |k,v| assert_deep_include(response[k], v, accessors + [k]) }
           when Array
-            _match_error(subject, stub, accessors) unless subject[k].is_a?(Array)
+            unless response.is_a?(Array)
+              _type_error(response, stub, accessors)
+            end
+
+            unless response.length == stub.length
+              _length_error(response, stub, accessors)
+            end
 
             stub.each_with_index.all? { |e,i|
-              deep_include?(subject[i], e, accessors + [i])
+              assert_deep_include(response[i], e, accessors + [i])
             }
           else
-            _match_error(subject, stub, accessors) unless stub == subject
+            _match_error(response, stub, accessors) unless stub == response
             true
           end
         end
 
-        def _match_error(subject, stub, accessors=[])
+        def _match_error(response, stub, accessors=[])
           accessors_str = _pretty_print_accessors(accessors)
-          fail Errors::StubError, "Stub#{accessors_str}=#{stub.inspect} doesn't match Response#{accessors_str}=#{subject.inspect}"
+          fail Errors::StubError, "Stub#{accessors_str}=#{stub.inspect} doesn't match Response#{accessors_str}=#{response.inspect}"
+        end
+
+        def _length_error(response, stub, accessors=[])
+          accessors_str = _pretty_print_accessors(accessors)
+          fail Errors::StubError, "Stub#{accessors_str} length: #{stub.length} doesn't match Response#{accessors_str} length: #{response.length}"
+        end
+
+        def _type_error(response, stub, accessors=[])
+          accessors_str = _pretty_print_accessors(accessors)
+          fail Errors::StubError, "Stub#{accessors_str} type: #{stub.class} doesn't match Response#{accessors_str} type: #{response.class}"
         end
 
         def _pretty_print_accessors(accessors=[])
