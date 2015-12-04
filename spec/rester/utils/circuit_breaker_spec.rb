@@ -429,7 +429,7 @@ module Rester
           end
         end # with successful call after threshold reached
 
-        context 'with many successful call after threshold reached' do
+        context 'with many successful calls after threshold reached' do
           let(:retry_period) { 0.001 }
           after do
             threshold.times { failure_call }

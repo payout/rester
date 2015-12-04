@@ -122,6 +122,39 @@ module Rester
       end # with error_threshold passed as 0.001
     end # #error_threshold
 
+    describe '#retry_period', :retry_period do
+      subject { client.retry_period }
+
+      context 'with no retry_period passed to client' do
+        let(:client_opts) { {} }
+        it { is_expected.to eq 1 }
+      end
+
+      context 'with retry_period passed as nil' do
+        let(:retry_period) { nil }
+        it { is_expected.to eq 1 }
+      end
+
+      context 'with retry_period passed as 10' do
+        let(:retry_period) { 10 }
+        it { is_expected.to eq 10 }
+      end
+
+      context 'with retry_period passed as 0.001' do
+        let(:retry_period) { 0.001 }
+        it { is_expected.to eq 0.001 }
+      end
+
+      context 'with retry_period passed as -1' do
+        let(:retry_period) { -1 }
+
+        it 'should raise ArgumentError' do
+          expect { subject }.to raise_error ArgumentError,
+            'retry_period must be > 0'
+        end
+      end # with retry_period passed as -1
+    end # #retry_period
+
     describe '#logger', :logger do
       subject { client.logger }
 
@@ -201,39 +234,6 @@ module Rester
         end
       end # with error_threshold reached
     end # #request
-
-    describe '#retry_period', :retry_period do
-      subject { client.retry_period }
-
-      context 'with no retry_period passed to client' do
-        let(:client_opts) { {} }
-        it { is_expected.to eq 1 }
-      end
-
-      context 'with retry_period passed as nil' do
-        let(:retry_period) { nil }
-        it { is_expected.to eq 1 }
-      end
-
-      context 'with retry_period passed as 10' do
-        let(:retry_period) { 10 }
-        it { is_expected.to eq 10 }
-      end
-
-      context 'with retry_period passed as 0.001' do
-        let(:retry_period) { 0.001 }
-        it { is_expected.to eq 0.001 }
-      end
-
-      context 'with retry_period passed as -1' do
-        let(:retry_period) { -1 }
-
-        it 'should raise ArgumentError' do
-          expect { subject }.to raise_error ArgumentError,
-            'retry_period must be > 0'
-        end
-      end # with retry_period passed as -1
-    end # #retry_period
 
     describe '#tests', :tests do
       let(:tests) { client.tests(*args) }

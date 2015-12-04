@@ -49,7 +49,7 @@ class PaymentService < Rester::Service
     class Card < Rester::Service::Resource
       id :token
       mount Credit
-      
+
       # Set of params that can be used for multiple endpoints
       shared_params = Params.new {
         String :token
@@ -64,7 +64,7 @@ class PaymentService < Rester::Service
         # Search for the card.
       end
 
-      # Strict params which only allow the params specified 
+      # Strict params which only allow the params specified
       params strict: true do
         String :some_field
       end
@@ -133,7 +133,7 @@ MyService = Rester.connect('http://example.com', version: 1, timeout: 30)
 If the timeout is exceeded, a `Rester::Errors::TimeoutError` is raised.
 
 ### CircuitBreaker
-The Rester client has a built circuit breaker. It has two options: `error_threshold` and `retry_period`. The former is an integer representing the number of exceptions that can be raised while processing the request before breaking the circuit and the later is the amount of time in seconds (may be specified as a float) to wait before retrying. The defaults are `3` and `1.0`, respectively.
+The Rester client has a built circuit breaker. It has two options: `error_threshold` and `retry_period`. The former is an integer representing the number of exceptions that can be raised while processing the request before breaking the circuit and the latter is the amount of time in seconds (may be specified as a float) to wait before retrying. The defaults are `3` and `1.0`, respectively.
 
 For example:
 ```ruby
