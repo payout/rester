@@ -2,7 +2,7 @@ module Rester
   class Service::Resource
     class Params
       DEFAULT_OPTS = { strict: true }.freeze
-      BASIC_TYPES = [String, Symbol, Float, Integer].freeze
+      BASIC_TYPES = [String, Symbol, Float, Integer, Array, Hash].freeze
 
       DEFAULT_TYPE_MATCHERS = {
         Integer  => /\A\d+\z/,
@@ -59,14 +59,8 @@ module Rester
       end
 
       def validate!(key, value)
-        _error!("expected string value for #{key}") unless value.is_a?(String)
-
         klass, opts = @_validators[key]
-        _validate_match(key, value, opts[:match]) if opts[:match]
-
-        _parse_with_class(klass, value).tap do |obj|
-          _validate_obj(key, obj)
-        end
+        _validate(key, value, klass, opts)
       end
 
       def use(params)
@@ -83,7 +77,13 @@ module Rester
       # them so we can capture their calls. If this weren't the case, then we'd
       # be catch them in `method_missing`.
       BASIC_TYPES.each do |type|
-        define_method(type.to_s) { |name, opts={}|
+        define_method(type.to_s) { |name, opts={}, &block|
+          if type == Hash || (type == Array && opts[:type] == Hash)
+            elem_type = (options = @options.merge(opts)).delete(:type)
+            opts = elem_type ? { type: elem_type } : {}
+            opts.merge!(use: self.class.new(options, &block))
+          end
+
           _add_validator(name, type, opts)
         }
       end
@@ -167,6 +167,45 @@ module Rester
         raise error if error
       end
 
+      ##
+      # Validates and parses a given value. `klass` is the intended type for the
+      # value (e.g., String, Integer, Array, etc.). `opts` contains the
+      # validation options.
+      def _validate(key, value, klass, opts)
+        case value
+        when String
+          _validate_str(key, value, klass, opts)
+        when Array
+          _validate_array(key, value, klass, opts)
+        when Hash
+          _validate_hash(key, value, klass, opts)
+        else
+          _error!("unexpected value type for #{key}: #{value.class}")
+        end
+      end
+
+      def _validate_str(key, value, klass, opts)
+        fail unless value.is_a?(String) # assert
+
+        _validate_match(key, value, opts[:match]) if opts[:match]
+        _parse_with_class(klass, value).tap do |obj|
+          _validate_required(key, obj)
+          _validate_type(key, obj, klass) if obj
+          _validate_obj(key, obj, opts)
+        end
+      end
+
+      def _validate_array(key, value, klass, opts)
+        _error!("unexpected array for #{key}") unless klass == Array
+        type = (opts = opts.dup).delete(:type) || String
+        value.map { |elem| _validate(key, elem, type, opts) }
+      end
+
+      def _validate_hash(key, value, klass, opts)
+        _error!("unexpected hash for #{key}") unless klass == Hash
+        (validator = opts[:use]) && validator.validate(value)
+      end
+
       def _parse_with_class(klass, value)
         return nil if value == 'null'
 
@@ -185,13 +224,10 @@ module Rester
         end
       end
 
-      def _validate_obj(key, obj)
+      def _validate_obj(key, obj, opts)
         if obj.nil? && @_required_fields.include?(key)
           _error!("#{key} cannot be null")
         end
-
-        klass, opts = @_validators[key]
-        _validate_type(key, obj, klass) if obj
 
         opts.each do |opt, value|
           case opt
@@ -210,6 +246,16 @@ module Rester
           # The .camelcase here is for when type = 'boolean'
           _error!("#{key} should be #{type.to_s.camelcase} but "\
             "got #{obj.class}")
+        end
+      end
+
+      def _validate_required(key, obj)
+        if obj.nil? && @_required_fields.include?(key)
+          if @_validators[key].first == Array
+            _error!("#{key} cannot contain null elements")
+          else
+            _error!("#{key} cannot be null")
+          end
         end
       end
 
