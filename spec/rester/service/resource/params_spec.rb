@@ -7,6 +7,7 @@ module Rester
       let(:params_opts) { {} }
 
       describe '#Integer' do
+        let(:opts) { {} }
         before { resource_params.Integer(field, opts) }
         let(:field) { :an_integer }
         subject { resource_params.validate(field => value) }
@@ -29,6 +30,21 @@ module Rester
             end
           end
         end # with between?(1,10)
+
+        context 'with value of "123"' do
+          let(:value) { '123' }
+          it { is_expected.to eq(field.to_sym => 123) }
+        end
+
+        context 'with value of "3.14"' do
+          let(:value) { '3.14' }
+
+          it 'should throw validation error' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new("#{field} does not match "\
+                '/\A\d+\z/')
+          end
+        end
       end # #Integer
 
       describe '#String' do
@@ -48,9 +64,7 @@ module Rester
             let(:value) { '!@#$' }
             it 'should throw validation error' do
               expect { subject }.to throw_symbol :error,
-                Errors::ValidationError.new(
-                  "#{field} failed match((?-mix:\\A\\w+\\z)) validation"
-                )
+                Errors::ValidationError.new("#{field} does not match /\\A\\w+\\z/")
             end
           end
         end # with match(/\A\w+\z/)
@@ -82,6 +96,7 @@ module Rester
       end # #Symbol
 
       describe '#Float' do
+        let(:opts) { {} }
         before { resource_params.Float(field, opts) }
         let(:field) { :a_float }
         subject { resource_params.validate(field => value) }
@@ -109,6 +124,26 @@ module Rester
             end
           end
         end # with zero?()
+
+        context 'with value of "123"' do
+          let(:value) { '123' }
+          it { is_expected.to eq(field.to_sym => 123) }
+        end
+
+        context 'with value of "3.14159"' do
+          let(:value) { '3.14159' }
+          it { is_expected.to eq(field.to_sym => 3.14159) }
+        end
+
+        context 'with value of "3."' do
+          let(:value) { '3.' }
+
+          it 'should throw validation error' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new("#{field} does not match "\
+                '/\A\d+(\.\d+)?\z/')
+          end
+        end
       end # #Float
 
       describe '#Boolean' do
@@ -136,7 +171,12 @@ module Rester
         context 'with value of "t"' do
           # Full word of "true" is required.
           let(:value) { 't' }
-          it { is_expected.to eq(field.to_sym => false) }
+
+          it 'should throw validation error' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new('a_boolean does not match '\
+                '/\A(true|false)\z/i')
+          end
         end
       end # #Boolean
 
@@ -245,8 +285,10 @@ module Rester
               let(:default_value) { "hello" }
 
               it 'should raise an error' do
-                expect { subject }.to raise_error Rester::Errors::ValidationError,
-                  "an_integer should be Integer but got String"
+                expect { subject }.to raise_error(
+                  Rester::Errors::ValidationError,
+                  'default for an_integer should be of type Integer'
+                )
               end
             end # wrong type
 
@@ -292,7 +334,7 @@ module Rester
               let(:default_value) { 5 }
               it 'should raise an error' do
                 expect { subject }.to raise_error Rester::Errors::ValidationError,
-                  "a_string should be String but got Fixnum"
+                  'default for a_string should be of type String'
               end
             end # wrong type
 
@@ -301,7 +343,7 @@ module Rester
               let(:default_value) { '!@#$' }
               it 'should raise an error' do
                 expect { subject }.to raise_error Rester::Errors::ValidationError,
-                  "a_string failed match((?-mix:\\A\\w+\\z)) validation"
+                  'a_string does not match /\A\w+\z/'
               end
             end # with other options
           end # with invalid default
@@ -322,7 +364,7 @@ module Rester
             end # with no value
 
             context 'with value' do
-              let(:params) { { field => value } }
+              let(:params) { { field => value.to_s } }
 
               context 'with value of :hello' do
                 let(:value) { :hello }
@@ -340,7 +382,7 @@ module Rester
 
               it 'should raise an error' do
                 expect { subject }.to raise_error Rester::Errors::ValidationError,
-                  "a_symbol should be Symbol but got Fixnum"
+                  'default for a_symbol should be of type Symbol'
               end
 
               context 'with other options' do
@@ -388,7 +430,7 @@ module Rester
               let(:default_value) { 'bad_value' }
               it 'should raise an error' do
                 expect { subject }.to raise_error Rester::Errors::ValidationError,
-                  "a_float should be Float but got String"
+                  'default for a_float should be of type Float'
               end
             end # wrong type
 
@@ -434,7 +476,7 @@ module Rester
               let(:default_value) { 'bad_value' }
               it 'should raise an error' do
                 expect { subject }.to raise_error Rester::Errors::ValidationError,
-                  "a_boolean should be Boolean but got String"
+                  'default for a_boolean should be of type Boolean'
               end
             end # wrong type
           end # with invalid default
@@ -471,7 +513,7 @@ module Rester
               let(:default_value) { 'bad_value' }
               it 'should raise an error' do
                 expect { subject }.to raise_error Rester::Errors::ValidationError,
-                  "a_datetime should be DateTime but got String"
+                  'default for a_datetime should be of type DateTime'
               end
             end # wrong type
 

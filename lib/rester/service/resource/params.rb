@@ -4,6 +4,12 @@ module Rester
       DEFAULT_OPTS = { strict: true }.freeze
       BASIC_TYPES = [String, Symbol, Float, Integer].freeze
 
+      DEFAULT_TYPE_MATCHERS = {
+        Integer  => /\A\d+\z/,
+        Float    => /\A\d+(\.\d+)?\z/,
+        :boolean => /\A(true|false)\z/i
+      }.freeze
+
       attr_reader :options
 
       def initialize(opts={}, &block)
@@ -53,7 +59,10 @@ module Rester
       end
 
       def validate!(key, value)
-        klass = @_validators[key].first
+        _error!("expected string value for #{key}") unless value.is_a?(String)
+
+        klass, opts = @_validators[key]
+        _validate_match(key, value, opts[:match]) if opts[:match]
 
         _parse_with_class(klass, value).tap do |obj|
           _validate_obj(key, obj)
@@ -121,7 +130,8 @@ module Rester
       def _add_validator(name, klass, opts)
         fail 'must specify param name' unless name
         fail 'validation options must be a Hash' unless opts.is_a?(Hash)
-        opts = opts.dup
+        default_opts = { match: DEFAULT_TYPE_MATCHERS[klass] }
+        opts = default_opts.merge(opts)
 
         @_required_fields << name.to_sym if opts.delete(:required)
         default = opts.delete(:default)
@@ -137,8 +147,23 @@ module Rester
         nil
       end
 
+      ##
+      # Validates a default value specified in the params block. Raises
+      # validation error if necessary.
       def _validate_default(key, default)
-        error = catch(:error) { _validate_obj(key.to_sym, default) }
+        error = catch(:error) do
+          type = @_validators[key].first
+
+          unless _valid_type?(default, type)
+            # The .camelcase here is for when type = 'boolean'
+            _error!("default for #{key} should be of "\
+              "type #{type.to_s.camelcase}")
+          end
+
+          validate!(key.to_sym, default.to_s)
+          nil
+        end
+
         raise error if error
       end
 
@@ -172,24 +197,36 @@ module Rester
           case opt
           when :within
             _validate_within(key, obj, value)
+          when :match
+            # Nop - This is evaluated before the incoming string is parsed.
           else
             _validate_method(key, obj, opt, value) unless obj.nil?
           end
         end
-
-        nil
       end
 
       def _validate_type(key, obj, type)
+        unless _valid_type?(obj, type)
+          # The .camelcase here is for when type = 'boolean'
+          _error!("#{key} should be #{type.to_s.camelcase} but "\
+            "got #{obj.class}")
+        end
+      end
+
+      def _valid_type?(obj, type)
         case type
         when :boolean
-          unless obj.is_a?(TrueClass) || obj.is_a?(FalseClass)
-            _error!("#{key} should be Boolean but got #{obj.class}")
-          end
+          obj.is_a?(TrueClass) || obj.is_a?(FalseClass)
         else
-          unless obj.is_a?(type)
-            _error!("#{key} should be #{type} but got #{obj.class}")
-          end
+          obj.is_a?(type)
+        end
+      end
+
+      ##
+      # To be called *before* the incoming string is parsed into the object.
+      def _validate_match(key, str, matcher)
+        unless matcher.match(str)
+          _error!("#{key} does not match #{matcher.inspect}")
         end
       end
 
