@@ -16,7 +16,7 @@ module Rester
       end
 
       def setup_for_success
-        allow(breaker.block).to receive(:call).and_return 'hi'
+        allow(block).to receive(:call).and_return 'hi'
       end
 
       def failure_call
@@ -512,7 +512,7 @@ module Rester
           after { 5.times { success_call } }
 
           it 'should call block 5 times' do
-            expect(breaker.block).to receive(:call).exactly(5).times
+            expect(block).to receive(:call).exactly(5).times
           end
         end
 
@@ -534,7 +534,7 @@ module Rester
           end
 
           it 'should call block once' do
-            expect(breaker.block).to receive(:call).once
+            expect(block).to receive(:call).once
             expect { subject }.to raise_error
           end
         end # with failure after recovering
@@ -551,7 +551,7 @@ module Rester
           after { 5.times { failure_call } }
 
           it 'should call block 5 times' do
-            expect(breaker.block).to receive(:call).exactly(5).times
+            expect(block).to receive(:call).exactly(5).times
           end
         end
 
@@ -567,7 +567,7 @@ module Rester
           after { 5.times { failure_call } }
 
           it 'should call block 0 times' do
-            expect(breaker.block).not_to receive(:call)
+            expect(block).not_to receive(:call)
           end
         end
 
@@ -593,7 +593,7 @@ module Rester
           end
 
           it 'should call block once' do
-            expect(breaker.block).to receive(:call).once
+            expect(block).to receive(:call).once
             expect { subject }.to raise_error
           end
         end
