@@ -48,5 +48,36 @@ module Rester
         it { is_expected.to eq(key: { integer: '1234' }) }
       end # with nested hash value
     end # ::stringify_vals
+
+    describe '::encode_www_data' do
+      subject { Utils.encode_www_data(data) }
+
+      context 'with empty hash' do
+        let(:data) { {} }
+        it { is_expected.to eq '' }
+      end
+
+      context 'with nil data' do
+        let(:data) { nil }
+        it { is_expected.to be nil }
+      end
+
+      context 'with flat data' do
+        let(:data) { { a: '1', b: 2, c: 3.3 } }
+        it { is_expected.to eq 'a=1&b=2&c=3.3' }
+      end
+
+      context 'with nested array' do
+        let(:array) { [1,2,3] }
+        let(:data) { { array: array } }
+        it { is_expected.to eq 'array[]=1&array[]=2&array[]=3' }
+      end
+
+      context 'with nested hash' do
+        let(:hash) { { a: 'a', b: 'b', c: 'c' } }
+        let(:data) { { hash: hash } }
+        it { is_expected.to eq 'hash[a]=a&hash[b]=b&hash[c]=c' }
+      end
+    end # ::encode_www_data
   end # Utils
 end # Rester

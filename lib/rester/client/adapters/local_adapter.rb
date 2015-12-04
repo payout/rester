@@ -42,9 +42,13 @@ module Rester
 
       private
 
+      def _encode_data(data)
+        Utils.encode_www_data(data) || ''
+      end
+
       def _request(verb, path, opts={})
-        body = URI.encode_www_form(opts[:data] || {})
-        query = URI.encode_www_form(opts[:query] || {})
+        body = _encode_data(opts[:data])
+        query = _encode_data(opts[:query])
 
         response = Timeout::timeout(timeout) do
           service.call(

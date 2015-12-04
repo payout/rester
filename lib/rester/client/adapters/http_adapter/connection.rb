@@ -64,12 +64,12 @@ module Rester
       def _path(path, query=nil)
         u = url.dup
         u.path = Utils.join_paths(u.path, path)
-        u.query = URI.encode_www_form(query) if query && !query.empty?
+        u.query = _encode_data(query) if query && !query.empty?
         u.request_uri
       end
 
       def _encode_data(data)
-        URI.encode_www_form(data || {})
+        Utils.encode_www_data(data)
       end
 
       def _prepare_data_headers(headers)
