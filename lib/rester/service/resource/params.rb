@@ -84,8 +84,7 @@ module Rester
       # be catch them in `method_missing`.
       BASIC_TYPES.each do |type|
         define_method(type.to_s) { |name, opts={}|
-          default_opts = { match: DEFAULT_TYPE_MATCHERS[type] }
-          _add_validator(name, type, default_opts.merge(opts))
+          _add_validator(name, type, opts)
         }
       end
 
@@ -93,8 +92,7 @@ module Rester
       # Need to have special handling for Boolean since Ruby doesn't have a
       # Boolean type, instead it has TrueClass and FalseClass...
       def Boolean(name, opts={})
-        default_opts = { match: DEFAULT_TYPE_MATCHERS[:boolean] }
-        _add_validator(name, :boolean, default_opts.merge(opts))
+        _add_validator(name, :boolean, opts)
       end
 
       protected
@@ -132,7 +130,8 @@ module Rester
       def _add_validator(name, klass, opts)
         fail 'must specify param name' unless name
         fail 'validation options must be a Hash' unless opts.is_a?(Hash)
-        opts = opts.dup
+        default_opts = { match: DEFAULT_TYPE_MATCHERS[klass] }
+        opts = default_opts.merge(opts)
 
         @_required_fields << name.to_sym if opts.delete(:required)
         default = opts.delete(:default)
