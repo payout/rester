@@ -8,6 +8,9 @@ module Rester
     # An adapter to be used to stub the responses needed from specified service
     # requests via a yaml file. This will be used in spec tests to perform
     # "contractual testing"
+    #
+    # Note, this does not implement the "timeout" feature defined by the adapter
+    # interface.
     class StubAdapter < Adapter
       attr_reader :stub
 
@@ -17,7 +20,9 @@ module Rester
         end
       end # Class Methods
 
-      def connect(stub_filepath, opts={})
+      ##
+      # Connects to the StubFile.
+      def connect(stub_filepath)
         @stub = Utils::StubFile.new(stub_filepath)
       end
 

@@ -7,10 +7,24 @@ module Rester
       JSON.parse(params.to_json, symbolize_names: true)
     end
 
+    let(:client) { Client.new(adapter, client_opts) }
     let(:adapter) { Client::Adapters::HttpAdapter.new }
-    let(:client) { Client.new(adapter, version: version) }
+
+    let(:client_opts) do
+      {
+        version: version,
+        error_threshold: error_threshold,
+        retry_period: retry_period,
+        logger: logger
+      }
+    end
+
     let(:version) { 1 }
-    let(:test_url) { "#{RSpec.server_uri}" }
+    let(:error_threshold) { nil }
+    let(:retry_period) { nil }
+    let(:logger) { nil }
+
+    let(:test_url) { RSpec.server_uri.to_s }
 
     # Request Hash
     let(:req_hash) { {string: "string", integer: 1, float: 1.1, symbol: :symbol, bool: true, null: nil} }
@@ -42,6 +56,184 @@ module Rester
         it { is_expected.to be true }
       end
     end # #connected?
+
+    describe '#version', :version do
+      subject { client.version }
+
+      context 'with no version passed to client' do
+        let(:client_opts) { {} }
+        it { is_expected.to eq 1 }
+      end
+
+      context 'with version passed as nil' do
+        let(:version) { nil }
+        it { is_expected.to eq 1 }
+      end
+
+      context 'with version passed as 1' do
+        let(:version) { 1 }
+        it { is_expected.to eq 1 }
+      end
+
+      context 'with version passed as 10' do
+        let(:version) { 10 }
+        it { is_expected.to eq 10 }
+      end
+
+      context 'with version passed as "10"' do
+        let(:version) { "10" }
+        it { is_expected.to eq 10 }
+      end
+
+      context 'with version passed as -1' do
+        let(:version) { -1 }
+
+        it 'should raise ArgumentError' do
+          expect { subject }.to raise_error ArgumentError, 'version must be > 0'
+        end
+      end # with version passed as -1
+    end # #version
+
+    describe '#error_threshold', :error_threshold do
+      subject { client.error_threshold }
+
+      context 'with no error_threshold passed to client' do
+        let(:client_opts) { {} }
+        it { is_expected.to eq 3 }
+      end
+
+      context 'with error_threshold passed as nil' do
+        let(:error_threshold) { nil }
+        it { is_expected.to eq 3 }
+      end
+
+      context 'with error_threshold passed as 10' do
+        let(:error_threshold) { 10 }
+        it { is_expected.to eq 10 }
+      end
+
+      context 'with error_threshold passed as 0.001' do
+        let(:error_threshold) { 0.001 }
+
+        it 'should raise ArgumentError' do
+          expect { subject }.to raise_error ArgumentError,
+            'threshold must be > 0'
+        end
+      end # with error_threshold passed as 0.001
+    end # #error_threshold
+
+    describe '#retry_period', :retry_period do
+      subject { client.retry_period }
+
+      context 'with no retry_period passed to client' do
+        let(:client_opts) { {} }
+        it { is_expected.to eq 1 }
+      end
+
+      context 'with retry_period passed as nil' do
+        let(:retry_period) { nil }
+        it { is_expected.to eq 1 }
+      end
+
+      context 'with retry_period passed as 10' do
+        let(:retry_period) { 10 }
+        it { is_expected.to eq 10 }
+      end
+
+      context 'with retry_period passed as 0.001' do
+        let(:retry_period) { 0.001 }
+        it { is_expected.to eq 0.001 }
+      end
+
+      context 'with retry_period passed as -1' do
+        let(:retry_period) { -1 }
+
+        it 'should raise ArgumentError' do
+          expect { subject }.to raise_error ArgumentError,
+            'retry_period must be > 0'
+        end
+      end # with retry_period passed as -1
+    end # #retry_period
+
+    describe '#logger', :logger do
+      subject { client.logger }
+
+      context 'with no logger passed to client' do
+        let(:client_opts) { {} }
+        it { is_expected.to be_a Logger }
+      end
+
+      context 'with logger passed as nil' do
+        let(:logger) { nil }
+        it { is_expected.to be_a Logger }
+      end
+
+      context 'with logger passed as 10' do
+        let(:logger) { Logger.new(STDOUT) }
+        it { is_expected.to eq logger }
+      end
+    end # #logger
+
+    describe '#request', :request do
+      let(:adapter) { double('adapter') }
+      subject { client.request(verb, path, params) }
+
+      let(:verb) { :get }
+      let(:path) { '/ping' }
+      let(:params) { {} }
+
+      ##
+      # Simulates a request that raises an error.
+      # Useful when testing the circuit breaker logic.
+      def error_request
+        allow(adapter).to receive(:request).and_raise 'error'
+        expect { client.request(verb, path, params) }.to raise_error
+      end
+
+      ##
+      # Simulates a request that does not raise an error.
+      # Useful when testing the circuit breaker logic.
+      def success_request
+        allow(adapter).to receive(:request).and_return [200, '']
+
+        expect(client.request(verb, path, params))
+          .to eq Client::Response.new(200, {})
+      end
+
+      def let_retry_period_pass
+        sleep(retry_period * 2)
+      end
+
+      context 'with error_threshold reached' do
+        let(:logger) { double('logger') }
+        let(:error_threshold) { 3 }
+        before { (error_threshold - 1).times { error_request } }
+        after { error_request }
+
+        it 'should log that circuit is now opened' do
+          expect(logger).to receive(:error).with('circuit opened').once
+        end
+      end # with error_threshold reached
+
+      context 'with error_threshold already reached' do
+        let(:error_threshold) { 3 }
+        before { error_threshold.times { error_request } }
+        it { expect { subject }.to raise_error Errors::CircuitOpenError }
+      end
+
+      context 'with success after retry_period passed' do
+        let(:logger) { double('logger') }
+        let(:error_threshold) { 3 }
+        let(:retry_period) { 0.001 }
+
+        before { error_threshold.times { error_request } }
+        after { let_retry_period_pass; success_request }
+
+        it 'should log that circuit is now closed' do
+          expect(logger).to receive(:info).with('circuit closed').once
+        end
+      end # with error_threshold reached
+    end # #request
 
     describe '#tests', :tests do
       let(:tests) { client.tests(*args) }

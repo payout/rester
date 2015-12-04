@@ -1,7 +1,8 @@
 module Rester
   module Client::Adapters
     RSpec.describe LocalAdapter do
-      let(:adapter) { LocalAdapter.new(DummyService, opts) }
+      let(:service) { DummyService }
+      let(:adapter) { LocalAdapter.new(service, opts) }
       let(:opts) { {} }
 
       describe '::can_connect_to?' do
@@ -65,6 +66,16 @@ module Rester
             expect(body).to eq '{"test":"param","test_token":"1234","method":"search"}'
           end
         end
+
+        context 'with request timeout' do
+          let(:opts) { { timeout: 0.001 } }
+          let(:path) { '/v1/commands/sleep' }
+          let(:params) { {} }
+
+          it 'should raise timeout error' do
+            expect { subject }.to raise_error Errors::TimeoutError
+          end
+        end # with request timeout
       end # #get!
 
       describe '#delete!' do

@@ -23,6 +23,29 @@ module Rester
         mount MountedObject
       end # MountedObject
 
+      class Command < Service::Resource
+        id :name
+
+        params do
+          Symbol :command_name, within: [:sleep]
+          Float :sleep_time, default: 1.0
+        end
+        def get(params)
+          case params[:command_name]
+          when :sleep
+            _sleep(params[:sleep_time])
+          else
+            fail "unexpected command: #{params[:command_name]}"
+          end
+        end
+
+        private
+
+        def _sleep(time)
+          sleep(time)
+        end
+      end
+
       class Test < Service::Resource
         id :token
         mount MountedObject

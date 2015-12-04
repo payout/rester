@@ -17,8 +17,8 @@ module Rester
         end
       end # Class Methods
 
-      def connect(*args)
-        nil.tap { @connection = Connection.new(*args) }
+      def connect(url)
+        nil.tap { @connection = Connection.new(url, timeout: timeout) }
       end
 
       def connected?
