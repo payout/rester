@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rester (0.4.1)
+    rester (0.4.2)
       activesupport
       rack (~> 1.5, >= 1.5.2)
 
