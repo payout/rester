@@ -1,7 +1,8 @@
 module Rester
   module Utils
     RSpec.describe CircuitBreaker do
-      let(:breaker) { CircuitBreaker.new(breaker_opts) {} }
+      let(:block) { proc {} }
+      let(:breaker) { CircuitBreaker.new(breaker_opts, &block) }
 
       let(:breaker_opts) do
         { threshold: threshold, retry_period: retry_period }
@@ -10,13 +11,21 @@ module Rester
       let(:threshold) { 5 }
       let(:retry_period) { 1 }
 
+      def setup_for_failure
+        allow(block).to receive(:call).and_raise 'hi'
+      end
+
+      def setup_for_success
+        allow(breaker.block).to receive(:call).and_return 'hi'
+      end
+
       def failure_call
-        allow(breaker.block).to receive(:call).and_raise 'hi'
+        setup_for_failure
         expect { breaker.call }.to raise_error
       end
 
       def success_call
-        allow(breaker.block).to receive(:call).and_return 'hi'
+        setup_for_success
         expect(breaker.call).to eq 'hi'
       end
 
@@ -459,31 +468,157 @@ module Rester
       end # #on_close
 
       describe '#call' do
-        subject { breaker.call }
+        let(:args) { [] }
+        subject { breaker.call(*args) }
 
         context 'with successful call' do
-          before { allow(breaker.block).to receive(:call).and_return 'hi' }
+          before { setup_for_success }
 
           it 'should return retval of block' do
             is_expected.to eq 'hi'
           end
-        end # with successful call
+
+          it 'should call block once' do
+            expect(block).to receive(:call).once
+            subject
+          end
+        end
+
+        context 'with args passed' do
+          let(:args) { [1, :two, 'three', 4.0] }
+          after { subject }
+
+          it 'should pass args to block' do
+            expect(block).to receive(:call).with(*args).once
+          end
+        end
 
         context 'with failed call' do
-          before { allow(breaker.block).to receive(:call).and_raise 'hi' }
+          before { setup_for_failure }
 
           it 'should raise exception raised by block' do
             expect { subject }.to raise_error RuntimeError, 'hi'
           end
 
-          context 'with threshold reached' do
-            before { threshold.times { failure_call } }
+          it 'should call block once' do
+            expect(block).to receive(:call).once
+            expect { subject }.to raise_error
+          end
+        end
 
-            it 'should raise CircuitOpenError' do
-              expect { subject }.to raise_error CircuitBreaker::CircuitOpenError
-            end
-          end # with threshold reached
-        end # with failed call
+        context 'with 5 successful calls after recovering' do
+          let(:retry_period) { 0.001 }
+          before { threshold.times { failure_call }; let_retry_period_pass }
+          after { 5.times { success_call } }
+
+          it 'should call block 5 times' do
+            expect(breaker.block).to receive(:call).exactly(5).times
+          end
+        end
+
+        context 'with failure after recovering' do
+          let(:retry_period) { 0.001 }
+
+          before do
+            threshold.times { failure_call }
+            let_retry_period_pass
+            success_call # Recover
+
+            # Need to set it up for failure, since `success_call` will have
+            # set it up for success.
+            setup_for_failure
+          end
+
+          it 'should raise exception raised by block' do
+            expect { subject }.to raise_error RuntimeError, 'hi'
+          end
+
+          it 'should call block once' do
+            expect(breaker.block).to receive(:call).once
+            expect { subject }.to raise_error
+          end
+        end # with failure after recovering
+
+        context 'with 5 failure calls after recovering' do
+          let(:retry_period) { 0.001 }
+
+          before do
+            threshold.times { failure_call }
+            let_retry_period_pass
+            success_call # Recover
+          end
+
+          after { 5.times { failure_call } }
+
+          it 'should call block 5 times' do
+            expect(breaker.block).to receive(:call).exactly(5).times
+          end
+        end
+
+        context 'with 5 failure calls after failing to recover' do
+          let(:retry_period) { 0.001 }
+
+          before do
+            threshold.times { failure_call }
+            let_retry_period_pass
+            failure_call # Fail to recover
+          end
+
+          after { 5.times { failure_call } }
+
+          it 'should call block 0 times' do
+            expect(breaker.block).not_to receive(:call)
+          end
+        end
+
+        context 'with threshold reached' do
+          before { threshold.times { failure_call } }
+
+          it 'should raise CircuitOpenError' do
+            expect { subject }.to raise_error CircuitBreaker::CircuitOpenError
+          end
+
+          it 'should not continue to call block' do
+            expect(block).not_to receive(:call)
+            expect { subject }.to raise_error
+          end
+        end
+
+        context 'with retry period passed followed by failure' do
+          let(:retry_period) { 0.001 }
+          before { threshold.times { failure_call }; let_retry_period_pass }
+
+          it 'should raise exception raised by block' do
+            expect { subject }.to raise_error RuntimeError, 'hi'
+          end
+
+          it 'should call block once' do
+            expect(breaker.block).to receive(:call).once
+            expect { subject }.to raise_error
+          end
+        end
+
+        context 'with retry period passed followed by success' do
+          let(:retry_period) { 0.001 }
+
+          before do
+            threshold.times { failure_call }
+            let_retry_period_pass
+
+            # Need to set it up for success, since `failure_call` will have
+            # set it up for failure.
+            setup_for_success
+          end
+
+          it 'should return retval of block' do
+            is_expected.to eq 'hi'
+          end
+
+          it 'should call block once' do
+            expect(block).to receive(:call).once
+            subject
+          end
+        end # with retry period passed followed by success
       end # #call
     end # CircuitBreaker
   end # Utils
