@@ -89,7 +89,7 @@ module Rester
       def _param_diff(params, spec_params)
         # Compile a list of mismatched params values
         diff = spec_params.map { |k,v|
-          param_value = params.delete(k)
+          param_value = params.dup.delete(k)
           unless v == param_value
             "#{k.inspect} should equal #{v.inspect} but got #{param_value.inspect}"
           end
@@ -97,8 +97,8 @@ module Rester
 
         unless params.empty?
           # Add any param keys which aren't specified in the spec
-          diff << '. ' unless diff.empty?
-          diff << "Unexpected key(s): #{params.keys}"
+          diff << ', and ' unless diff.empty?
+          diff << "received unexpected key(s): #{params.keys.join(', ')}"
         end
 
         diff
