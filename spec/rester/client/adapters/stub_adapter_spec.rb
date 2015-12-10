@@ -65,6 +65,28 @@ module Rester
               '{"error":"error_with_multiple_params"}'] }
           end
 
+          context 'with array param and context specified' do
+            let(:context) { 'With array param' }
+            let(:params) { { array: ['one', 'two', 'three'] } }
+            it { is_expected.to eq [200, '{"message":"array_received"}'] }
+          end
+
+          context 'with hash param and context specified' do
+            let(:context) { 'With hash param' }
+            let(:params) { { hash: { p1: 'one', p2: 2, p3: 3.3 } } }
+            it { is_expected.to eq [200, '{"message":"hash_received"}'] }
+          end
+
+          context 'with array param and without context specified' do
+            let(:params) { { array: ['one', 'two', 'three'] } }
+            it { is_expected.to eq [200, '{"message":"array_received"}'] }
+          end
+
+          context 'with hash param and without context specified' do
+            let(:params) { { hash: { p1: 'one', p2: 2, p3: 3.3 } } }
+            it { is_expected.to eq [200, '{"message":"hash_received"}'] }
+          end
+
           context 'with undefined context' do
             let(:context) { 'this context is not defined' }
 
