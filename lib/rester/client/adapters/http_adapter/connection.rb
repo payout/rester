@@ -18,44 +18,18 @@ module Rester
         @timeout = opts[:timeout]
       end
 
-      def get(path, params={})
+      def request(verb, path, params={})
         _request(
-          :get,
+          verb,
           _path(path, params[:query]),
-          _prepare_headers(params[:headers])
-        )
-      end
-
-      def delete(path, params={})
-        _request(
-          :delete,
-          _path(path, params[:query]),
-          _prepare_headers(params[:headers])
-        )
-      end
-
-      def put(path, params={})
-        _request(
-          :put,
-          _path(path),
-          _prepare_data_headers(params[:headers]),
-          _encode_data(params[:data])
-        )
-      end
-
-      def post(path, params={})
-        _request(
-          :post,
-          _path(path),
-          _prepare_data_headers(params[:headers]),
-          _encode_data(params[:data])
+          _headers(verb, params[:headers]),
+          params[:data]
         )
       end
 
       private
 
-      def _request(verb, path, headers={}, data='')
-        data = nil if [:get, :delete].include?(verb)
+      def _request(verb, path, headers, data)
         _http.public_send(verb, *[path, data, headers].compact)
       rescue Net::ReadTimeout, Net::OpenTimeout
         fail Errors::TimeoutError
@@ -64,12 +38,16 @@ module Rester
       def _path(path, query=nil)
         u = url.dup
         u.path = Utils.join_paths(u.path, path)
-        u.query = URI.encode_www_form(query) if query && !query.empty?
+        u.query = query if query
         u.request_uri
       end
 
-      def _encode_data(data)
-        URI.encode_www_form(data || {})
+      def _headers(verb, headers)
+        if [:post, :put].include?(verb)
+          _prepare_data_headers(headers)
+        else
+          _prepare_headers(headers)
+        end
       end
 
       def _prepare_data_headers(headers)

@@ -146,6 +146,168 @@ module Rester
         end
       end # #Float
 
+      describe '#Array', :Array do
+        let(:opts) { {} }
+        let(:block) { nil }
+        before { resource_params.Array(field, opts, &block) }
+        let(:field) { :an_array }
+        subject { resource_params.validate(field => value) }
+
+        context 'with nil array' do
+          let(:value) { nil }
+          it { is_expected.to eq(field => value) }
+        end
+
+        context 'with nil array and required' do
+          let(:opts) { { required: true } }
+          let(:value) { nil }
+
+          it 'should throw validation error' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new('an_array cannot be null')
+          end
+        end
+
+        context 'with array of strings' do
+          let(:value) { ['1', 'two', '3.3'] }
+          it { is_expected.to eq(field.to_sym => value) }
+        end
+
+        context 'with array of strings and type = Integer' do
+          let(:opts) { { type: Integer } }
+          let(:value) { ['1', '2', '3'] }
+          it { is_expected.to eq(field.to_sym => [1,2,3]) }
+        end
+
+        context 'with array of strings and type = Float' do
+          let(:opts) { { type: Float } }
+          let(:value) { ['1', '2.0', '3.3'] }
+          it { is_expected.to eq(field.to_sym => [1.0,2.0,3.3]) }
+        end
+
+        context 'with array of strings and required' do
+          let(:opts) { { required: true } }
+          let(:value) { ['one', 'two', 'three'] }
+          it { is_expected.to eq(field.to_sym => ['one', 'two', 'three']) }
+        end
+
+        context 'with array containing "null" and required' do
+          let(:opts) { { required: true } }
+          let(:value) { ['one', nil, 'three'] }
+
+          it 'should throw validation error' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new(
+                "#{field} cannot contain null elements"
+              )
+          end
+        end
+
+        context 'with type = Hash' do
+          let(:opts) { { type: Hash } }
+          let(:value) { [{a: 'a', b: 'b'}] }
+
+          it 'should be strict like parent' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new('unexpected params: a, b')
+          end
+        end
+
+        context 'with type = Hash, unstrict child' do
+          let(:opts) { { type: Hash, strict: false } }
+          let(:value) { [{a: 'a'}, {b: 'b'}, {c: 'c'}] }
+
+          it 'should allow arbitrary hash keys' do
+            is_expected.to eq(field.to_sym => value)
+          end
+        end
+
+        context 'with type = Hash and block' do
+          let(:opts) { { type: Hash } }
+          let(:block) { proc { String :a; Integer :b; Float :c } }
+          let(:value) { [{a: 'a'}, {b: '2'}, {c: '3.3'}] }
+
+          it 'should parse hash values' do
+            is_expected.to eq(field.to_sym => [{a: 'a'}, {b: 2}, {c: 3.3}])
+          end
+        end
+      end # #Array
+
+      describe '#Hash' do
+        let(:opts) { {} }
+        let(:block) { nil }
+        before { resource_params.Hash(field, opts, &block) }
+        let(:field) { :a_hash }
+        subject { resource_params.validate(field => value) }
+
+        context 'with nil value' do
+          let(:value) { nil }
+          it { is_expected.to eq(field => nil) }
+        end
+
+        context 'with empty hash' do
+          let(:value) { {} }
+          it { is_expected.to eq(field.to_sym => value) }
+        end
+
+        context 'with strict parent' do
+          let(:value) { { a: 'a', b: 'b', c: 'c' } }
+
+          it 'should should be strict too' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new('unexpected params: a, b, c')
+          end
+        end
+
+        context 'with strict parent and unstrict child' do
+          let(:opts) { { strict: false } }
+          let(:value) { { a: 'a', b: 'b', c: 'c' } }
+
+          it 'should not be strict' do
+            is_expected.to eq(field.to_sym => value)
+          end
+        end
+
+        context 'with unstrict parent' do
+          let(:params_opts) { { strict: false } }
+          let(:value) { { a: 'a', b: 'b', c: 'c' } }
+
+          it 'should inherit lack of strictness' do
+            is_expected.to eq(field.to_sym => value)
+          end
+        end
+
+        context 'with unstrict parent but strict child' do
+          let(:params_opts) { { strict: false } }
+          let(:opts) { { strict: true } }
+          let(:value) { { a: 'a', b: 'b', c: 'c' } }
+
+          it 'should should be strict' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new('unexpected params: a, b, c')
+          end
+        end
+
+        context 'with block' do
+          let(:block) { proc { String :a; Integer :b; Float :c } }
+          let(:value) { { a: 'a', b: '2', c: '3.3' } }
+
+          it 'should parse child params' do
+            is_expected.to eq(a_hash: {a: 'a', b: 2, c: 3.3})
+          end
+        end
+
+        context 'with block and extra params given' do
+          let(:block) { proc { String :a } }
+          let(:value) { { a: 'a', b: '2', c: '3.3' } }
+
+          it 'should should complain about extra field' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new('unexpected params: b, c')
+          end
+        end
+      end # #Hash
+
       describe '#Boolean' do
         before { resource_params.Boolean(field, opts) }
         let(:field) { :a_boolean }

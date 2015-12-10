@@ -25,24 +25,14 @@ module Rester
         !!connection
       end
 
-      def get!(path, params={})
+      def request!(verb, path, encoded_data)
         _require_connection
-        _prepare_response(connection.get(path, headers: headers, query: params))
-      end
 
-      def delete!(path, params={})
-        _require_connection
-        _prepare_response(connection.delete(path, headers: headers, query: params))
-      end
+        data_key = [:get, :delete].include?(verb) ? :query : :data
+        response = connection.request(verb, path,
+          headers: headers, data_key => encoded_data)
 
-      def put!(path, params={})
-        _require_connection
-        _prepare_response(connection.put(path, headers: headers, data: params))
-      end
-
-      def post!(path, params={})
-        _require_connection
-        _prepare_response(connection.post(path, headers: headers, data: params))
+        _prepare_response(response)
       end
 
       private

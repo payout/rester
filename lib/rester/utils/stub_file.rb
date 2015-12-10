@@ -56,7 +56,7 @@ module Rester
         # Converts all the values in the request hash to strings, which mimics
         # how the data will be received on the service side.
         def _update_request(path, verb, context, spec)
-          spec['request'] = Utils.stringify_vals(spec['request'] || {})
+          spec['request'] = Utils.stringify(spec['request'] || {})
         end
 
         ##

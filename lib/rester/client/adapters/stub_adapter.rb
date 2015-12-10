@@ -30,20 +30,9 @@ module Rester
         !!stub
       end
 
-      def get!(path, params={})
-        _request('GET', path, params)
-      end
-
-      def post!(path, params={})
-        _request('POST', path, params)
-      end
-
-      def put!(path, params={})
-        _request('PUT', path, params)
-      end
-
-      def delete!(path, params={})
-        _request('DELETE', path, params)
+      def request!(verb, path, encoded_data)
+        params = Rack::Utils.parse_nested_query(encoded_data)
+        _request(verb.to_s.upcase, path, params)
       end
 
       def with_context(context)
@@ -60,8 +49,13 @@ module Rester
       end
 
       def _process_request(path, verb, params)
-        fail Errors::StubError, "#{path} not found" unless stub[path]
-        fail Errors::StubError, "#{verb} #{path} not found" unless stub[path][verb]
+        unless stub[path]
+          fail Errors::StubError, "#{path} not found"
+        end
+
+        unless stub[path][verb]
+          fail Errors::StubError, "#{verb} #{path} not found"
+        end
 
         context = @_context || _find_context_by_params(path, verb, params)
 
@@ -75,7 +69,8 @@ module Rester
         unless (spec_params = spec['request']) == params
           diff = _param_diff(params, spec_params)
           fail Errors::StubError,
-            "#{verb} #{path} with context '#{context}' params don't match stub: #{diff}"
+            "#{verb} #{path} with context '#{context}' params don't match "\
+            "stub: #{diff}"
         end
 
         # At this point, the 'request' is valid by matching a corresponding
@@ -92,15 +87,16 @@ module Rester
         diff = spec_params.map { |k,v|
           param_value = params.delete(k)
           unless v == param_value
-            "#{k.inspect} should equal #{v.inspect} but got #{param_value.inspect}"
+            "#{k.inspect} should equal #{v.inspect} but got "\
+              "#{param_value.inspect}"
           end
         }.compact.join(', ')
 
         unless params.empty?
           # Add any param keys which aren't specified in the spec
           diff << ', and ' unless diff.empty?
-          unexpected_keys_str = params.keys.map(&:to_s).map(&:inspect).join(', ')
-          diff << "received unexpected key(s): #{unexpected_keys_str}"
+          unexpected_str = params.keys.map(&:to_s).map(&:inspect).join(', ')
+          diff << "received unexpected key(s): #{unexpected_str}"
         end
 
         diff

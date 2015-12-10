@@ -1,4 +1,5 @@
 require 'date'
+require 'uri'
 
 module Rester
   module Utils
@@ -18,6 +19,38 @@ module Rester
         else
           [:get, meth]
         end
+      end
+
+      ##
+      # Copied from Rack::Utils.build_nested_query (version 1.6.0)
+      #
+      # We want to be able to support Rack >= 1.5.2, but this method is broken
+      # in that version.
+      def encode_www_data(value, prefix = nil)
+        # Rack::Utils.build_nested_query(value)
+        case value
+        when Array
+          value.map { |v|
+            encode_www_data(v, "#{prefix}[]")
+          }.join("&")
+        when Hash
+          value.map { |k, v|
+            encode_www_data(v, prefix ? "#{prefix}[#{escape(k)}]" : escape(k))
+          }.reject(&:empty?).join('&')
+        when nil
+          prefix
+        else
+          raise ArgumentError, "value must be a Hash" if prefix.nil?
+          "#{prefix}=#{escape(value)}"
+        end
+      end
+
+      def decode_www_data(data)
+        Rack::Utils.parse_nested_query(data)
+      end
+
+      def escape(value)
+        URI.encode_www_form_component(value)
       end
 
       def join_paths(*paths)
@@ -50,17 +83,10 @@ module Rester
         hash.inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo}
       end
 
-      def stringify_vals(hash={})
-        hash.each_with_object({}) { |(k,v), memo|
-          case v
-          when Hash
-            memo[k] = stringify_vals(v)
-          when NilClass
-            memo[k] = 'null'
-          else
-            memo[k] = v.to_s
-          end
-        }
+      ##
+      # Converts all keys and values to strings.
+      def stringify(hash={})
+        decode_www_data(encode_www_data(hash))
       end
 
       def classify(str)

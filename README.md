@@ -142,6 +142,66 @@ MyService = Rester.connect('http://example.com', version: 1, error_threshold: 5,
 
 In this example, the circuit will open if 5 consecutive errors occur (e.g., timeout errors or errors raised on the server). Once the circuit is open, any request made to the client will raise a `Rester::Errors::CircuitOpenError` without actually making the request. This reduces the load on recovering downstream systems and helps prevent timeouts from propagating (i.e., timeouts in one service causing timeouts in another service). Once the `retry_period` of 2 seconds has passed, the next request will be allowed through. If it succeeds, the circuit will close again and all requests will be permitted through again. If it fails, the circuit will remain open.
 
+## Service Params
+```ruby
+class ExampleService < Rester::Service
+  module V1
+    class MyResource < Rester::Service::Resource
+      # By default all params blocks are strict.
+      params strict: true do
+        # Any method that can be called on the object can be used to validate
+        # it. Here the `#between?` method will be called with the args (1, 10).
+        # As long as the method returns truthy, the validation will pass.
+        Integer :integer, between?: [1,10]
+
+        # Here's another example (not sure how this would be useful though!)
+        Float :float, zero?: []
+
+        # Boolean has special handling since Ruby doesn't have a Boolean object.
+        Boolean :bool
+
+        # Any other data type can be used, too! But it needs to provide a
+        # ::parse class method, like DateTime.
+        DateTime :date
+
+        # Use the `match` validator to validate the value sent to the server
+        # *before* it is parsed (note: this is a bad date regex!).
+        DateTime :date, match: /\A\d{4}-\d{2}-\d{2}\z/
+
+        # Use the `within` matcher to verify that the object is within an
+        # expected set.
+        Symbol :symbol, within: [:one, :two, :three]
+
+        # `within` will also work with anything that responds to `include?`,
+        # a range for example.
+        Float :another_float, within: (0..1)
+
+        # Nested hashes are also supported.
+        Hash :hash, strict: false do
+          # Another params block!
+        end
+
+        # Arrays are supported, too. Here validators apply to each element of
+        # the array individually.
+        Array :array, type: Float, within: (0..1)
+
+        # Arrays of hashes work, too.
+        #
+        # CAUTION: Each hash in the array must contain the same keys in order to
+        # ensure they are properly decoded on the service-side. To be on the
+        # safe side, make nested hashes like this strict and all their params
+        # required.  To be on the safer side, don't use this :)
+        Array :array_of_hashes, type: Hash, strict: true do
+          # Another params block!
+        end
+      end
+      def get
+      end
+    end
+  end
+end
+```
+
 ## Contract Testing
 
 ### Client-side Stub Testing
