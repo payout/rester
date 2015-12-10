@@ -70,15 +70,38 @@ module Rester
             "#{verb} #{path} with context '#{context}' not found"
         end
 
-        # Verify body, if there is one
-        unless (request = spec['request']) == params
+        # Verify request params. Compile a list of mismatched params values and
+        # any incoming request param keys which aren't specified in the stub
+        unless (spec_params = spec['request']) == params
+          diff = _param_diff(params, spec_params)
           fail Errors::StubError,
-            "#{verb} #{path} with context '#{context}' params don't match stub. Expected: #{request} Got: #{params}"
+            "#{verb} #{path} with context '#{context}' params don't match stub: #{diff}"
         end
 
         # At this point, the 'request' is valid by matching a corresponding
         # request in the stub yaml file.
         stub[path][verb][context]
+      end
+
+      ##
+      # Generate the diff string in the case when the request params of the
+      # service don't match the params specified in the stub file.
+      def _param_diff(params, spec_params)
+        # Compile a list of mismatched params values
+        diff = spec_params.map { |k,v|
+          param_value = params.delete(k)
+          unless v == param_value
+            "#{k.inspect} should equal #{v.inspect} but got #{param_value.inspect}"
+          end
+        }.compact.join(', ')
+
+        unless params.empty?
+          # Add any param keys which aren't specified in the spec
+          diff << '. ' unless diff.empty?
+          diff << "Unexpected key(s): #{params.keys}"
+        end
+
+        diff
       end
 
       ##
