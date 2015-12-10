@@ -70,10 +70,23 @@ module Rester
             "#{verb} #{path} with context '#{context}' not found"
         end
 
-        # Verify body, if there is one
+        # Verify request params. Compile a list of mismatched params values and
+        # any incoming request param keys which aren't specified in the stub
         unless (request = spec['request']) == params
+          diff = request.map { |k,v|
+            param_value = params.delete(k)
+            unless v == param_value
+              "#{k.inspect} should equal #{v.inspect} but got #{param_value.inspect}"
+            end
+          }.compact.join(', ')
+
+          unless params.empty?
+            diff << '. ' unless diff.empty?
+            diff << "Unexpected key(s): #{params.keys}"
+          end
+
           fail Errors::StubError,
-            "#{verb} #{path} with context '#{context}' params don't match stub. Expected: #{request} Got: #{params}"
+            "#{verb} #{path} with context '#{context}' params don't match stub: #{diff}"
         end
 
         # At this point, the 'request' is valid by matching a corresponding
