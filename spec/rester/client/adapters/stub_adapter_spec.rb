@@ -73,9 +73,21 @@ module Rester
 
           it 'should raise an error' do
             expect { subject }.to raise_error Errors::StubError,
-              "POST /v1/cards with context 'With valid card details' params don't match stub. Expected: #{ {'card_number' => '4111111111111111', 'exp_month' => '08', 'exp_year' => '2017' } } Got: {}"
+              'POST /v1/cards with context \'With valid card details\' params don\'t match stub: "card_number" should equal "4111111111111111" but got nil, "exp_month" should equal "08" but got nil, "exp_year" should equal "2017" but got nil'
           end
         end # with invalid params
+
+        context 'with invalid and unexpected params' do
+          let(:verb) { 'post' }
+          let(:path) { '/v1/cards' }
+          let(:context) { 'With valid card details' }
+          let(:params) {{ unexpected_key: :some_value }}
+
+          it 'should raise an error' do
+            expect { subject }.to raise_error Errors::StubError,
+              'POST /v1/cards with context \'With valid card details\' params don\'t match stub: "card_number" should equal "4111111111111111" but got nil, "exp_month" should equal "08" but got nil, "exp_year" should equal "2017" but got nil, and received unexpected key(s): "unexpected_key"'
+          end
+        end
 
         context 'without specifying context' do
           let(:verb) { 'post' }
@@ -154,7 +166,7 @@ module Rester
 
               it 'should raise an error' do
                 expect { subject }.to raise_error Errors::StubError,
-                  "GET /v1/cards/CTabcdef with context 'With card existing' params don't match stub. Expected: {} Got: {\"bad_field\"=>\"bad_field\"}"
+                  "GET /v1/cards/CTabcdef with context 'With card existing' params don't match stub: received unexpected key(s): \"bad_field\""
               end
             end # with invalid params
           end # with path /v1/cards/CTabcdef
