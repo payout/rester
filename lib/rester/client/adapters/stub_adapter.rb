@@ -87,9 +87,10 @@ module Rester
       # Generate the diff string in the case when the request params of the
       # service don't match the params specified in the stub file.
       def _param_diff(params, spec_params)
+        params = params.dup
         # Compile a list of mismatched params values
         diff = spec_params.map { |k,v|
-          param_value = params.dup.delete(k)
+          param_value = params.delete(k)
           unless v == param_value
             "#{k.inspect} should equal #{v.inspect} but got #{param_value.inspect}"
           end
@@ -98,7 +99,8 @@ module Rester
         unless params.empty?
           # Add any param keys which aren't specified in the spec
           diff << ', and ' unless diff.empty?
-          diff << "received unexpected key(s): #{params.keys.join(', ')}"
+          unexpected_keys_str = params.keys.map(&:to_s).map(&:inspect).join(', ')
+          diff << "received unexpected key(s): #{unexpected_keys_str}"
         end
 
         diff
