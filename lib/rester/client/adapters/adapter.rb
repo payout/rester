@@ -79,7 +79,7 @@ module Rester
 
       def _validate_verb(verb)
         VALID_VERBS[verb] or
-          raise ArgumentError, "Invalid verb: #{verb.inspect}"
+          fail ArgumentError, "Invalid verb: #{verb.inspect}"
       end
     end # Adapter
   end # Client::Adapters

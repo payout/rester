@@ -186,7 +186,12 @@ class ExampleService < Rester::Service
         Array :array, type: Float, within: (0..1)
 
         # Arrays of hashes work, too.
-        Array :array_of_hashes, type: Hash, strict: false do
+        #
+        # CAUTION: Each hash in the array must contain the same keys in order to
+        # ensure they are properly decoded on the service-side. To be on the
+        # safe side, make nested hashes like this strict and all their params
+        # required.  To be on the safer side, don't use this :)
+        Array :array_of_hashes, type: Hash, strict: true do
           # Another params block!
         end
       end
