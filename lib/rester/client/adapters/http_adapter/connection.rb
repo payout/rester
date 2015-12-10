@@ -29,8 +29,7 @@ module Rester
 
       private
 
-      def _request(verb, path, headers={}, data='')
-        data = nil if [:get, :delete].include?(verb)
+      def _request(verb, path, headers, data)
         _http.public_send(verb, *[path, data, headers].compact)
       rescue Net::ReadTimeout, Net::OpenTimeout
         fail Errors::TimeoutError
