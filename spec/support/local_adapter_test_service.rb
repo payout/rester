@@ -30,6 +30,17 @@ class LocalAdapterTestService < Rester::Service
       def get(params)
         params
       end
+
+      params do
+        String :test_id
+        Array :a
+        Hash :h do
+          String :key
+        end
+      end
+      def update(params)
+        params
+      end
     end
   end
 end
