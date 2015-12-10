@@ -68,6 +68,10 @@ module Rester
         nil
       end
 
+      def required?(key)
+        @_required_fields.include?(key.to_sym)
+      end
+
       ##
       # The basic data types all have helper methods named after them in Kernel.
       # This allows you to do things like String(1234) to get '1234'. It's the
@@ -179,6 +183,8 @@ module Rester
           _validate_array(key, value, klass, opts)
         when Hash
           _validate_hash(key, value, klass, opts)
+        when NilClass
+          _validate_required(key, !!value)
         else
           _error!("unexpected value type for #{key}: #{value.class}")
         end
@@ -189,7 +195,6 @@ module Rester
 
         _validate_match(key, value, opts[:match]) if opts[:match]
         _parse_with_class(klass, value).tap do |obj|
-          _validate_required(key, obj)
           _validate_type(key, obj, klass) if obj
           _validate_obj(key, obj, opts)
         end
@@ -198,7 +203,9 @@ module Rester
       def _validate_array(key, value, klass, opts)
         _error!("unexpected array for #{key}") unless klass == Array
         type = (opts = opts.dup).delete(:type) || String
-        value.map { |elem| _validate(key, elem, type, opts) }
+
+        value.each_with_index
+          .map { |e, i| _validate("#{key}[#{i}]", e, type, opts) }
       end
 
       def _validate_hash(key, value, klass, opts)
@@ -207,8 +214,6 @@ module Rester
       end
 
       def _parse_with_class(klass, value)
-        return nil if value == 'null'
-
         if klass == String
           value
         elsif klass == Integer
@@ -225,9 +230,7 @@ module Rester
       end
 
       def _validate_obj(key, obj, opts)
-        if obj.nil? && @_required_fields.include?(key)
-          _error!("#{key} cannot be null")
-        end
+        fail if obj.nil? # Assert, at this point should be guaranteed
 
         opts.each do |opt, value|
           case opt
@@ -249,12 +252,16 @@ module Rester
         end
       end
 
-      def _validate_required(key, obj)
-        if obj.nil? && @_required_fields.include?(key)
-          if @_validators[key].first == Array
-            _error!("#{key} cannot contain null elements")
-          else
-            _error!("#{key} cannot be null")
+      def _validate_required(key, is_defined)
+        unless is_defined
+          _, key, index = /(\w+)(\[\d+\])?/.match(key).to_a
+
+          if required?(key)
+            if index
+              _error!("#{key} cannot contain null elements")
+            else
+              _error!("#{key} cannot be null")
+            end
           end
         end
       end

@@ -1,7 +1,7 @@
 module Rester
   module Client::Adapters
     RSpec.describe StubAdapter do
-      let(:stub_file_path) { 'spec/stubs/dummy_stub.yml' }
+      let(:stub_file_path) { 'spec/stubs/stub_adapter_test_stub.yml' }
       let(:stub_adapter) { StubAdapter.new(stub_file_path, opts) }
       let(:opts) { {} }
 
@@ -30,223 +30,96 @@ module Rester
         it { is_expected.to eq true }
       end # #connected?
 
-      describe 'request validation' do
-        subject { request }
-        let(:request) { stub_adapter.send("#{verb}!", path, params) }
-        let(:verb) { 'get' }
-        let(:path) { '/' }
+      describe '#request!', :request! do
+        subject { stub_adapter.request!(verb, path, encoded_data) }
+        let(:encoded_data) { Utils.encode_www_data(params) }
         let(:context) { nil }
         let(:params) { {} }
 
         around { |ex| stub_adapter.with_context(context) { ex.run } }
 
-        context 'with invalid path' do
-          let(:path) { '/v1/invalid_path' }
+        context 'GET /v1/tests' do
+          let(:verb) { :get }
+          let(:path) { '/v1/tests' }
 
-          it 'should raise an error' do
-            expect { subject }.to raise_error Errors::StubError, "#{path} not found"
+          context 'without query params' do
+            it { is_expected.to eq [200,
+              '{"message":"no query params specified"}'] }
           end
-        end # with invalid path
 
-        context 'with invalid verb' do
-          let(:path) { '/v1/cards' }
-
-          it 'should raise an error' do
-            expect { subject }.to raise_error Errors::StubError, "GET #{path} not found"
+          context 'with no query params and context = "With error response"' do
+            let(:context) { 'With error response' }
+            it { is_expected.to eq [400, '{"error":"a_test_error"}'] }
           end
-        end # with invalid verb
 
-        context 'with invalid context' do
-          let(:context) { 'an invalid context' }
-          let(:path) { '/v1/cards/CTabcdef' }
-
-          it 'should raise an error' do
-            expect { subject }.to raise_error Errors::StubError,
-              "GET /v1/cards/CTabcdef with context '#{context}' not found"
+          context 'with 3 query params' do
+            let(:params) { { p1: 'one', p2: 2, p3: 3.3 } }
+            it { is_expected.to eq [200, '{"message":"one, 2, 3.3"}'] }
           end
-        end # with invalid context
 
-        context 'with invalid params' do
-          let(:verb) { 'post' }
-          let(:path) { '/v1/cards' }
-          let(:context) { 'With valid card details' }
+          context 'with 3 query params and context = "With error response to and three params"' do
+            let(:params) { { p1: 'one', p2: 2, p3: 3.3 } }
+            let(:context) { 'With error response to and three params' }
 
-          it 'should raise an error' do
-            expect { subject }.to raise_error Errors::StubError,
-              "POST /v1/cards with context 'With valid card details' params don't match stub. Expected: #{ {'card_number' => '4111111111111111', 'exp_month' => '08', 'exp_year' => '2017' } } Got: {}"
+            it { is_expected.to eq [400,
+              '{"error":"error_with_multiple_params"}'] }
           end
-        end # with invalid params
 
-        context 'without specifying context' do
-          let(:verb) { 'post' }
-          let(:path) { '/v1/cards' }
+          context 'with no params and context = "With three query params"' do
+            let(:context) { 'With three query params' }
 
-          context 'with matching params' do
-            let(:params) {
-              {
-                'card_number' => "4111111111111111",
-                'exp_month' => "08",
-                'exp_year' => "2017"
-              }
-            }
-
-            it 'should return a 201' do
-              expect(subject.first).to eq 201
-            end
-
-            it 'should return json body' do
-              expect(subject.last).to eq '{"token":"CTABCDEFG","exp_month":"08","exp_year":"2017","status":"ready"}'
-            end
-          end # matching params
-
-          context 'without matching params' do
-            it 'should raise an error' do
+            it 'should raise StubError' do
               expect { subject }.to raise_error Errors::StubError,
-              "POST /v1/cards with context '#{context}' not found"
+                "GET /v1/tests with context 'With three query params' params "\
+                "don't match stub. Expected: {\"p1\"=>\"one\", \"p2\"=>\"2\", "\
+                "\"p3\"=>\"3.3\"} Got: {}"
             end
-          end # without matching params
-        end # without specifying context
-      end # request validation
+          end
 
-      describe 'requests' do
-        subject { stub_adapter.send("#{verb}!", path, params) }
-        let(:status) { subject.first }
-        let(:body) { subject.last }
-        let(:path) { '/' }
-        let(:context) { nil }
-        let(:params) { {} }
+          context 'with undefined context' do
+            let(:context) { 'this context is not defined' }
 
-        around { |ex| stub_adapter.with_context(context) { ex.run } }
+            it 'should raise StubError' do
+              expect { subject }.to raise_error Errors::StubError,
+                "GET /v1/tests with context '#{context}' not found"
+            end
+          end
+        end # GET /v1/tests
 
-        describe '#get!' do
-          let(:verb) { 'get' }
+        context 'POST /v1/tests' do
+          let(:verb) { :post }
+          let(:path) { '/v1/tests' }
 
-          context 'with path /v1/cards/CTabcdef' do
-            let(:path) { '/v1/cards/CTabcdef' }
+          context 'without body' do
+            it { is_expected.to eq [201, '{"message":"posted without body"}'] }
+          end
 
-            context 'with card existing' do
-              let(:context) { 'With card existing' }
+          context 'with body' do
+            let(:params) { { p1: 'one', p2: 2, p3: 3.3 } }
+            it { is_expected.to eq [201, '{"message":"posted with body"}'] }
+          end
+        end # POST /v1/tests
 
-              it 'should return 200 status' do
-                expect(status).to eq 200
-              end
+        context 'GET /undefined_path' do
+          let(:verb) { :get }
+          let(:path) { '/undefined_path' }
 
-              it 'should return json body' do
-                expect(body).to eq '{"token":"CTabcdef","status":"ready"}'
-              end
-            end # with card existing
+          it 'should raise StubError' do
+            expect { subject }.to raise_error Errors::StubError,
+              '/undefined_path not found'
+          end
+        end
 
-            context 'with non-existent card' do
-              let(:context) { 'With non-existent card' }
+        context 'GET /no_verbs_defined' do
+          let(:verb) { :get }
+          let(:path) { '/no_verbs_defined' }
 
-              it 'should return 400 status' do
-                expect(status).to eq 400
-              end
-
-              it 'should return json body' do
-                expect(body).to eq '{"error":"validation_error","message":"card not found"}'
-              end
-            end # with non-existent card
-
-            context 'with invalid params' do
-              let(:params) {{ 'bad_field' => 'bad_field' }}
-              let(:context) { 'With card existing' }
-
-              it 'should raise an error' do
-                expect { subject }.to raise_error Errors::StubError,
-                  "GET /v1/cards/CTabcdef with context 'With card existing' params don't match stub. Expected: {} Got: {\"bad_field\"=>\"bad_field\"}"
-              end
-            end # with invalid params
-          end # with path /v1/cards/CTabcdef
-        end # #get!
-
-        describe '#delete!' do
-          let(:verb) { 'delete' }
-
-          context 'with path /v1/cards/CTabcdef' do
-            let(:path) { '/v1/cards/CTabcdef' }
-
-            context 'with card existing' do
-              let(:context) { 'With card existing' }
-
-              it 'should return 200 status' do
-                expect(status).to eq 200
-              end
-
-              it 'should return json body' do
-                expect(body).to eq '{"token":"CTabcdef","status":"deleted"}'
-              end
-            end # with card existing
-          end # with path /v1/cards/CTabcdef
-        end # #delete!
-
-        describe '#post!' do
-          let(:verb) { 'post' }
-
-          context 'with path /v1/cards' do
-            let(:path) { '/v1/cards' }
-
-            context 'with valid card details' do
-              let(:context) { 'With valid card details' }
-              let(:params) { {
-                'card_number' => "4111111111111111",
-                'exp_month' => "08",
-                'exp_year' => "2017"
-              }}
-
-              it 'should return 201 status' do
-                expect(status).to eq 201
-              end
-
-              it 'should return json body' do
-                expect(body).to eq '{"token":"CTABCDEFG","exp_month":"08","exp_year":"2017","status":"ready"}'
-              end
-            end # with valid card details
-
-            context 'with expired card' do
-              let(:context) { 'With expired card' }
-              let(:params) { {
-                'card_number' => "411111111",
-                'exp_month' => "01",
-                'exp_year' => "2000"
-              }}
-
-              it 'should return 400 status' do
-                expect(status).to eq 400
-              end
-
-              it 'should return json body' do
-                expect(body).to eq '{"error":"validation_error","message":"card expired"}'
-              end
-            end # with expired card
-          end # with path /v1/cards
-        end # #post!
-
-        describe '#put!' do
-          let(:verb) { 'put' }
-
-          context 'with path /v1/cards/CTabcdef/customers/CUabc123' do
-            let(:path) { '/v1/cards/CTabcdef/customers/CUabc123' }
-
-            context 'with valid customer' do
-              let(:context) { 'Valid customer' }
-              let(:params) { {
-                'name' => "John Smith",
-                'city' => "San Francisco",
-                'state' => "CA"
-              }}
-
-              it 'should return 200 status' do
-                expect(status).to eq 200
-              end
-
-              it 'should return json body' do
-                expect(body).to eq '{"name":"John Smith","city":"San Francisco","state":"CA","status":"valid_customer"}'
-              end
-            end # with valid customer
-          end # with path /v1/cards/CTabcdef/customers
-        end # #put!
-      end # requests
+          it 'should raise StubError' do
+            expect { subject }.to raise_error Errors::StubError,
+              'GET /no_verbs_defined not found'
+          end
+        end
+      end # #request!
     end # StubAdapter
   end # Client::Adapters
 end # Rester

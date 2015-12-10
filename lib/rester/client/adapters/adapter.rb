@@ -36,11 +36,22 @@ module Rester
         raise NotImplementedError
       end
 
-      def request(verb, path, params={})
-        params ||= {}
+      ##
+      # Sends an HTTP request to the service.
+      #
+      # `params` should be a hash if specified.
+      def request(verb, path, params = nil)
         _validate_verb(verb)
-        params = _validate_params(params)
-        public_send("#{verb}!", path.to_s, params)
+        request!(verb, path.to_s, Utils.encode_www_data(params))
+      end
+
+      ##
+      # Sends an HTTP request to the service.
+      #
+      # `encoded_data` should be URL encoded set of parameters
+      # (e.g., "key1=value1&key2=value2")
+      def request!(verb, path, encoded_data)
+        fail NotImplementedError
       end
 
       [:get, :post, :put, :delete].each do |verb|
@@ -48,13 +59,6 @@ module Rester
         # Define helper methods: get, post, put, delete
         define_method(verb) { |*args|
           request(verb, *args)
-        }
-
-        ##
-        # Define implementation methods: get!, post!, put!, delete!
-        # These methods should be overridden by the specific adapter.
-        define_method("#{verb}!") { |*args|
-          raise NotImplementedError
         }
       end
 
@@ -73,54 +77,9 @@ module Rester
         delete: true
       }.freeze
 
-      ##
-      # PARAM_KEY_TRANSFORMERS
-      #
-      # Defines how to transform a key value before being sent to the server.
-      # At the moment, this is a simple to_s conversion.
-      PARAM_KEY_TRANSFORMERS = Hash.new { |_, key|
-        proc { |value|
-          fail ArgumentError, "Invalid param key type: #{key.inspect}"
-        }
-      }.merge(
-        String   => :to_s.to_proc,
-        Symbol   => :to_s.to_proc
-      ).freeze
-
-      ##
-      # PARAM_VALUE_TRANSFORMERS
-      #
-      # Defines how values should be transformed before being sent to the
-      # server. Mostly, this is just a simple conversion to a string, but in
-      # the case of `nil` we want to convert it to 'null'.
-      PARAM_VALUE_TRANSFORMERS = Hash.new { |_, key|
-        proc { |value|
-          fail ArgumentError, "Invalid param value type: #{key.inspect}"
-        }
-      }.merge(
-        String     => :to_s.to_proc,
-        Symbol     => :to_s.to_proc,
-        Fixnum     => :to_s.to_proc,
-        Integer    => :to_s.to_proc,
-        Float      => :to_s.to_proc,
-        DateTime   => :to_s.to_proc,
-        TrueClass  => :to_s.to_proc,
-        FalseClass => :to_s.to_proc,
-        NilClass   => proc { 'null' }
-      ).freeze
-
       def _validate_verb(verb)
         VALID_VERBS[verb] or
           raise ArgumentError, "Invalid verb: #{verb.inspect}"
-      end
-
-      def _validate_params(params)
-        params.map { |key, value|
-          [
-            PARAM_KEY_TRANSFORMERS[key.class].call(key),
-            PARAM_VALUE_TRANSFORMERS[value.class].call(value)
-          ]
-        }.to_h
       end
     end # Adapter
   end # Client::Adapters

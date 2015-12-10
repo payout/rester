@@ -12,7 +12,7 @@ module Rester
 
       class << self
         def can_connect_to?(service)
-          service.is_a?(Class) && service < Service
+          service.is_a?(Class) && !!(service < Service)
         end
       end # Class Methods
 
@@ -24,31 +24,16 @@ module Rester
         !!service
       end
 
-      def get!(path, params={})
-        _request(:get, path, headers: headers, query: params)
-      end
-
-      def delete!(path, params={})
-        _request(:delete, path, headers: headers, query: params)
-      end
-
-      def put!(path, params={})
-        _request(:put, path, headers: headers, data: params)
-      end
-
-      def post!(path, params={})
-        _request(:post, path, headers: headers, data: params)
+      def request!(verb, path, encoded_data)
+        data_key = [:get, :delete].include?(verb) ? :query : :data
+        _request(verb, path, headers: headers, data_key => encoded_data)
       end
 
       private
 
-      def _encode_data(data)
-        Utils.encode_www_data(data) || ''
-      end
-
       def _request(verb, path, opts={})
-        body = _encode_data(opts[:data])
-        query = _encode_data(opts[:query])
+        body = opts[:data] || ''
+        query = opts[:query] || ''
 
         response = Timeout::timeout(timeout) do
           service.call(

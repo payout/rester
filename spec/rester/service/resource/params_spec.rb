@@ -153,6 +153,21 @@ module Rester
         let(:field) { :an_array }
         subject { resource_params.validate(field => value) }
 
+        context 'with nil array' do
+          let(:value) { nil }
+          it { is_expected.to eq(field => value) }
+        end
+
+        context 'with nil array and required' do
+          let(:opts) { { required: true } }
+          let(:value) { nil }
+
+          it 'should throw validation error' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new('an_array cannot be null')
+          end
+        end
+
         context 'with array of strings' do
           let(:value) { ['1', 'two', '3.3'] }
           it { is_expected.to eq(field.to_sym => value) }
@@ -178,7 +193,7 @@ module Rester
 
         context 'with array containing "null" and required' do
           let(:opts) { { required: true } }
-          let(:value) { ['one', 'null', 'three'] }
+          let(:value) { ['one', nil, 'three'] }
 
           it 'should throw validation error' do
             expect { subject }.to throw_symbol :error,
@@ -227,12 +242,7 @@ module Rester
 
         context 'with nil value' do
           let(:value) { nil }
-
-          it 'should throw validation error' do
-            expect { subject }.to throw_symbol :error,
-              Errors::ValidationError.new(
-                "unexpected value type for #{field}: NilClass")
-          end
+          it { is_expected.to eq(field => nil) }
         end
 
         context 'with empty hash' do

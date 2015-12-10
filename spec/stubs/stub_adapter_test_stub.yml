@@ -1,0 +1,37 @@
+# To be used in the stub_adapter_spec
+
+/v1/tests:
+  GET:
+    Without any request params:
+      response:
+        message: no query params specified
+    With error response:
+      response[successful=false]:
+        error: a_test_error
+    With three query params:
+      request:
+        p1: one
+        p2: 2
+        p3: 3.3
+      response:
+        message: one, 2, 3.3
+    With error response to and three params:
+      request:
+        p1: one
+        p2: 2
+        p3: 3.3
+      response[successful=false]:
+        error: error_with_multiple_params
+  POST:
+    With no body:
+      response:
+        message: posted without body
+    With body:
+      request:
+        p1: one
+        p2: 2
+        p3: 3.3
+      response:
+        message: posted with body
+
+/no_verbs_defined: {}

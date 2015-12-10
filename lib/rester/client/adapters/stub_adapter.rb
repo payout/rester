@@ -30,20 +30,9 @@ module Rester
         !!stub
       end
 
-      def get!(path, params={})
-        _request('GET', path, params)
-      end
-
-      def post!(path, params={})
-        _request('POST', path, params)
-      end
-
-      def put!(path, params={})
-        _request('PUT', path, params)
-      end
-
-      def delete!(path, params={})
-        _request('DELETE', path, params)
+      def request!(verb, path, encoded_data)
+        params = Rack::Utils.parse_nested_query(encoded_data)
+        _request(verb.to_s.upcase, path, params)
       end
 
       def with_context(context)
@@ -73,7 +62,8 @@ module Rester
         # Verify body, if there is one
         unless (request = spec['request']) == params
           fail Errors::StubError,
-            "#{verb} #{path} with context '#{context}' params don't match stub. Expected: #{request} Got: #{params}"
+            "#{verb} #{path} with context '#{context}' params don't match "\
+            "stub. Expected: #{request} Got: #{params}"
         end
 
         # At this point, the 'request' is valid by matching a corresponding

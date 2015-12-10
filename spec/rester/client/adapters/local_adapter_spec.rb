@@ -1,213 +1,72 @@
+require 'support/local_adapter_test_service'
+
 module Rester
   module Client::Adapters
     RSpec.describe LocalAdapter do
-      let(:service) { DummyService }
+      let(:service) { LocalAdapterTestService }
       let(:adapter) { LocalAdapter.new(service, opts) }
       let(:opts) { {} }
 
       describe '::can_connect_to?' do
         subject { LocalAdapter.can_connect_to?(service) }
-        let(:service) { '' }
 
         context 'with non-class' do
-          let(:service) { 'dummy_service' }
+          let(:service) { 'some string' }
           it { is_expected.to be false }
         end # with non-class
 
         context 'with non-Service class' do
-          let(:service) { Object }
+          let(:service) { Class.new }
           it { is_expected.to be false }
         end # with non-Service class
 
         context 'with valid Service class' do
-          let(:service) { DummyService }
+          let(:service) { Class.new(Service) }
           it { is_expected.to be true }
         end # with valid Service class
       end # ::can_connect_to?
 
-      describe '#get!' do
-        let(:params) { {test: 'param'} }
-        subject { adapter.get!(path, params) }
-        let(:status) { subject.first }
-        let(:body) { subject.last }
+      describe '#request!', :request! do
+        subject { adapter.request!(verb, path, encoded_data) }
+        let(:encoded_data) { Utils.encode_www_data(params) }
+        let(:context) { nil }
+        let(:params) { {} }
 
-        context 'with path "/tests/token"' do
-          let(:path) { '/v1/tests/token' }
-
-          it 'should return 200 status' do
-            expect(status).to eq 200
-          end
-
-          it 'should return JSON body' do
-            expect(body).to eq '{"token":"token","params":{"test":"param"},"method":"get"}'
-          end
-        end
-
-        context 'with path "/tests"' do
+        context 'GET /v1/tests' do
+          let(:verb) { :get }
           let(:path) { '/v1/tests' }
 
-          it 'should return 200 status' do
-            expect(status).to eq 200
+          context 'without query params' do
+            it { is_expected.to eq [200, '{"message":"no query provided"}'] }
           end
 
-          it 'should return JSON body' do
-            expect(body).to eq '{"test":"param","method":"search"}'
+          context 'with query provided' do
+            let(:params) { { query: 'a query' } }
+            it { is_expected.to eq [200,
+              '{"message":"query provided: a query"}'] }
           end
-        end
+        end # GET /v1/tests
 
-        context 'with path "/tests/1234/mounted_objects"' do
-          let(:path) { '/v1/tests/1234/mounted_objects' }
-
-          it 'should return 200 status' do
-            expect(status).to eq 200
-          end
-
-          it 'should return JSON body' do
-            expect(body).to eq '{"test":"param","test_token":"1234","method":"search"}'
-          end
-        end
-
-        context 'with request timeout' do
-          let(:opts) { { timeout: 0.001 } }
-          let(:path) { '/v1/commands/sleep' }
-          let(:params) { {} }
-
-          it 'should raise timeout error' do
-            expect { subject }.to raise_error Errors::TimeoutError
-          end
-        end # with request timeout
-      end # #get!
-
-      describe '#delete!' do
-        let(:params) { {test: 'param'} }
-        subject { adapter.delete!(path, params) }
-        let(:status) { subject.first }
-        let(:body) { subject.last }
-
-        context 'with path "/tests/token"' do
-          let(:path) { '/v1/tests/token' }
-
-          it 'should return 200 status' do
-            expect(status).to eq 200
-          end
-
-          it 'should return JSON body' do
-            expect(body).to eq '{"token":"token","params":{"test":"param"},"method":"delete"}'
-          end
-        end
-
-        context 'with path "/tests"' do
+        context 'POST /v1/tests' do
+          let(:verb) { :post }
           let(:path) { '/v1/tests' }
 
-          it 'should return 404 status' do
-            expect(status).to eq 404
+          context 'without data' do
+            it { is_expected.to eq [201, '{}'] }
           end
 
-          it 'should return JSON body' do
-            expect(body).to be nil
+          context 'with data' do
+            let(:params) { { d1: 'one', d2: 2, d3: 3.3 } }
+            it { is_expected.to eq [201, '{"d1":"one","d2":2,"d3":3.3}'] }
           end
+        end # POST /v1/tests
+
+        context 'GET /v1/tests/test_id' do
+          let(:verb) { :get }
+          let(:path) { '/v1/tests/test_id' }
+          it { is_expected.to eq [200, '{"test_id":"test_id"}'] }
         end
-
-        context 'with path "/tests/1234/mounted_objects"' do
-          let(:path) { '/v1/tests/1234/mounted_objects' }
-
-          it 'should return 404 status' do
-            expect(status).to eq 404
-          end
-
-          it 'should return JSON body' do
-            expect(body).to be nil
-          end
-        end
-      end # #delete!
-
-      describe '#post!' do
-        let(:params) { {test: 'parameter'} }
-        subject { adapter.post!(path, params) }
-        let(:status) { subject.first }
-        let(:body) { subject.last }
-
-        context 'with path "/tests/token"' do
-          let(:path) { '/v1/tests/token' }
-
-          it 'should return 404 status' do
-            expect(status).to eq 404
-          end
-
-          it 'should return JSON body' do
-            expect(body).to be nil
-          end
-        end
-
-        context 'with path "/tests"' do
-          let(:path) { '/v1/tests' }
-
-          it 'should return 201 status' do
-            expect(status).to eq 201
-          end
-
-          it 'should return JSON body' do
-            expect(body).to eq '{"test":"parameter","method":"create"}'
-          end
-        end
-
-        context 'with path "/tests/1234/mounted_objects"' do
-          let(:path) { '/v1/tests/1234/mounted_objects' }
-
-          it 'should return 404 status' do
-            expect(status).to eq 404
-          end
-
-          it 'should return JSON body' do
-            expect(body).to be nil
-          end
-        end
-      end # #post!
-
-      describe '#put!' do
-        let(:params) { {test: 'param'} }
-        subject { adapter.put!(path, params) }
-        let(:status) { subject.first }
-        let(:body) { subject.last }
-
-        context 'with path "/tests/token"' do
-          let(:path) { '/v1/tests/token' }
-
-          it 'should return 200 status' do
-            expect(status).to eq 200
-          end
-
-          it 'should return JSON body' do
-            expect(body).to eq '{"method":"update","int":1,"float":1.1,'\
-              '"bool":true,"null":null,"params":{"test":"param",'\
-              '"test_token":"token"}}'
-          end
-        end
-
-        context 'with path "/tests"' do
-          let(:path) { '/v1/tests' }
-
-          it 'should return 404 status' do
-            expect(status).to eq 404
-          end
-
-          it 'should return JSON body' do
-            expect(body).to be nil
-          end
-        end
-
-        context 'with path "/tests/1234/mounted_objects"' do
-          let(:path) { '/v1/tests/1234/mounted_objects' }
-
-          it 'should return 404 status' do
-            expect(status).to eq 404
-          end
-
-          it 'should return JSON body' do
-            expect(body).to be nil
-          end
-        end
-      end # #put!
+      end # #request!
     end # LocalAdapter
   end # Client::Adapters
 end # Rester
