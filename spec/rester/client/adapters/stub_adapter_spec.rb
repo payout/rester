@@ -57,9 +57,9 @@ module Rester
             it { is_expected.to eq [200, '{"message":"one, 2, 3.3"}'] }
           end
 
-          context 'with 3 query params and context = "With error response to and three params"' do
+          context 'with 3 query params and context = "With error response and three params"' do
             let(:params) { { p1: 'one', p2: 2, p3: 3.3 } }
-            let(:context) { 'With error response to and three params' }
+            let(:context) { 'With error response and three params' }
 
             it { is_expected.to eq [400,
               '{"error":"error_with_multiple_params"}'] }

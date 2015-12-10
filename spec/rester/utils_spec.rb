@@ -67,7 +67,7 @@ module Rester
         it { is_expected.to eq 'a=1&b=2&c=3.3' }
       end
 
-      context 'with integer data' do
+      context 'with integer datum' do
         let(:data) { { a: 1 } }
         it { is_expected.to eq 'a=1' }
       end
@@ -77,7 +77,7 @@ module Rester
         it { is_expected.to eq 'a=1&b=2&c=3' }
       end
 
-      context 'with string data' do
+      context 'with string datum' do
         let(:data) { { a: 'aaa' } }
         it { is_expected.to eq 'a=aaa' }
       end
@@ -87,7 +87,7 @@ module Rester
         it { is_expected.to eq 'a=aaa&b=bbb&c=ccc' }
       end
 
-      context 'with float data' do
+      context 'with float datum' do
         let(:data) { { a: 1.1 } }
         it { is_expected.to eq 'a=1.1' }
       end
@@ -97,7 +97,7 @@ module Rester
         it { is_expected.to eq 'a=1.1&b=2.22&c=3.333' }
       end
 
-      context 'with symbol data' do
+      context 'with symbol datum' do
         let(:data) { { a: :one } }
         it { is_expected.to eq 'a=one' }
       end
@@ -107,7 +107,7 @@ module Rester
         it { is_expected.to eq 'a=one&b=two&c=three' }
       end
 
-      context 'with nil data' do
+      context 'with nil datum' do
         let(:data) { { a: nil } }
         it { is_expected.to eq 'a' }
       end

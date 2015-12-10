@@ -15,7 +15,7 @@
         p3: 3.3
       response:
         message: one, 2, 3.3
-    With error response to and three params:
+    With error response and three params:
       request:
         p1: one
         p2: 2

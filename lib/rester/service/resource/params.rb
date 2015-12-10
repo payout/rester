@@ -184,7 +184,7 @@ module Rester
         when Hash
           _validate_hash(key, value, klass, opts)
         when NilClass
-          _validate_required(key, !!value)
+          _validate_required(key, false)
         else
           _error!("unexpected value type for #{key}: #{value.class}")
         end
