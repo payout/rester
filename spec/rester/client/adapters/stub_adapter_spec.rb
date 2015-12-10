@@ -65,23 +65,49 @@ module Rester
               '{"error":"error_with_multiple_params"}'] }
           end
 
-          context 'with no params and context = "With three query params"' do
-            let(:context) { 'With three query params' }
-
-            it 'should raise StubError' do
-              expect { subject }.to raise_error Errors::StubError,
-                "GET /v1/tests with context 'With three query params' params "\
-                "don't match stub. Expected: {\"p1\"=>\"one\", \"p2\"=>\"2\", "\
-                "\"p3\"=>\"3.3\"} Got: {}"
-            end
-          end
-
           context 'with undefined context' do
             let(:context) { 'this context is not defined' }
 
             it 'should raise StubError' do
               expect { subject }.to raise_error Errors::StubError,
                 "GET /v1/tests with context '#{context}' not found"
+            end
+          end
+
+          context 'with no params and context = "With three query params"' do
+            let(:context) { 'With three query params' }
+
+            it 'should raise StubError' do
+              expect { subject }.to raise_error Errors::StubError,
+                'GET /v1/tests with context \'With three query params\' '\
+                'params don\'t match stub: "p1" should equal "one" but got '\
+                'nil, "p2" should equal "2" but got nil, "p3" should equal '\
+                '"3.3" but got nil'
+            end
+          end
+
+          context 'with unexpected param' do
+            let(:params) { { p1: 'one', p2: 'two', p3: 'three' } }
+            let(:context) { 'Without any request params' }
+
+            it 'should raise StubError' do
+              expect { subject }.to raise_error Errors::StubError,
+                'GET /v1/tests with context \'Without any request params\' '\
+                'params don\'t match stub: received unexpected key(s): '\
+                '"p1", "p2", "p3"'
+            end
+          end
+
+          context 'with incorrect and extra params' do
+            let(:params) { { extra: 'param', p1: 'seven', p2: 'two', p3: 3.3 } }
+            let(:context) { 'With three query params' }
+
+            it 'should raise StubError' do
+              expect { subject }.to raise_error Errors::StubError,
+                'GET /v1/tests with context \'With three query params\' '\
+                'params don\'t match stub: "p1" should equal "one" but got '\
+                '"seven", "p2" should equal "2" but got "two", and received '\
+                'unexpected key(s): "extra"'
             end
           end
         end # GET /v1/tests
