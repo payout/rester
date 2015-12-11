@@ -15,6 +15,16 @@ module Rester
         path.length < 256 && %r{\A/v\d+/(\w+/?)+\z}.match(path)
       end
 
+      def each_resource
+        return unless (chain = object_chain)
+
+        loop do
+          name, id, *chain = chain
+          yield name, id
+          break if chain.empty?
+        end
+      end
+
       private
 
       def _parse_path
