@@ -151,7 +151,9 @@ module Rester
           (resource_obj = _load_resource(request.version, name)) or
             _error!(Errors::NotFoundError)
         else
-          resource_obj = resource_obj.mounts[name].new or _error!(Errors::NotFoundError)
+          mounted_resource = resource_obj.mounts[name] or
+            _error!(Errors::NotFoundError)
+          resource_obj = mounted_resource.new
         end
 
         params.merge!(resource_obj.id_param => id) if id
