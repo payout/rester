@@ -258,6 +258,79 @@ module Rester
         end
       end
 
+      context 'with GET from mounted search endpoint' do
+        let(:verb) { 'GET' }
+        let(:path) { '/v1/tests/1234/mounted_resources' }
+
+        it 'should return a 200' do
+          expect(response_code).to eq 200
+        end
+
+        it 'should respond from search endpoint' do
+          expect(response_body). to eq '{"resource":"mounted",'\
+            '"method":"search","params":{"test_id":"1234"}}'
+        end
+      end
+
+      context 'with POST to mounted create endpoint' do
+        let(:verb) { 'POST' }
+        let(:path) { '/v1/tests/1234/mounted_resources' }
+
+        it 'should return a 201' do
+          expect(response_code).to eq 201
+        end
+
+        it 'should respond from create endpoint' do
+          expect(response_body). to eq '{"resource":"mounted",'\
+            '"method":"create","params":{"test_id":"1234"}}'
+        end
+      end
+
+      context 'with GET from mounted get endpoint' do
+        let(:verb) { 'GET' }
+        let(:path) { '/v1/tests/1234/mounted_resources/resource_id' }
+
+        it 'should return a 200' do
+          expect(response_code).to eq 200
+        end
+
+        it 'should respond from get endpoint' do
+          expect(response_body). to eq '{"resource":"mounted",'\
+            '"method":"get","params":{"test_id":"1234",'\
+            '"mounted_resource_id":"resource_id"}}'
+        end
+      end
+
+      context 'with PUT to mounted update endpoint' do
+        let(:verb) { 'PUT' }
+        let(:path) { '/v1/tests/1234/mounted_resources/resource_id' }
+
+        it 'should return a 200' do
+          expect(response_code).to eq 200
+        end
+
+        it 'should respond from update endpoint' do
+          expect(response_body). to eq '{"resource":"mounted",'\
+            '"method":"update","params":{"test_id":"1234",'\
+            '"mounted_resource_id":"resource_id"}}'
+        end
+      end
+
+      context 'with DELETE to mounted delete endpoint' do
+        let(:verb) { 'DELETE' }
+        let(:path) { '/v1/tests/1234/mounted_resources/resource_id' }
+
+        it 'should return a 200' do
+          expect(response_code).to eq 200
+        end
+
+        it 'should respond from update endpoint' do
+          expect(response_body). to eq '{"resource":"mounted",'\
+            '"method":"delete","params":{"test_id":"1234",'\
+            '"mounted_resource_id":"resource_id"}}'
+        end
+      end
+
       context 'with undefined resource' do
         before { service }
         let(:path) { '/v1/undefined_resource' }
