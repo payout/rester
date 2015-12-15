@@ -49,6 +49,7 @@ GEM
     mime-types (2.4.3)
     minitest (4.7.5)
     multi_json (1.11.0)
+    newrelic_rpm (3.14.1.311)
     rack (1.5.2)
     rack-test (0.6.3)
       rack (>= 1.0)
@@ -113,6 +114,7 @@ PLATFORMS
 DEPENDENCIES
   bundler-audit
   codeclimate-test-reporter
+  newrelic_rpm
   rails (~> 4.0.0)
   rester!
   rspec

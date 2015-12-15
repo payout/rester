@@ -143,38 +143,39 @@ module Rester
     def _call_method(request)
       params = request.params
       retval = nil
+      resource_obj = nil
+      resource_id = nil
 
-      name, id, *object_chain = request.object_chain
-      obj = _load_resource(request, name)
-
-      loop {
-        params.merge!(obj.id_param => id) if id
-
-        if object_chain.empty?
-          retval = obj.process(request.request_method, !!id, params)
-          break
+      request.each_resource do |name, id|
+        unless resource_obj
+          (resource_obj = _load_resource(request.version, name)) or
+            _error!(Errors::NotFoundError)
+        else
+          mounted_resource = resource_obj.mounts[name] or
+            _error!(Errors::NotFoundError)
+          resource_obj = mounted_resource.new
         end
 
-        name, id, *object_chain = object_chain
-        obj = obj.mounts[name].new or fail Errors::NotFoundError
-      }
+        params.merge!(resource_obj.id_param => id) if id
+        resource_id = id
+      end
 
-      retval
+      resource_obj.process(request.request_method, !!resource_id, params)
     end
 
     ##
     # Loads the appropriate Service::Resource for the request. This will return
     # the class, not an instance.
-    def _load_resource(request, name)
-      _version_module(request).const_get(name.camelcase.singularize).new
+    def _load_resource(version, name)
+      _version_module(version).const_get(name.camelcase.singularize).new
     rescue NameError
-      _error!(Errors::NotFoundError)
+      nil
     end
 
     ##
     # Returns the module specified by the version in the request.
-    def _version_module(request)
-      self.class.version_module(request.version)
+    def _version_module(version)
+      self.class.version_module(version)
     end
 
     ##
