@@ -37,63 +37,65 @@ RSpec.configure do |config|
   end
 
   config.before :each, rester: // do |ex|
-    # Gather the request args from the spec descriptions
-    #
-    # For example:
-    #
-    # describe '/v1/tests' do
-    #   context 'GET' do
-    #     context 'With some context' do
-    #     end
-    #   end
-    # end
-    #
-    # would produce:
-    #
-    # context, verb, path = ['With some context', 'GET', '/v1/tests']
-    context, verb, path = ex.example_group.parent_groups.map { |a|
-      a.description unless a.metadata[:description] == a.described_class.to_s
-    }.compact
+    unless ex.pending?
+      # Gather the request args from the spec descriptions
+      #
+      # For example:
+      #
+      # describe '/v1/tests' do
+      #   context 'GET' do
+      #     context 'With some context' do
+      #     end
+      #   end
+      # end
+      #
+      # would produce:
+      #
+      # context, verb, path = ['With some context', 'GET', '/v1/tests']
+      context, verb, path = ex.example_group.parent_groups.map { |a|
+        a.description unless a.metadata[:description] == a.described_class.to_s
+      }.compact
 
-    begin
-      spec = @rester_stub[path][verb][context]
-    rescue NoMethodError
-      fail Rester::Errors::StubError,
-        "Could not find path: #{path.inspect} verb: #{verb.inspect} context: "\
-          "#{context.inspect} in #{@rester_stub_filepath}"
+      begin
+        spec = @rester_stub[path][verb][context]
+      rescue NoMethodError
+        fail Rester::Errors::StubError,
+          "Could not find path: #{path.inspect} verb: #{verb.inspect} context: "\
+            "#{context.inspect} in #{@rester_stub_filepath}"
+      end
+
+      ##
+      # Raw response from the service.
+      # [HTTP CODE, JSON String]
+      ex.example_group.let(:raw_service_response) {
+        @rester_adapter.request(verb.downcase.to_sym, path, spec['request'])
+      }
+
+      ##
+      # Parsed service response
+      ex.example_group.let(:service_response) {
+        JSON.parse(raw_service_response.last, symbolize_names: true)
+      }
+
+      ##
+      # HTTP status code returned by service.
+      ex.example_group.let(:service_response_code) { raw_service_response.first }
+
+      ##
+      # Expected response body specified in by the stub.
+      ex.example_group.let(:stub_response) {
+        JSON.parse((spec['response'] || {}).to_json, symbolize_names: true)
+      }
+
+      ##
+      # HTTP status code expected by the stub.
+      ex.example_group.let(:stub_response_code) { spec['response_code'] }
+
+      ##
+      # Set the subject to be the service response (parsed ruby hash of the
+      # returned data).
+      ex.example_group.let(:subject) { service_response }
     end
-
-    ##
-    # Raw response from the service.
-    # [HTTP CODE, JSON String]
-    ex.example_group.let(:raw_service_response) {
-      @rester_adapter.request(verb.downcase.to_sym, path, spec['request'])
-    }
-
-    ##
-    # Parsed service response
-    ex.example_group.let(:service_response) {
-      JSON.parse(raw_service_response.last, symbolize_names: true)
-    }
-
-    ##
-    # HTTP status code returned by service.
-    ex.example_group.let(:service_response_code) { raw_service_response.first }
-
-    ##
-    # Expected response body specified in by the stub.
-    ex.example_group.let(:stub_response) {
-      JSON.parse((spec['response'] || {}).to_json, symbolize_names: true)
-    }
-
-    ##
-    # HTTP status code expected by the stub.
-    ex.example_group.let(:stub_response_code) { spec['response_code'] }
-
-    ##
-    # Set the subject to be the service response (parsed ruby hash of the
-    # returned data).
-    ex.example_group.let(:subject) { service_response }
   end
 
   config.after :each, rester: // do |ex|
@@ -118,7 +120,7 @@ RSpec.configure do |config|
 
         missing_contexts.each { |missing_context, _|
           context_group = _find_or_create_child(verb_group, missing_context)
-          context_group.pending('this should be implemented') {
+          context_group.pending('should be implemented') {
             fail 'not implemented'
           }
         }
