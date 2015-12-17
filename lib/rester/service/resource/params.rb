@@ -192,8 +192,8 @@ module Rester
 
       def _validate_str(key, value, klass, opts)
         fail unless value.is_a?(String) # assert
-        if [Array, Hash].include?(klass) && key.class != klass
-          _error!("#{key} should be a #{klass} but a #{value.class} was found")
+        if [Array, Hash].include?(klass)
+          _error!("expected #{key} to be of type #{klass}")
         end
 
         _validate_match(key, value, opts[:match]) if opts[:match]
@@ -204,7 +204,7 @@ module Rester
       end
 
       def _validate_array(key, value, klass, opts)
-        _error!("unexpected array for #{key}") unless klass == Array
+        _error!("unexpected Array for #{key}") unless klass == Array
         type = (opts = opts.dup).delete(:type) || String
 
         value.each_with_index
@@ -212,7 +212,7 @@ module Rester
       end
 
       def _validate_hash(key, value, klass, opts)
-        _error!("unexpected hash for #{key}") unless klass == Hash
+        _error!("unexpected Hash for #{key}") unless klass == Hash
         (validator = opts[:use]) && validator.validate(value)
       end
 

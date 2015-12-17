@@ -163,8 +163,7 @@ module Rester
 
           it 'should raise an error' do
             expect { subject }.to throw_symbol :error,
-              Errors::ValidationError.new("an_array should be a Array but a "\
-                "String was found")
+              Errors::ValidationError.new("expected an_array to be of type Array")
           end
         end
 
@@ -265,8 +264,7 @@ module Rester
 
           it 'should raise an error' do
             expect { subject }.to throw_symbol :error,
-              Errors::ValidationError.new("a_hash should be a Hash but a "\
-                "String was found")
+              Errors::ValidationError.new("expected a_hash to be of type Hash")
           end
         end
 
