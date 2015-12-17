@@ -37,6 +37,16 @@ RSpec.configure do |config|
   end
 
   config.before :each, rester: // do |ex|
+    _setup_example(ex) unless ex.pending?
+  end
+
+  config.after :each, rester: // do |ex|
+    if defined?(service_response_code)
+      expect(service_response_code).to eq stub_response_code
+    end
+  end
+
+  def _setup_example(ex)
     # Gather the request args from the spec descriptions
     #
     # For example:
@@ -96,10 +106,6 @@ RSpec.configure do |config|
     ex.example_group.let(:subject) { service_response }
   end
 
-  config.after :each, rester: // do |ex|
-    expect(service_response_code).to eq stub_response_code
-  end
-
   ##
   # Check to see if each stub example has a corresponding test written for it
   def _validate_test_coverage(ex)
@@ -115,8 +121,7 @@ RSpec.configure do |config|
         verb_group = _find_or_create_child(path_group, missing_verb)
 
         missing_contexts.each { |missing_context, _|
-          context_group = _find_or_create_child(verb_group, missing_context)
-          context_group.it { is_expected.to include_stub_response }
+          _find_or_create_child(verb_group, missing_context).pending
         }
       }
     }
