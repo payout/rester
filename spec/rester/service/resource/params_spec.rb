@@ -158,6 +158,16 @@ module Rester
           it { is_expected.to eq(field => value) }
         end
 
+        context 'with String instead of Array' do
+          let(:value) { "some_string" }
+
+          it 'should raise an error' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new("an_array should be a Array but a "\
+                "String was found")
+          end
+        end
+
         context 'with nil array and required' do
           let(:opts) { { required: true } }
           let(:value) { nil }
@@ -248,6 +258,16 @@ module Rester
         context 'with empty hash' do
           let(:value) { {} }
           it { is_expected.to eq(field.to_sym => value) }
+        end
+
+        context 'with String instead of Hash' do
+          let(:value) { "some_string" }
+
+          it 'should raise an error' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new("a_hash should be a Hash but a "\
+                "String was found")
+          end
         end
 
         context 'with strict parent' do

@@ -192,6 +192,9 @@ module Rester
 
       def _validate_str(key, value, klass, opts)
         fail unless value.is_a?(String) # assert
+        if [Array, Hash].include?(klass) && key.class != klass
+          _error!("#{key} should be a #{klass} but a #{value.class} was found")
+        end
 
         _validate_match(key, value, opts[:match]) if opts[:match]
         _parse_with_class(klass, value).tap do |obj|
