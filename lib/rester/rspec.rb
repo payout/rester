@@ -97,7 +97,9 @@ RSpec.configure do |config|
   end
 
   config.after :each, rester: // do |ex|
-    expect(service_response_code).to eq stub_response_code
+    if defined?(service_response_code)
+      expect(service_response_code).to eq stub_response_code
+    end
   end
 
   ##
@@ -116,7 +118,9 @@ RSpec.configure do |config|
 
         missing_contexts.each { |missing_context, _|
           context_group = _find_or_create_child(verb_group, missing_context)
-          context_group.it { is_expected.to include_stub_response }
+          context_group.pending('this should be implemented') {
+            fail 'not implemented'
+          }
         }
       }
     }
