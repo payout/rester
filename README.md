@@ -314,7 +314,7 @@ RSpec.describe PaymentService, rester: "/path/to/stub/file.yml" do
         # The `subject` and `stub_response` variables are created by Rester so the
         # line below is all that is needed to verify that the Service is providing
         # what the Stubfile expects for this specific request
-        it { is_expected.to include stub_response }
+        it { is_expected.to include_stub_response }
       end
     end
   end
