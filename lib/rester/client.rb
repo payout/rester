@@ -20,6 +20,9 @@ module Rester
       @error_threshold = (params[:error_threshold] || 3).to_i
       @retry_period = (params[:retry_period] || 1).to_f
       @logger = params[:logger] || Logger.new(STDOUT)
+      @_breaker_enabled = params[:circuit_breaker_enabled].nil? ?
+        ENV['RACK_ENV'] != 'test' : params[:circuit_breaker_enabled]
+
 
       @_resource = Resource.new(self)
       _init_request_breaker
@@ -33,13 +36,23 @@ module Rester
       adapter.connected? && adapter.get('/ping').first == 200
     end
 
+    def circuit_breaker_enabled?
+      !!@_breaker_enabled
+    end
+
     def request(verb, path, params={})
-      @_request_breaker.call(verb, path, params)
-    rescue Utils::CircuitBreaker::CircuitOpenError
-      # Translate this error so it's easier handle for clients.
-      # Also, at some point we may want to extract CircuitBreaker into its own
-      # gem, and this will make that easier.
-      raise Errors::CircuitOpenError
+      if circuit_breaker_enabled?
+        begin
+          @_request_breaker.call(verb, path, params)
+        rescue Utils::CircuitBreaker::CircuitOpenError
+          # Translate this error so it's easier handle for clients.
+          # Also, at some point we may want to extract CircuitBreaker into its own
+          # gem, and this will make that easier.
+          raise Errors::CircuitOpenError
+        end
+      else
+        _request(verb, path, params)
+      end
     end
 
     ##

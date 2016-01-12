@@ -15,7 +15,8 @@ module Rester
         version: version,
         error_threshold: error_threshold,
         retry_period: retry_period,
-        logger: logger
+        logger: logger,
+        circuit_breaker_enabled: circuit_breaker_enabled
       }
     end
 
@@ -23,6 +24,7 @@ module Rester
     let(:error_threshold) { nil }
     let(:retry_period) { nil }
     let(:logger) { nil }
+    let(:circuit_breaker_enabled) { true }
 
     let(:test_url) { RSpec.server_uri.to_s }
 
@@ -214,6 +216,30 @@ module Rester
           expect(logger).to receive(:error).with('circuit opened').once
         end
       end # with error_threshold reached
+
+      context 'with circuit breaker disabled' do
+        let(:error_threshold) { 1 }
+        let(:circuit_breaker_enabled) { false }
+
+        context 'with error_threshold reached' do
+          let(:logger) { double('logger') }
+          before { (error_threshold - 1).times { error_request } }
+          after { error_request }
+
+          it 'should not log that circuit is now opened' do
+            expect(logger).not_to receive(:error).with('circuit opened')
+          end
+        end
+
+        context 'with error_threshold already reached' do
+          let(:error_threshold) { 3 }
+          before { error_threshold.times { error_request } }
+
+          it 'should raise the underlying error' do
+            expect { subject }.to raise_error 'error'
+          end
+        end
+      end # with circuit breaker disabled
 
       context 'with error_threshold already reached' do
         let(:error_threshold) { 3 }

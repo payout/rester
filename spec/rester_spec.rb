@@ -1,6 +1,7 @@
 RSpec.describe Rester do
   describe '::connect' do
-    subject { Rester.connect(*connect_args) }
+    subject { client }
+    let(:client) { Rester.connect(*connect_args) }
     let(:adapter) { subject.adapter }
 
     context 'with url' do
@@ -90,5 +91,26 @@ RSpec.describe Rester do
         expect(adapter).to have_attributes(timeout: 10)
       end
     end # without timeout
+
+    context 'with circuit_breaker_enabled' do
+      subject { client.circuit_breaker_enabled? }
+
+      context 'set to true' do
+        let(:connect_args) { [RSpec.server_uri, circuit_breaker_enabled: true] }
+        it { is_expected.to eq true }
+      end
+
+      context 'set to false' do
+        let(:connect_args) { [RSpec.server_uri, circuit_breaker_enabled: false] }
+        it { is_expected.to eq false }
+      end
+    end # with circuit_breaker_enabled
+
+    context 'without circuit_breaker_enabled' do
+      subject { client.circuit_breaker_enabled? }
+
+      let(:connect_args) { [RSpec.server_uri] }
+      it { is_expected.to eq true }
+    end # without circuit_breaker_enabled
   end # ::connect
 end # Rester
