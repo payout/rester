@@ -21,5 +21,23 @@ module Rester
       adapter = Client::Adapters.connect(service, adapter_opts)
       Client.new(adapter, params)
     end
+
+    def correlation_id
+      _correlation_ids[Thread.current.object_id]
+    end
+
+    def correlation_id=(id)
+      if id.nil?
+        _correlation_ids.delete(Thread.current.object_id)
+      else
+        _correlation_ids[Thread.current.object_id] = id
+      end
+    end
+
+    private
+
+    def _correlation_ids
+      @_correlation_ids ||= ThreadSafe::Cache.new
+    end
   end # Class Methods
 end # Rester

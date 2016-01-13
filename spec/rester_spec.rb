@@ -1,3 +1,5 @@
+require 'securerandom'
+
 RSpec.describe Rester do
   describe '::connect' do
     subject { Rester.connect(*connect_args) }
@@ -91,4 +93,57 @@ RSpec.describe Rester do
       end
     end # without timeout
   end # ::connect
+
+  describe '::correlation_id' do
+    subject { Rester.correlation_id }
+    before { Rester.correlation_id = id }
+    let(:id) { SecureRandom.uuid }
+
+    it { is_expected.to eq id }
+  end # ::correlation_id
+
+  describe '::correlation_id=' do
+    subject { Rester.send(:_correlation_ids) }
+    before { Rester.correlation_id = id }
+    let(:id) { SecureRandom.uuid }
+
+    context 'with single thread' do
+      context 'with new id' do
+        it 'should set the correlation id for the current thread' do
+          expect(subject[Thread.current.object_id]).to eq id
+        end
+      end # with new id
+
+      context 'with nil id' do
+        it 'should delete the key for the thread' do
+          expect(subject[Thread.current.object_id]).to eq id
+          Rester.correlation_id = nil
+          expect(subject[Thread.current.object_id]).to eq nil
+        end
+      end # with nil id
+    end # with single thread
+
+    context 'with multiple threads' do
+      before { new_thread.join }
+      let(:new_thread) { Thread.new { Rester.correlation_id = new_id } }
+      let(:new_id) { SecureRandom.uuid }
+
+      context 'with new ids' do
+        it 'should set the correlation id for both threads' do
+          expect(subject[Thread.current.object_id]).to eq id
+          expect(subject[new_thread.object_id]).to eq new_id
+        end
+      end # with new ids
+
+      context 'with nil id' do
+        it 'should delete the key for the current thread' do
+          expect(subject[Thread.current.object_id]).to eq id
+          expect(subject[new_thread.object_id]).to eq new_id
+          Rester.correlation_id = nil
+          expect(subject[Thread.current.object_id]).to eq nil
+          expect(subject[new_thread.object_id]).to eq new_id
+        end
+      end # with nil id
+    end # with multiple threads
+  end # ::correlation_id=
 end # Rester
