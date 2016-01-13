@@ -42,12 +42,12 @@ module Rester
     end
 
     def request(verb, path, params={})
-        @_requester.call(verb, path, params)
-      rescue Utils::CircuitBreaker::CircuitOpenError
-        # Translate this error so it's easier handle for clients.
-        # Also, at some point we may want to extract CircuitBreaker into its own
-        # gem, and this will make that easier.
-        raise Errors::CircuitOpenError
+      @_requester.call(verb, path, params)
+    rescue Utils::CircuitBreaker::CircuitOpenError
+      # Translate this error so it's easier handle for clients.
+      # Also, at some point we may want to extract CircuitBreaker into its own
+      # gem, and this will make that easier.
+      raise Errors::CircuitOpenError
     end
 
     ##
