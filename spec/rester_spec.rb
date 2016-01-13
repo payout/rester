@@ -108,9 +108,24 @@ RSpec.describe Rester do
 
     context 'without circuit_breaker_enabled' do
       subject { client.circuit_breaker_enabled? }
-
       let(:connect_args) { [RSpec.server_uri] }
-      it { is_expected.to eq true }
+
+      context 'in test environment' do
+        it { is_expected.to eq false }
+      end
+
+      context 'in non-test environment' do
+        before {
+          ENV['RACK_ENV'] = 'development'
+          ENV['RAILS_ENV'] = 'development'
+        }
+
+        after {
+          ENV['RACK_ENV'] = 'test'
+          ENV['RAILS_ENV'] = 'test'
+        }
+        it { is_expected.to eq true }
+      end
     end # without circuit_breaker_enabled
   end # ::connect
 end # Rester
