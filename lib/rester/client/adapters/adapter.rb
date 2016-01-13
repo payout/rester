@@ -37,11 +37,13 @@ module Rester
       end
 
       ##
-      # Sends an HTTP request to the service.
+      # Sends an HTTP request to the service. Adds a correlation ID to the
+      # header.
       #
       # `params` should be a hash if specified.
-      def request(verb, path, params = nil)
+      def request(verb, path, params=nil)
         _validate_verb(verb)
+        headers('X-Rester-Correlation-ID' => Rester.correlation_id)
         request!(verb, path.to_s, Utils.encode_www_data(params))
       end
 
