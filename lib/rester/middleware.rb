@@ -4,5 +4,6 @@ module Rester
     autoload(:ErrorHandling, 'rester/middleware/error_handling')
     autoload(:Ping,          'rester/middleware/ping')
     autoload(:NewRelic,      'rester/middleware/new_relic')
+    autoload(:CorrelationId, 'rester/middleware/correlation_id')
   end
 end
