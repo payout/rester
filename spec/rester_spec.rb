@@ -96,10 +96,18 @@ RSpec.describe Rester do
 
   describe '::correlation_id' do
     subject { Rester.correlation_id }
-    before { Rester.correlation_id = id }
     let(:id) { SecureRandom.uuid }
 
-    it { is_expected.to eq id }
+    context 'with id set beforehand' do
+      before { Rester.correlation_id = id }
+      it { is_expected.to eq id }
+    end
+
+    context 'with no id set beforehand' do
+      it 'should create one by default' do
+        is_expected.to match(/[\w]{8}(-[\w]{4}){3}-[\w]{12}/)
+      end
+    end
   end # ::correlation_id
 
   describe '::correlation_id=' do

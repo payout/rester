@@ -36,6 +36,26 @@ module Rester
           let(:verb) { :get }
           let(:path) { '/v1/tests' }
 
+          context 'with headers' do
+            before {
+              adapter.headers(
+                'X-Rester-Correlation-ID' => Rester.correlation_id
+              )
+            }
+
+            it 'should add the headers to the request' do
+              expect(service).to receive(:call).with(
+                'REQUEST_METHOD' => verb.to_s.upcase,
+                'PATH_INFO'      => path,
+                'CONTENT_TYPE'   => 'application/x-www-form-urlencoded',
+                'QUERY_STRING'   => '',
+                'rack.input'     => StringIO,
+                'X-Rester-Correlation-ID' => Rester.correlation_id
+              ).once { [200, ''] }
+              subject
+            end
+          end # with headers
+
           context 'without query params' do
             it { is_expected.to eq [200, '{"message":"no query provided"}'] }
           end
