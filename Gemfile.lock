@@ -4,6 +4,7 @@ PATH
     rester (0.5.1)
       activesupport
       rack (~> 1.5, >= 1.5.2)
+      thread_safe
 
 GEM
   remote: https://rubygems.org/
