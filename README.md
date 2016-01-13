@@ -142,6 +142,13 @@ MyService = Rester.connect('http://example.com', version: 1, error_threshold: 5,
 
 In this example, the circuit will open if 5 consecutive errors occur (e.g., timeout errors or errors raised on the server). Once the circuit is open, any request made to the client will raise a `Rester::Errors::CircuitOpenError` without actually making the request. This reduces the load on recovering downstream systems and helps prevent timeouts from propagating (i.e., timeouts in one service causing timeouts in another service). Once the `retry_period` of 2 seconds has passed, the next request will be allowed through. If it succeeds, the circuit will close again and all requests will be permitted through again. If it fails, the circuit will remain open.
 
+By default, the circuit breaker is enabled for all environments except `test`. If you wish to enable or disable the circuit breaker manually, add the following as a param when you are connecting to your service via Rester:
+
+For example:
+```ruby
+MyService = Rester.connect('http://example.com', circuit_breaker_enabled: false)
+```
+
 ## Service Params
 ```ruby
 class ExampleService < Rester::Service
