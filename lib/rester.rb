@@ -23,7 +23,7 @@ module Rester
     end
 
     def correlation_id
-      _correlation_ids[Thread.current.object_id]
+      _correlation_ids[Thread.current.object_id] ||= SecureRandom.uuid
     end
 
     def correlation_id=(id)
