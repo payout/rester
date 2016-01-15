@@ -13,9 +13,9 @@ module Rester
     BASE_MIDDLEWARE = [
       Rack::Head,
       Middleware::ErrorHandling,
-      Middleware::Ping,
+      Middleware::CorrelationId,
       Middleware::Identify,
-      Middleware::CorrelationId
+      Middleware::Ping
     ].freeze
 
     ########################################################################

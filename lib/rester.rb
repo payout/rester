@@ -29,7 +29,7 @@ module Rester
     def connect(service, params={})
       adapter_opts = Client::Adapters.extract_opts(params)
       adapter = Client::Adapters.connect(service, adapter_opts)
-      Client.new(adapter, params)
+      Client.new(adapter, params).tap { |client| adapter.get('/ping') }
     end
 
     def consumer_name

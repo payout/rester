@@ -31,6 +31,8 @@ module Rester
       end
 
       def request!(verb, path, encoded_data)
+        return [200, {}, []] if verb == :get && path == '/ping'
+
         params = Rack::Utils.parse_nested_query(encoded_data)
         _request(verb.to_s.upcase, path, params)
       end
