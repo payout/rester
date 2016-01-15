@@ -177,6 +177,7 @@ module Rester
     describe '#request', :request do
       let(:adapter) { double('adapter') }
       subject { client.request(verb, path, params) }
+      before { setup_adapter }
 
       let(:verb) { :get }
       let(:path) { '/ping' }
@@ -187,7 +188,7 @@ module Rester
       # Useful when testing the circuit breaker logic.
       def error_request
         allow(adapter).to receive(:request).and_raise 'error'
-        expect { client.request(verb, path, params) }.to raise_error
+        expect { subject }.to raise_error
       end
 
       ##
@@ -195,9 +196,15 @@ module Rester
       # Useful when testing the circuit breaker logic.
       def success_request
         allow(adapter).to receive(:request).and_return [200, '']
+        expect(subject).to eq Client::Response.new(200, {})
+      end
 
-        expect(client.request(verb, path, params))
-          .to eq Client::Response.new(200, {})
+      def setup_adapter
+        expect(adapter).to receive(:headers).with(
+          'X-Rester-Correlation-ID' => Rester.correlation_id,
+          'X-Rester-Consumer-Name' => "Dummy",
+          'X-Rester-Producer-Name' => "Producer"
+        ).at_least(:once)
       end
 
       def let_retry_period_pass
@@ -207,11 +214,16 @@ module Rester
       context 'with error_threshold reached' do
         let(:logger) { double('logger') }
         let(:error_threshold) { 3 }
-        before { (error_threshold - 1).times { error_request } }
+        before {
+          expect(logger).to receive(:info).at_most(error_threshold).times
+          (error_threshold - 1).times { error_request }
+        }
         after { error_request }
 
         it 'should log that circuit is now opened' do
-          expect(logger).to receive(:error).with('circuit opened').once
+          expect(logger).to receive(:error).with(
+            "Correlation-ID=#{Rester.correlation_id}: circuit opened for Producer"
+          ).once
         end
       end # with error_threshold reached
 
@@ -226,11 +238,17 @@ module Rester
         let(:error_threshold) { 3 }
         let(:retry_period) { 0.001 }
 
-        before { error_threshold.times { error_request } }
+        before {
+          # 3 error request logs + 1 success req log + 1 success response log
+          expect(logger).to receive(:info).at_most(error_threshold + 2).times
+          error_threshold.times { error_request }
+        }
         after { let_retry_period_pass; success_request }
 
-        it 'should log that circuit is now closed' do
-          expect(logger).to receive(:info).with('circuit closed').once
+        it 'should log that circuit is now closed', :test do
+          expect(logger).to receive(:info).with(
+            "Correlation-ID=#{Rester.correlation_id}: circuit closed for Producer"
+          ).once
         end
       end # with error_threshold reached
     end # #request
