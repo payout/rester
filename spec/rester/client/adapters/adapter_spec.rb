@@ -39,14 +39,6 @@ module Rester
             expect(adapter).to receive(:request!).with(verb, path, nil).once
             subject
           end
-
-          it 'should set a correlation id to the header' do
-            expect(adapter).to receive(:request!).with(verb, path, nil).once
-            subject
-            expect(adapter.headers).to include(
-              'X-Rester-Correlation-ID' => Rester.correlation_id
-            )
-          end
         end
 
         context 'with integer params' do

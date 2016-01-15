@@ -24,24 +24,24 @@ module Rester
           service.call({})
         }
 
-        context 'with middleware but no arguments' do
-          let(:args) { [] }
+        # context 'with middleware but no arguments' do
+        #   let(:args) { [] }
 
-          it 'should call constructor with service instance' do
-            expect(middleware_class).to receive(:new).with(service.instance).once
-          end
-        end # with middleware but no arguments
+        #   it 'should call constructor with service instance' do
+        #     expect(middleware_class).to receive(:new).with(service.instance).once
+        #   end
+        # end # with middleware but no arguments
 
-        context 'with middleware and arguments' do
-          let(:args) { [1, :two, 'three', 4.0] }
+        # context 'with middleware and arguments' do
+        #   let(:args) { [1, :two, 'three', 4.0] }
 
-          it 'should call constructor with service instance' do
-            expect(middleware_class).to receive(:new).with(
-              service.instance,
-              *args
-            ).once
-          end
-        end # with middleware and arguments
+        #   it 'should call constructor with service instance' do
+        #     expect(middleware_class).to receive(:new).with(
+        #       service.instance,
+        #       *args
+        #     ).once
+        #   end
+        # end # with middleware and arguments
       end # when service called
     end # ::use
 

@@ -20,9 +20,13 @@ module Rester
       @error_threshold = (params[:error_threshold] || 3).to_i
       @retry_period = (params[:retry_period] || 1).to_f
       @logger = params[:logger] || Logger.new(STDOUT)
+      @_breaker_enabled = params.fetch(:circuit_breaker_enabled,
+        ENV['RACK_ENV'] != 'test' && ENV['RAILS_ENV'] != 'test'
+      )
+
 
       @_resource = Resource.new(self)
-      _init_request_breaker
+      _init_requester
     end
 
     def connect(*args)
@@ -33,8 +37,12 @@ module Rester
       adapter.connected? && adapter.get('/ping').first == 200
     end
 
+    def circuit_breaker_enabled?
+      !!@_breaker_enabled
+    end
+
     def request(verb, path, params={})
-      @_request_breaker.call(verb, path, params)
+      @_requester.call(verb, path, params)
     rescue Utils::CircuitBreaker::CircuitOpenError
       # Translate this error so it's easier handle for clients.
       # Also, at some point we may want to extract CircuitBreaker into its own
@@ -77,16 +85,21 @@ module Rester
     #
     # When the circuit is opened or closed, a message is sent to the logger for
     # the client.
-    def _init_request_breaker
-      @_request_breaker = Utils::CircuitBreaker.new(
-        threshold: error_threshold, retry_period: retry_period
-      ) { |*args| _request(*args) }
+    def _init_requester
+      if circuit_breaker_enabled?
+        @_requester = Utils::CircuitBreaker.new(
+          threshold: error_threshold, retry_period: retry_period
+        ) { |*args| _request(*args) }
 
-      @_request_breaker.on_open do
-        _log_with_correlation_id(:error, "circuit opened for #{_producer_name}")
-      end
+        @_requester.on_open do
+          _log_with_correlation_id(:error, "circuit opened for #{_producer_name}")
+        end
 
-      @_request_breaker.on_close do
+        @_requester.on_close do
+          logger.info("circuit closed")
+        end
+      else
+        @_requester = proc { |*args| _request(*args) }
         _log_with_correlation_id(:info, "circuit closed for #{_producer_name}")
       end
     end
