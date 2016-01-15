@@ -19,7 +19,7 @@ module Rester
       self.version = params[:version]
       @error_threshold = (params[:error_threshold] || 3).to_i
       @retry_period = (params[:retry_period] || 1).to_f
-      @logger = params[:logger] || Logger.new(STDOUT)
+      @logger = params[:logger] || Rester.logger
       @_breaker_enabled = params.fetch(:circuit_breaker_enabled,
         ENV['RACK_ENV'] != 'test' && ENV['RAILS_ENV'] != 'test'
       )

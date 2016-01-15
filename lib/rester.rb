@@ -12,6 +12,14 @@ module Rester
   @_correlation_ids ||= ThreadSafe::Cache.new
 
   class << self
+    def logger
+      @_logger ||= Logger.new(STDOUT)
+    end
+
+    def logger=(new_logger)
+      @_logger = new_logger
+    end
+
     def load_tasks
       Dir[
         File.expand_path("../../tasks", __FILE__) + '/**.rake'
