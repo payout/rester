@@ -6,7 +6,6 @@ module Rester
         consumer_name = env['HTTP_X_RESTER_CONSUMER_NAME'] || "Consumer"
         path = env['PATH_INFO']
         verb = env['REQUEST_METHOD']
-        # puts env.inspect
 
         _logger.info("Correlation-ID=#{Rester.correlation_id}: #{consumer_name} -> [#{service.class.service_name}] - #{verb} #{path}")
         super.tap { |response|
