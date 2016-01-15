@@ -9,6 +9,8 @@ module Rester
   autoload(:Utils,       'rester/utils')
   autoload(:Middleware,  'rester/middleware')
 
+  @_correlation_ids ||= ThreadSafe::Cache.new
+
   class << self
     def load_tasks
       Dir[
@@ -46,7 +48,7 @@ module Rester
     private
 
     def _correlation_ids
-      @_correlation_ids ||= ThreadSafe::Cache.new
+      @_correlation_ids
     end
   end # Class Methods
 end # Rester
