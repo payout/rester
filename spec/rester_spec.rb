@@ -191,4 +191,40 @@ RSpec.describe Rester do
       end # with nil id
     end # with multiple threads
   end # ::correlation_id=
+
+  describe '::consumer_name' do
+    subject { Rester.consumer_name }
+
+    it 'should default to the Rails applicaiton name' do
+      is_expected.to eq "Dummy"
+    end
+
+    context 'with consumer_name set' do
+      before { Rester.consumer_name = "New Consumer Name" }
+      it { is_expected.to eq "New Consumer Name" }
+    end # with consumer_name set
+  end # ::consumer_name
+
+  describe '::logger', :logger do
+    subject { Rester.logger }
+
+    context 'with no logger passed to client' do
+      it { is_expected.to be_a Logger }
+    end
+
+    context 'with logger passed in' do
+      before { Rester.logger = logger }
+
+      context 'with logger passed as nil' do
+        let(:logger) { nil }
+        it { is_expected.to be_a Logger }
+      end
+
+      context 'with logger passed as 10' do
+        let(:logger) { Logger.new(STDOUT) }
+        it { is_expected.to eq logger }
+      end
+    end # with logger passed in
+  end # #logger
+
 end # Rester

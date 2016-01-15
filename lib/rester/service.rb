@@ -215,7 +215,7 @@ module Rester
       body = [body].compact
       headers = headers.merge(
         "Content-Type" => "application/json",
-        "X-Rester-Producer-Name" => self.class.service_name
+        "HTTP_X_RESTER_PRODUCER_NAME" => name
       )
       Rack::Response.new(body, status, headers).finish
     end

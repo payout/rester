@@ -130,8 +130,9 @@ module Rester
 
     def _process_response(verb, path, status, body, headers={})
       response = Response.new(status, _parse_json(body))
-      @_producer_name = headers['x-rester-producer-name'] &&
-        headers['x-rester-producer-name'].first
+      @_producer_name = headers['HTTP_X_RESTER_PRODUCER_NAME'] &&
+        headers['HTTP_X_RESTER_PRODUCER_NAME'].first
+
       _log_req_res(:response, verb, path, status)
 
       unless [200, 201, 400].include?(status)

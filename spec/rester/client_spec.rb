@@ -197,6 +197,13 @@ module Rester
       # Simulates a request that does not raise an error.
       # Useful when testing the circuit breaker logic.
       def success_request
+        allow(adapter).to receive(:request).and_return [200, '', {
+          'HTTP_X_RESTER_PRODUCER_NAME' => ["DummyService"]
+        }]
+        expect(subject).to eq Client::Response.new(200, {})
+      end
+
+      def success_without_producer_header
         allow(adapter).to receive(:request).and_return [200, '']
         expect(subject).to eq Client::Response.new(200, {})
       end
@@ -204,7 +211,7 @@ module Rester
       def setup_adapter
         expect(adapter).to receive(:headers).with(
           'X-Rester-Correlation-ID' => Rester.correlation_id,
-          'X-Rester-Consumer-Name' => "Dummy",
+          'X-Rester-Consumer-Name' => Rester.consumer_name,
           'X-Rester-Producer-Name' => "Producer"
         ).at_least(:once)
       end
@@ -271,12 +278,42 @@ module Rester
         }
         after { let_retry_period_pass; success_request }
 
-        it 'should log that circuit is now closed', :test do
+        it 'should log that circuit is now closed' do
           expect(logger).to receive(:info).with(
-            "Correlation-ID=#{Rester.correlation_id}: circuit closed for Producer"
+            "Correlation-ID=#{Rester.correlation_id}: circuit closed for DummyService"
           ).once
         end
       end # with error_threshold reached
+
+      context 'without producer name' do
+        before { success_without_producer_header }
+
+        it 'should default producer name to "Producer"' do
+          expect(client.send(:_producer_name)).to eq "Producer"
+        end
+      end # without producer name
+
+      context 'with producer name' do
+        before { success_request }
+
+        it 'should default producer name to "Producer"' do
+          expect(client.send(:_producer_name)).to eq "DummyService"
+        end
+      end # with producer name
+
+      context 'with successful request' do
+        let(:logger) { double('logger') }
+        after { success_request }
+
+        it 'should log the correct messages' do
+          expect(logger).to receive(:info).with(
+            "Correlation-ID=#{Rester.correlation_id}: [Dummy] -> Producer - GET /v1/ping"
+          ).once
+          expect(logger).to receive(:info).with(
+            "Correlation-ID=#{Rester.correlation_id}: [Dummy] <- DummyService - GET /v1/ping 200"
+          ).once
+        end
+      end # with successful request
     end # #request
 
     describe '#tests', :tests do
