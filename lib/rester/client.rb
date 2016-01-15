@@ -83,25 +83,44 @@ module Rester
       ) { |*args| _request(*args) }
 
       @_request_breaker.on_open do
-        logger.error("circuit opened")
+        _log_with_correlation_id(:error, "circuit opened for #{_producer_name}")
       end
 
       @_request_breaker.on_close do
-        logger.info("circuit closed")
+        _log_with_correlation_id(:info, "circuit closed for #{_producer_name}")
       end
     end
 
+    ##
+    # Add a correlation ID to the header and send the request to the adapter
     def _request(verb, path, params)
       path = _path_with_version(path)
-      _process_response(path, *adapter.request(verb, path, params))
+      _set_default_headers
+      _log_req_res(:request, verb, path)
+      _process_response(verb, path, *adapter.request(verb, path, params))
+    end
+
+    def _set_default_headers
+      adapter.headers(
+        'X-Rester-Correlation-ID' => Rester.correlation_id,
+        'X-Rester-Consumer-Name' => Rester.consumer_name,
+        'X-Rester-Producer-Name' => _producer_name
+      )
+    end
+
+    def _producer_name
+      @_producer_name ||= "Producer"
     end
 
     def _path_with_version(path)
       Utils.join_paths("/v#{version}", path)
     end
 
-    def _process_response(path, status, body)
+    def _process_response(verb, path, status, body, headers={})
       response = Response.new(status, _parse_json(body))
+      @_producer_name = headers['x-rester-producer-name'] &&
+        headers['x-rester-producer-name'].first
+      _log_req_res(:response, verb, path, status)
 
       unless [200, 201, 400].include?(status)
         case status
@@ -125,6 +144,18 @@ module Rester
       else
         {}
       end
+    end
+
+    def _log_req_res(type, verb, path, status=nil)
+      arrow_str = type == :request ? '->' : '<-'
+      log_str = "[#{Rester.consumer_name}] #{arrow_str} #{_producer_name} - " \
+        "#{verb.upcase} #{path}"
+      log_str << " #{status}" if status
+      _log_with_correlation_id(:info, log_str)
+    end
+
+    def _log_with_correlation_id(log_level, msg)
+      logger.send(log_level, "Correlation-ID=#{Rester.correlation_id}: #{msg}")
     end
   end # Client
 end # Rester

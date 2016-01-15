@@ -22,6 +22,15 @@ module Rester
       Client.new(adapter, params)
     end
 
+    def consumer_name
+      @_consumer_name ||= defined?(Rails) ? Rails.application.class.parent_name
+        : "Consumer"
+    end
+
+    def consumer_name=(name)
+      @_consumer_name = name
+    end
+
     def correlation_id
       _correlation_ids[Thread.current.object_id] ||= SecureRandom.uuid
     end
