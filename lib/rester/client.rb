@@ -96,11 +96,10 @@ module Rester
         end
 
         @_requester.on_close do
-          logger.info("circuit closed")
+          _log_with_correlation_id(:info, "circuit closed for #{_producer_name}")
         end
       else
         @_requester = proc { |*args| _request(*args) }
-        _log_with_correlation_id(:info, "circuit closed for #{_producer_name}")
       end
     end
 
