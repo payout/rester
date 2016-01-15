@@ -14,6 +14,7 @@ module Rester
       Rack::Head,
       Middleware::ErrorHandling,
       Middleware::Ping,
+      Middleware::Identify,
       Middleware::CorrelationId
     ].freeze
 
@@ -56,6 +57,10 @@ module Rester
         @__versions ||= constants.map(&:to_s).select { |c|
           c.match(/^V\d{1,3}$/)
         }.map(&:downcase).map(&:to_sym)
+      end
+
+      def service_name
+        @__name ||= name.split('::').last
       end
 
       def version_module(version)
@@ -143,7 +148,6 @@ module Rester
     # request.
     def _call_method(request)
       params = request.params
-      retval = nil
       resource_obj = nil
       resource_id = nil
 
@@ -194,7 +198,10 @@ module Rester
     # Returns a valid rack response.
     def _response(status, body=nil, headers={})
       body = [body].compact
-      headers = headers.merge("Content-Type" => "application/json")
+      headers = headers.merge(
+        "Content-Type" => "application/json",
+        "X-Rester-Producer-Name" => self.class.service_name
+      )
       Rack::Response.new(body, status, headers).finish
     end
 
