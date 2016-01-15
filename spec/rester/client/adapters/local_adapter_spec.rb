@@ -50,7 +50,7 @@ module Rester
                 'CONTENT_TYPE'   => 'application/x-www-form-urlencoded',
                 'QUERY_STRING'   => '',
                 'rack.input'     => StringIO,
-                'X-Rester-Correlation-ID' => Rester.correlation_id
+                'HTTP_X_RESTER_CORRELATION_ID' => Rester.correlation_id
               ).once { [200, ''] }
               subject
             end

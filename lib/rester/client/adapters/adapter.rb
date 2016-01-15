@@ -20,7 +20,7 @@ module Rester
       # Returns the headers defined for this Adapter. Optionally, you may also
       # define additional headers you'd like to add/override.
       def headers(new_headers={})
-        (@headers ||= {}).merge!(new_headers)
+        (@headers ||= {}).merge!(_headers_to_http_format(new_headers))
       end
 
       ##
@@ -80,6 +80,10 @@ module Rester
       def _validate_verb(verb)
         VALID_VERBS[verb] or
           fail ArgumentError, "Invalid verb: #{verb.inspect}"
+      end
+
+      def _headers_to_http_format(headers={})
+        headers.map { |k,v| ["HTTP_#{k.to_s.upcase.gsub('-', '_')}", v] }.to_h
       end
     end # Adapter
   end # Client::Adapters

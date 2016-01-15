@@ -37,13 +37,13 @@ module Rester
 
         response = Timeout::timeout(timeout) do
           service.call(
-            {
+            opts[:headers].merge(
               'REQUEST_METHOD' => verb.to_s.upcase,
               'PATH_INFO'      => path,
               'CONTENT_TYPE'   => 'application/x-www-form-urlencoded',
               'QUERY_STRING'   => query,
               'rack.input'     => StringIO.new(body)
-              }.merge(opts[:headers])
+            )
           )
         end
 
