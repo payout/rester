@@ -4,8 +4,8 @@ require 'active_support/inflector'
 
 module Rester
   class Service
-    autoload(:Request, 'rester/service/request')
-    autoload(:Resource,'rester/service/resource')
+    autoload(:Request,  'rester/service/request')
+    autoload(:Resource, 'rester/service/resource')
 
     ##
     # The base set of middleware to use for every service.

@@ -40,7 +40,7 @@ module Rester
       # Sends a request (using one of the subclass adapters) to the service.
       #
       # `params` should be a hash if specified.
-      def request(verb, path, params=nil)
+      def request(verb, path, params = nil)
         _validate_verb(verb)
         request!(verb, path.to_s, Utils.encode_www_data(params))
       end
