@@ -6,13 +6,13 @@ module Rester
         consumer_name = env['HTTP_X_RESTER_CONSUMER_NAME'] || "Consumer"
         path = env['PATH_INFO']
         verb = env['REQUEST_METHOD']
-        Rester.logger.info("Correlation-ID=#{Rester.correlation_id}: " \
-          "#{consumer_name} -> [#{service.class.service_name}] - #{verb} " \
+        service.logger.info("Correlation-ID=#{Rester.correlation_id}: " \
+          "#{consumer_name} -> [#{service.name}] - #{verb} " \
           "#{path}")
 
         super.tap { |response|
-          Rester.logger.info("Correlation-ID=#{Rester.correlation_id}: " \
-            "#{consumer_name} <- [#{service.class.service_name}] - #{verb} " \
+          service.logger.info("Correlation-ID=#{Rester.correlation_id}: " \
+            "#{consumer_name} <- [#{service.name}] - #{verb} " \
             "#{path} #{response[0]}")
         }
       end

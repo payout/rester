@@ -1,11 +1,14 @@
 require 'uri'
 require 'rack'
 require 'active_support/inflector'
+require 'logger'
 
 module Rester
   class Service
     autoload(:Request,  'rester/service/request')
     autoload(:Resource, 'rester/service/resource')
+
+    attr_reader :logger
 
     ##
     # The base set of middleware to use for every service.
@@ -86,6 +89,18 @@ module Rester
         }
       end
     end # Class methods
+
+    def logger
+      @__logger ||= Rester.logger
+    end
+
+    def logger=(new_logger)
+      @_logger = new_logger
+    end
+
+    def name
+      self.class.service_name
+    end
 
     ##
     # To be called by Rack. Wraps the app in middleware.
