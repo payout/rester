@@ -6,10 +6,10 @@ module Rester
     # responding.
     class CorrelationId < Base
       def call(env)
-        Rester.correlation_id = env['X-Rester-Correlation-ID']
-        super.tap { |response|
-          Rester.correlation_id = nil
-        }
+        Rester.correlation_id = env['HTTP_X_RESTER_CORRELATION_ID']
+        super
+      ensure
+        Rester.correlation_id = nil
       end
     end # CorrelationId
   end # Middleware
