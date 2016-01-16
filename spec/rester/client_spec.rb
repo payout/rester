@@ -198,7 +198,7 @@ module Rester
       # Useful when testing the circuit breaker logic.
       def success_request
         allow(adapter).to receive(:request).and_return [200, '', {
-          'HTTP_X_RESTER_PRODUCER_NAME' => ["DummyService"]
+          'http_x_rester_producer_name' => ["DummyService"]
         }]
         expect(subject).to eq Client::Response.new(200, {})
       end

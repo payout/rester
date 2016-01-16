@@ -34,6 +34,7 @@ module Rester
           case params[:command_name]
           when :sleep
             _sleep(params[:sleep_time])
+            {}
           else
             fail "unexpected command: #{params[:command_name]}"
           end

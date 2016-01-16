@@ -130,8 +130,8 @@ module Rester
 
     def _process_response(verb, path, status, body, headers={})
       response = Response.new(status, _parse_json(body))
-      @_producer_name = headers['HTTP_X_RESTER_PRODUCER_NAME'] &&
-        headers['HTTP_X_RESTER_PRODUCER_NAME'].first
+      @_producer_name = headers['http_x_rester_producer_name'] &&
+        headers['http_x_rester_producer_name'].first
 
       _log_req_res(:response, verb, path, status)
 
