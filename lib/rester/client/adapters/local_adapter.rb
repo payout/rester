@@ -37,7 +37,7 @@ module Rester
 
         response = Timeout::timeout(timeout) do
           service.call(
-            opts[:headers].merge(
+            _headers_to_http_format(opts[:headers]).merge(
               'REQUEST_METHOD' => verb.to_s.upcase,
               'PATH_INFO'      => path,
               'CONTENT_TYPE'   => 'application/x-www-form-urlencoded',
@@ -58,6 +58,11 @@ module Rester
         ]
       rescue Timeout::Error
         fail Errors::TimeoutError
+      end
+
+
+      def _headers_to_http_format(headers={})
+        headers.map { |k,v| ["HTTP_#{k.to_s.upcase.gsub('-', '_')}", v] }.to_h
       end
     end # LocalAdapter
   end # Client::Adapters
