@@ -55,14 +55,10 @@ module Rester
     private
 
     def _get_service_name
-      puts Rails.inspect
       if defined?(Rails) && Rails
         Rails.application.class.parent_name
       else
-        services = ObjectSpace.each_object(Class).select { |klass|
-          klass < Rester::Service
-        }.tap { |x| puts x.inspect }
-
+        services = Service.descendants
         raise "Define a service name" if services.empty?
         services.first.service_name
       end
