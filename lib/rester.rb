@@ -32,13 +32,12 @@ module Rester
       Client.new(adapter, params).tap { |client| adapter.get('/ping') }
     end
 
-    def consumer_name
-      @_consumer_name ||= defined?(Rails) ? Rails.application.class.parent_name
-        : "Consumer"
+    def service_name
+      @_service_name ||= _get_service_name
     end
 
-    def consumer_name=(name)
-      @_consumer_name = name
+    def service_name=(name)
+      @_service_name = name
     end
 
     def correlation_id
@@ -54,6 +53,20 @@ module Rester
     end
 
     private
+
+    def _get_service_name
+      puts Rails.inspect
+      if defined?(Rails) && Rails
+        Rails.application.class.parent_name
+      else
+        services = ObjectSpace.each_object(Class).select { |klass|
+          klass < Rester::Service
+        }.tap { |x| puts x.inspect }
+
+        raise "Define a service name" if services.empty?
+        services.first.service_name
+      end
+    end
 
     def _correlation_ids
       @_correlation_ids

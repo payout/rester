@@ -211,7 +211,7 @@ module Rester
       def setup_adapter
         expect(adapter).to receive(:headers).with(
           'X-Rester-Correlation-ID' => Rester.correlation_id,
-          'X-Rester-Consumer-Name' => Rester.consumer_name,
+          'X-Rester-Consumer-Name' => Rester.service_name,
           'X-Rester-Producer-Name' => "Producer"
         ).at_least(:once)
       end

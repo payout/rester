@@ -115,7 +115,7 @@ module Rester
     def _set_default_headers
       adapter.headers(
         'X-Rester-Correlation-ID' => Rester.correlation_id,
-        'X-Rester-Consumer-Name' => Rester.consumer_name,
+        'X-Rester-Consumer-Name' => Rester.service_name,
         'X-Rester-Producer-Name' => _producer_name
       )
     end
@@ -161,7 +161,7 @@ module Rester
 
     def _log_req_res(type, verb, path, status=nil)
       arrow_str = type == :request ? '->' : '<-'
-      log_str = "[#{Rester.consumer_name}] #{arrow_str} #{_producer_name} - " \
+      log_str = "[#{Rester.service_name}] #{arrow_str} #{_producer_name} - " \
         "#{verb.upcase} #{path}"
       log_str << " #{status}" if status
       _log_with_correlation_id(:info, log_str)

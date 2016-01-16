@@ -16,6 +16,12 @@ gem install rester
 
 ### Client-side
 ```ruby
+# Service name defaults to the Rails application name or the name of a defined
+# Rester Service. If neither is available, a custom name must be set. Otherwise,
+# this field is optional.
+Rester.service_name = "My Customer Service Name"
+
+# Connect to the external service
 PaymentService = Rester.connect("http://url-to-service.com", version: 1)
 
 ##

@@ -192,18 +192,18 @@ RSpec.describe Rester do
     end # with multiple threads
   end # ::correlation_id=
 
-  describe '::consumer_name' do
-    subject { Rester.consumer_name }
+  describe '::service_name' do
+    subject { Rester.service_name }
 
-    it 'should default to the Rails applicaiton name' do
+    it 'should default to the Rails application name' do
       is_expected.to eq "Dummy"
     end
 
-    context 'with consumer_name set' do
-      before { Rester.consumer_name = "New Consumer Name" }
+    context 'with service_name set' do
+      before { Rester.service_name = "New Consumer Name" }
       it { is_expected.to eq "New Consumer Name" }
-    end # with consumer_name set
-  end # ::consumer_name
+    end # with service_name set
+  end # ::service_name
 
   describe '::logger', :logger do
     subject { Rester.logger }
@@ -226,5 +226,4 @@ RSpec.describe Rester do
       end
     end # with logger passed in
   end # #logger
-
 end # Rester
