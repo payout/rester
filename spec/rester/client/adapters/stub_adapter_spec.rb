@@ -38,6 +38,12 @@ module Rester
 
         around { |ex| stub_adapter.with_context(context) { ex.run } }
 
+        context 'GET /ping' do
+          let(:verb) { :get }
+          let(:path) { '/ping' }
+          it { is_expected.to eq [200, {}, []] }
+        end # GET /ping
+
         context 'GET /v1/tests' do
           let(:verb) { :get }
           let(:path) { '/v1/tests' }

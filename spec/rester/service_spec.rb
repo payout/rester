@@ -363,5 +363,19 @@ module Rester
         end
       end
     end # ::call
+
+    describe '::service_name' do
+      let(:service) { Rester::DummyService }
+      subject { service.service_name }
+
+      it { is_expected.to eq "DummyService" }
+    end # ::service_name
+
+    describe '#name' do
+      let(:service) { Rester::DummyService }
+      subject { service.instance.name }
+
+      it { is_expected.to eq "DummyService" }
+    end # #name
   end # Service
 end # Rester
