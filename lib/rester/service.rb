@@ -15,9 +15,8 @@ module Rester
     # Middleware will be executed in the order specified.
     BASE_MIDDLEWARE = [
       Rack::Head,
+      Middleware::RequestHandler,
       Middleware::ErrorHandling,
-      Middleware::CorrelationId,
-      Middleware::Identify,
       Middleware::Ping
     ].freeze
 
@@ -213,10 +212,7 @@ module Rester
     # Returns a valid rack response.
     def _response(status, body=nil, headers={})
       body = [body].compact
-      headers = headers.merge(
-        "Content-Type" => "application/json",
-        "HTTP_X_RESTER_PRODUCER_NAME" => name
-      )
+      headers = headers.merge("Content-Type" => "application/json")
       Rack::Response.new(body, status, headers).finish
     end
 
