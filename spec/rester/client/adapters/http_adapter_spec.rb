@@ -53,7 +53,7 @@ module Rester
         context 'with valid request' do
           let(:verb) { :get }
           let(:path) { '/v1/commands/sleep' }
-          let(:headers) { subject[2] }
+          let(:headers) { subject[1] }
 
           it 'should respond with the correct custom headers' do
             expect(headers).to include(

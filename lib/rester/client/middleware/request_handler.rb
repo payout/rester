@@ -3,6 +3,7 @@ module Rester
     class RequestHandler
       def call(env)
         Rester.begin_request
+        Rester.correlation_id = SecureRandom.uuid
         super
       ensure
         Rester.end_request

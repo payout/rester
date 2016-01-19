@@ -2,7 +2,11 @@ require 'support/test_service'
 
 module Rester
   RSpec.describe Service do
-    let(:service) { Class.new(Service) }
+    let(:service) do
+      Class.new(Service).tap { |klass|
+        allow(klass).to receive(:name) { 'Service' }
+      }
+    end
 
     describe '::use' do
       subject { service.use(*middleware) }

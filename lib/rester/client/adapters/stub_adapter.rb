@@ -47,7 +47,7 @@ module Rester
 
       def _request(verb, path, params)
         spec = _process_request(path, verb, params)
-        [spec['response_code'], spec['response'].to_json]
+        [spec['response_code'], {}, spec['response'].to_json]
       end
 
       def _process_request(path, verb, params)

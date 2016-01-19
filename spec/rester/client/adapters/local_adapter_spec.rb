@@ -51,18 +51,18 @@ module Rester
                 'QUERY_STRING'   => '',
                 'rack.input'     => StringIO,
                 'HTTP_X_RESTER_CORRELATION_ID' => Rester.correlation_id
-              ).once { [200, ''] }
+              ).once { [200, {}, ''] }
               subject
             end
           end # with headers
 
           context 'without query params' do
-            it { is_expected.to eq [200, '{"message":"no query provided"}'] }
+            it { is_expected.to eq [200, {}, '{"message":"no query provided"}'] }
           end
 
           context 'with query provided' do
             let(:params) { { query: 'a query' } }
-            it { is_expected.to eq [200,
+            it { is_expected.to eq [200, {},
               '{"message":"query provided: a query"}'] }
           end
         end # GET /v1/tests
@@ -72,19 +72,19 @@ module Rester
           let(:path) { '/v1/tests' }
 
           context 'without data' do
-            it { is_expected.to eq [201, '{}'] }
+            it { is_expected.to eq [201, {}, '{}'] }
           end
 
           context 'with data' do
             let(:params) { { d1: 'one', d2: 2, d3: 3.3 } }
-            it { is_expected.to eq [201, '{"d1":"one","d2":2,"d3":3.3}'] }
+            it { is_expected.to eq [201, {}, '{"d1":"one","d2":2,"d3":3.3}'] }
           end
         end # POST /v1/tests
 
         context 'GET /v1/tests/test_id' do
           let(:verb) { :get }
           let(:path) { '/v1/tests/test_id' }
-          it { is_expected.to eq [200, '{"test_id":"test_id"}'] }
+          it { is_expected.to eq [200, {}, '{"test_id":"test_id"}'] }
         end
 
         context 'PUT /v1/tests/test_id' do
@@ -92,18 +92,18 @@ module Rester
           let(:path) { '/v1/tests/test_id' }
 
           context 'without array param' do
-            it { is_expected.to eq [200, '{"test_id":"test_id"}'] }
+            it { is_expected.to eq [200, {}, '{"test_id":"test_id"}'] }
           end
 
           context 'with array param' do
             let(:params) { { a: ['one', 2, 3.3] } }
-            it { is_expected.to eq [200, '{"a":["one","2","3.3"],'\
+            it { is_expected.to eq [200, {}, '{"a":["one","2","3.3"],'\
               '"test_id":"test_id"}'] }
           end
 
           context 'with hash param' do
             let(:params) { { h: { key: 'value' } } }
-            it { is_expected.to eq [200, '{"h":{"key":"value"},'\
+            it { is_expected.to eq [200, {}, '{"h":{"key":"value"},'\
               '"test_id":"test_id"}'] }
           end
         end

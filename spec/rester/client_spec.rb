@@ -8,7 +8,9 @@ module Rester
     end
 
     let(:client) { Client.new(adapter, client_opts) }
-    let(:adapter) { Client::Adapters::HttpAdapter.new }
+    let(:adapter) { Client::Adapters::HttpAdapter.new.tap { |a|
+      a.connect(test_url)
+    }}
 
     let(:client_opts) do
       {
@@ -34,27 +36,11 @@ module Rester
     # Response Hash
     let(:res_hash) { req_hash.map{|k,v| [k, v.nil? ? nil : v.to_s]}.to_h }
 
-    describe '#connect', :connect do
-      subject { client.connect(url) }
-
-      context 'with valid url' do
-        let(:url) { test_url }
-
-        it 'should return nil' do
-          expect(subject).to be nil
-        end
-      end # valid url
-    end # #connect
-
     describe '#connected?', :connected? do
       subject { client.connected? }
 
-      context 'before connecting' do
-        it { is_expected.to be false }
-      end
-
       context 'after connecting' do
-        before { client.connect(test_url) }
+        before { adapter.connect(test_url) }
         it { is_expected.to be true }
       end
     end # #connected?
@@ -178,8 +164,18 @@ module Rester
 
     describe '#request', :request do
       let(:adapter) { double('adapter') }
+      let(:valid_response) {
+        [200, { 'http_x_rester_producer_name' => ["DummyService"]}, '']
+      }
       subject { client.request(verb, path, params) }
-      before { setup_adapter }
+      before do
+        # Setup setup_adapter
+        allow(adapter).to receive(:connected?).and_return true
+        allow(adapter).to receive(:request).and_return valid_response
+        allow(adapter).to receive(:headers)
+        allow(logger).to receive(:info).at_least(2).times if defined?(logger)
+        client # prime the client so the initial ping connection occurs
+      end
 
       let(:verb) { :get }
       let(:path) { '/ping' }
@@ -197,23 +193,13 @@ module Rester
       # Simulates a request that does not raise an error.
       # Useful when testing the circuit breaker logic.
       def success_request
-        allow(adapter).to receive(:request).and_return [200, '', {
-          'http_x_rester_producer_name' => ["DummyService"]
-        }]
+        allow(adapter).to receive(:request).and_return valid_response
         expect(subject).to eq Client::Response.new(200, {})
       end
 
       def success_without_producer_header
-        allow(adapter).to receive(:request).and_return [200, '']
+        allow(adapter).to receive(:request).and_return [200, {}, '']
         expect(subject).to eq Client::Response.new(200, {})
-      end
-
-      def setup_adapter
-        expect(adapter).to receive(:headers).with(
-          'X-Rester-Correlation-ID' => Rester.correlation_id,
-          'X-Rester-Consumer-Name' => Rester.service_name,
-          'X-Rester-Producer-Name' => "Producer"
-        ).at_least(:once)
       end
 
       def let_retry_period_pass
@@ -224,14 +210,14 @@ module Rester
         let(:logger) { double('logger') }
         let(:error_threshold) { 3 }
         before {
-          expect(logger).to receive(:info).at_most(error_threshold).times
+          allow(logger).to receive(:info).at_least(error_threshold).times
           (error_threshold - 1).times { error_request }
         }
         after { error_request }
 
         it 'should log that circuit is now opened' do
           expect(logger).to receive(:error).with(
-            "Correlation-ID=#{Rester.correlation_id}: circuit opened for Producer"
+            "Correlation-ID=#{Rester.correlation_id}: circuit opened for DummyService"
           ).once
         end
       end # with error_threshold reached
@@ -285,21 +271,21 @@ module Rester
         end
       end # with error_threshold reached
 
-      context 'without producer name' do
-        before { success_without_producer_header }
+      context 'before first real request' do
+        before { success_request }
 
-        it 'should default producer name to "Producer"' do
-          expect(client.send(:_producer_name)).to eq "Producer"
+        it 'should default producer name to to the service after first ping' do
+          expect(client.send(:_producer_name)).to eq "DummyService"
         end
-      end # without producer name
+      end # without producer name set
 
-      context 'with producer name' do
+      context 'with producer name set' do
         before { success_request }
 
         it 'should default producer name to "Producer"' do
           expect(client.send(:_producer_name)).to eq "DummyService"
         end
-      end # with producer name
+      end # with producer name set
 
       context 'with successful request' do
         let(:logger) { double('logger') }
@@ -307,7 +293,7 @@ module Rester
 
         it 'should log the correct messages' do
           expect(logger).to receive(:info).with(
-            "Correlation-ID=#{Rester.correlation_id}: [Dummy] -> Producer - GET /v1/ping"
+            "Correlation-ID=#{Rester.correlation_id}: [Dummy] -> DummyService - GET /v1/ping"
           ).once
           expect(logger).to receive(:info).with(
             "Correlation-ID=#{Rester.correlation_id}: [Dummy] <- DummyService - GET /v1/ping 200"
@@ -319,35 +305,36 @@ module Rester
     describe '#tests', :tests do
       let(:tests) { client.tests(*args) }
       subject { tests }
-
       context 'without connection' do
+        let(:adapter) { Client::Adapters::HttpAdapter.new }
+
         context 'with string argument' do
           let(:args) { ['token'] }
 
           describe '#get' do
             subject { tests.get }
-            it { expect { subject }.to raise_error RuntimeError, 'not connected' }
+            it { expect { subject }.to raise_error Rester::Errors::ConnectionError }
           end
 
           describe '#update' do
             subject { tests.update }
-            it { expect { subject }.to raise_error RuntimeError, 'not connected' }
+            it { expect { subject }.to raise_error Rester::Errors::ConnectionError }
           end
 
           describe '#delete' do
             subject { tests.delete }
-            it { expect { subject }.to raise_error RuntimeError, 'not connected' }
+            it { expect { subject }.to raise_error Rester::Errors::ConnectionError }
           end
         end # with string argument
 
         context 'with hash argument' do
           let(:args) { [req_hash] }
-          it { expect { subject }.to raise_error RuntimeError, 'not connected' }
+          it { expect { subject }.to raise_error Rester::Errors::ConnectionError }
         end # with hash argument
       end # without connection
 
       context 'with connection' do
-        before { client.connect(test_url) }
+        before { adapter.connect(test_url) }
 
         context 'with unsupported version' do
           let(:version) { 2 }
@@ -460,7 +447,7 @@ module Rester
                 let(:params) { {} }
                 subject { tests.delete(params) }
 
-                before { client.connect(test_url) }
+                before { adapter.connect(test_url) }
                 it { is_expected.to eq expected_resp }
 
                 context 'with params' do
@@ -524,19 +511,21 @@ module Rester
       subject { tests! }
 
       context 'without connection' do
+        let(:adapter) { Client::Adapters::HttpAdapter.new }
+
         context 'with no arguments' do
           let(:args) { [] }
-          it { expect { subject }.to raise_error RuntimeError, 'not connected' }
+          it { expect { subject }.to raise_error Rester::Errors::ConnectionError }
         end
 
         context 'with hash argument' do
           let(:args) { [{}] }
-          it { expect { subject }.to raise_error RuntimeError, 'not connected' }
+          it { expect { subject }.to raise_error Rester::Errors::ConnectionError }
         end
       end # without connection
 
       context 'with connection' do
-        before { client.connect(test_url) }
+        before { adapter.connect(test_url) }
 
         context 'with no arguments' do
           let(:args) { [] }

@@ -38,7 +38,7 @@ module Rester
       private
 
       def _prepare_response(response)
-        [response.code.to_i, response.body, response.to_hash]
+        [response.code.to_i, response.to_hash, response.body]
       end
 
       def _require_connection

@@ -13,6 +13,11 @@ module Rester
 
   @_request_infos ||= ThreadSafe::Cache.new
 
+  # Set up the Client middleware if it's a Rails application
+  if defined?(Rails) && Rails.application
+    Rails.configuration.middleware.use(Client::Middleware::RequestHandler)
+  end
+
   class << self
     def logger
       @_logger ||= Logger.new(STDOUT)
@@ -62,20 +67,20 @@ module Rester
       end
     end
 
-    def request=(request)
-      request_info[:request] = request
-    end
-
     def request
       request_info[:request]
     end
 
-    def correlation_id=(correlation_id)
-      request_info[:correlation_id] = correlation_id
+    def request=(request)
+      request_info[:request] = request
     end
 
     def correlation_id
-      request_info[:correlation_id] ||= SecureRandom.uuid
+      request_info && request_info[:correlation_id]
+    end
+
+    def correlation_id=(correlation_id)
+      request_info[:correlation_id] = correlation_id
     end
 
     private

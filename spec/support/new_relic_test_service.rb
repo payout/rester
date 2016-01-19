@@ -1,7 +1,7 @@
 require 'rester'
 
 class NewRelicTestService < Rester::Service
-  use Rester::Middleware::NewRelic
+  use Rester::Service::Middleware::NewRelic
 
   module V1
     class MountedResource < Rester::Service::Resource

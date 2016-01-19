@@ -25,17 +25,18 @@ module Rester
         ENV['RACK_ENV'] != 'test' && ENV['RAILS_ENV'] != 'test'
       )
 
-
       @_resource = Resource.new(self)
       _init_requester
-    end
 
-    def connect(*args)
-      adapter.connect(*args)
+      # Send a test ping request to the service so we can store the producer's
+      # name for future request logs
+      fail Errors::ConnectionError unless connected?
     end
 
     def connected?
-      adapter.connected? && adapter.get('/ping').first == 200
+      adapter.connected? && @_requester.call(:get, '/ping', {}).successful?
+    rescue Exception => e
+      false
     end
 
     def circuit_breaker_enabled?
@@ -43,6 +44,7 @@ module Rester
     end
 
     def request(verb, path, params={})
+      path = _path_with_version(path)
       @_requester.call(verb, path, params)
     rescue Utils::CircuitBreaker::CircuitOpenError
       # Translate this error so it's easier handle for clients.
@@ -107,7 +109,6 @@ module Rester
     ##
     # Add a correlation ID to the header and send the request to the adapter
     def _request(verb, path, params)
-      path = _path_with_version(path)
       _set_default_headers
       _log_req_res(:request, verb, path)
       _process_response(verb, path, *adapter.request(verb, path, params))
@@ -129,7 +130,7 @@ module Rester
       Utils.join_paths("/v#{version}", path)
     end
 
-    def _process_response(verb, path, status, body, headers={})
+    def _process_response(verb, path, status, headers, body)
       response = Response.new(status, _parse_json(body))
       @_producer_name = headers['http_x_rester_producer_name'] &&
         headers['http_x_rester_producer_name'].first
@@ -160,11 +161,11 @@ module Rester
       end
     end
 
-    def _log_req_res(type, verb, path, status=nil)
+    def _log_req_res(type, verb, path, msg=nil)
       arrow_str = type == :request ? '->' : '<-'
       log_str = "[#{Rester.service_name}] #{arrow_str} #{_producer_name} - " \
         "#{verb.upcase} #{path}"
-      log_str << " #{status}" if status
+      log_str << " #{msg}" if msg
       _log_with_correlation_id(:info, log_str)
     end
 

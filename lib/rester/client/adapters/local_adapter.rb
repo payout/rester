@@ -54,6 +54,7 @@ module Rester
 
         [
           response.first, # The status code
+          {},             # The header
           body            # The response body.
         ]
       rescue Timeout::Error

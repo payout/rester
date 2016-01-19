@@ -4,7 +4,7 @@ module Rester
     # Provides a basic status check. Used by the Client#connected? method.
     class Ping < Base
       def call(env)
-        if %r{\A/ping\z}.match(env['REQUEST_PATH'])
+        if %r{\A/ping\z}.match(Rester.request.path_info)
           [200, {}, []]
         else
           super
