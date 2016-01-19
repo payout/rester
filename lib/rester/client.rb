@@ -4,9 +4,10 @@ require 'logger'
 
 module Rester
   class Client
-    autoload(:Adapters, 'rester/client/adapters')
-    autoload(:Resource, 'rester/client/resource')
-    autoload(:Response, 'rester/client/response')
+    autoload(:Adapters,   'rester/client/adapters')
+    autoload(:Resource,   'rester/client/resource')
+    autoload(:Response,   'rester/client/response')
+    autoload(:Middleware, 'rester/client/middleware')
 
     attr_reader :adapter
     attr_reader :version

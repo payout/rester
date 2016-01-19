@@ -1,7 +1,7 @@
 require 'json'
 
 module Rester
-  module Middleware
+  module Service::Middleware
     ##
     # Provides error handling for Rester. Should be mounted above all other
     # Rester middleware.
@@ -68,5 +68,5 @@ module Rester
         end
       end
     end # ErrorHandling
-  end # Middleware
+  end # Service::Middleware
 end # Rester

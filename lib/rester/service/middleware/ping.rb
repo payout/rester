@@ -1,5 +1,5 @@
 module Rester
-  module Middleware
+  module Service::Middleware
     ##
     # Provides a basic status check. Used by the Client#connected? method.
     class Ping < Base
@@ -11,5 +11,5 @@ module Rester
         end
       end
     end # Ping
-  end # Middleware
+  end # Service::Middleware
 end # Rester
