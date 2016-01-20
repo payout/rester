@@ -86,7 +86,7 @@ module Rester
     private
 
     def _get_service_name
-      if defined?(Rails) && Rails
+      if defined?(Rails) && Rails.application
         Rails.application.class.parent_name
       else
         services = Service.descendants

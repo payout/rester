@@ -35,7 +35,7 @@ module Rester
 
     def connected?
       adapter.connected? && @_requester.call(:get, '/ping', {}).successful?
-    rescue Exception => e
+    rescue
       false
     end
 
@@ -123,7 +123,7 @@ module Rester
     end
 
     def _producer_name
-      @_producer_name ||= "Producer"
+      @_producer_name ||= nil
     end
 
     def _path_with_version(path)

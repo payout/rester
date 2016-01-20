@@ -54,7 +54,9 @@ module Rester
 
         [
           response.first, # The status code
-          {},             # The header
+          {
+            'http_x_rester_producer_name' => service.service_name,
+          },              # The header
           body            # The response body.
         ]
       rescue Timeout::Error
