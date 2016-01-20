@@ -15,8 +15,9 @@ gem install rester
 ## Basic Usage
 
 ### Client-side
-For non-Rails applications, a Rester middleware will need to be added for creating
-a Correlation ID for outgoign requests. Add the middleware in your `config.ru` file:
+For non-Rails applications and non-Rester services, a Rester middleware will be
+needed for creating a Correlation ID for outgoign requests. Add the middleware
+in `config.ru`:
 ```ruby
 require 'rester'
 use Rester::Client::Middleware::RequestHandler
