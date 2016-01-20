@@ -1,6 +1,6 @@
 module Rester
   module Client::Middleware
-    class RequestHandler
+    class RequestHandler < Base
       def call(env)
         Rester.begin_request
         Rester.correlation_id = SecureRandom.uuid
