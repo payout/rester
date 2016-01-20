@@ -24,7 +24,7 @@ module Rester
       subject { service.call(env) }
 
       it 'should set the producer name in the response' do
-        expect(subject[1]['HTTP_X_RESTER_PRODUCER_NAME']).to eq 'TestService'
+        expect(subject[1]['X-Rester-Producer-Name']).to eq 'TestService'
       end
 
       it 'should clean up the Rester request' do

@@ -57,7 +57,7 @@ module Rester
 
           it 'should respond with the correct custom headers' do
             expect(headers).to include(
-              "http_x_rester_producer_name"=>["DummyService"]
+              "X-Rester-Producer-Name"=> "DummyService"
             )
           end
         end # with valid request

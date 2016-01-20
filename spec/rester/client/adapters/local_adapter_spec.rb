@@ -39,7 +39,7 @@ module Rester
           context 'with headers' do
             before {
               adapter.headers(
-                'X-Rester-Correlation-ID' => Rester.correlation_id
+                'X-Rester-Correlation-Id' => Rester.correlation_id
               )
             }
 
@@ -53,7 +53,7 @@ module Rester
                 'HTTP_X_RESTER_CORRELATION_ID' => Rester.correlation_id
               ).once { [
                 200,
-                { 'http_x_rester_producer_name' => 'LocalAdapterTestService' },
+                { 'X-Rester-Producer-Name' => 'LocalAdapterTestService' },
                 '']
                }
               subject
@@ -63,7 +63,7 @@ module Rester
           context 'without query params' do
             it { is_expected.to eq [
               200,
-              { 'http_x_rester_producer_name' => 'LocalAdapterTestService' },
+              { 'X-Rester-Producer-Name' => 'LocalAdapterTestService' },
               '{"message":"no query provided"}'] }
           end
 
@@ -71,7 +71,7 @@ module Rester
             let(:params) { { query: 'a query' } }
             it { is_expected.to eq [
               200,
-              { 'http_x_rester_producer_name' => 'LocalAdapterTestService' },
+              { 'X-Rester-Producer-Name' => 'LocalAdapterTestService' },
               '{"message":"query provided: a query"}'] }
           end
         end # GET /v1/tests
@@ -83,7 +83,7 @@ module Rester
           context 'without data' do
             it { is_expected.to eq [
               201,
-              { 'http_x_rester_producer_name' => 'LocalAdapterTestService' },
+              { 'X-Rester-Producer-Name' => 'LocalAdapterTestService' },
               '{}'] }
           end
 
@@ -91,7 +91,7 @@ module Rester
             let(:params) { { d1: 'one', d2: 2, d3: 3.3 } }
             it { is_expected.to eq [
               201,
-              { 'http_x_rester_producer_name' => 'LocalAdapterTestService' },
+              { 'X-Rester-Producer-Name' => 'LocalAdapterTestService' },
               '{"d1":"one","d2":2,"d3":3.3}'] }
           end
         end # POST /v1/tests
@@ -101,7 +101,7 @@ module Rester
           let(:path) { '/v1/tests/test_id' }
           it { is_expected.to eq [
             200,
-            { 'http_x_rester_producer_name' => 'LocalAdapterTestService' },
+            { 'X-Rester-Producer-Name' => 'LocalAdapterTestService' },
             '{"test_id":"test_id"}'] }
         end
 
@@ -112,7 +112,7 @@ module Rester
           context 'without array param' do
             it { is_expected.to eq [
               200,
-              { 'http_x_rester_producer_name' => 'LocalAdapterTestService' },
+              { 'X-Rester-Producer-Name' => 'LocalAdapterTestService' },
               '{"test_id":"test_id"}'] }
           end
 
@@ -120,7 +120,7 @@ module Rester
             let(:params) { { a: ['one', 2, 3.3] } }
             it { is_expected.to eq [
               200,
-              { 'http_x_rester_producer_name' => 'LocalAdapterTestService' },
+              { 'X-Rester-Producer-Name' => 'LocalAdapterTestService' },
               '{"a":["one","2","3.3"],"test_id":"test_id"}'] }
           end
 
@@ -128,7 +128,7 @@ module Rester
             let(:params) { { h: { key: 'value' } } }
             it { is_expected.to eq [
               200,
-              { 'http_x_rester_producer_name' => 'LocalAdapterTestService' },
+              { 'X-Rester-Producer-Name' => 'LocalAdapterTestService' },
               '{"h":{"key":"value"},"test_id":"test_id"}'] }
           end
         end

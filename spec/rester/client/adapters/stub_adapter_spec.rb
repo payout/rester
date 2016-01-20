@@ -43,7 +43,7 @@ module Rester
           let(:path) { '/ping' }
           it { is_expected.to eq [
             200,
-            { 'http_x_rester_producer_name' => 'some_producer' },
+            { 'X-Rester-Producer-Name' => 'some_producer' },
             '']
           }
         end # GET /ping
@@ -55,7 +55,7 @@ module Rester
           context 'without query params' do
             it { is_expected.to eq [
               200,
-              { 'http_x_rester_producer_name' => 'some_producer' },
+              { 'X-Rester-Producer-Name' => 'some_producer' },
               '{"message":"no query params specified"}']
             }
           end
@@ -64,7 +64,7 @@ module Rester
             let(:context) { 'With error response' }
             it { is_expected.to eq [
               400,
-              { 'http_x_rester_producer_name' => 'some_producer' },
+              { 'X-Rester-Producer-Name' => 'some_producer' },
               '{"error":"a_test_error"}']
             }
           end
@@ -73,7 +73,7 @@ module Rester
             let(:params) { { p1: 'one', p2: 2, p3: 3.3 } }
             it { is_expected.to eq [
               200,
-              { 'http_x_rester_producer_name' => 'some_producer' },
+              { 'X-Rester-Producer-Name' => 'some_producer' },
               '{"message":"one, 2, 3.3"}']
             }
           end
@@ -84,7 +84,7 @@ module Rester
 
             it { is_expected.to eq [
               400,
-              { 'http_x_rester_producer_name' => 'some_producer' },
+              { 'X-Rester-Producer-Name' => 'some_producer' },
               '{"error":"error_with_multiple_params"}']
             }
           end
@@ -94,7 +94,7 @@ module Rester
             let(:params) { { array: ['one', 'two', 'three'] } }
             it { is_expected.to eq [
               200,
-              { 'http_x_rester_producer_name' => 'some_producer' },
+              { 'X-Rester-Producer-Name' => 'some_producer' },
               '{"message":"array_received"}']
             }
           end
@@ -104,7 +104,7 @@ module Rester
             let(:params) { { hash: { p1: 'one', p2: 2, p3: 3.3 } } }
             it { is_expected.to eq [
               200,
-              { 'http_x_rester_producer_name' => 'some_producer' },
+              { 'X-Rester-Producer-Name' => 'some_producer' },
               '{"message":"hash_received"}']
             }
           end
@@ -113,7 +113,7 @@ module Rester
             let(:params) { { array: ['one', 'two', 'three'] } }
             it { is_expected.to eq [
               200,
-              { 'http_x_rester_producer_name' => 'some_producer' },
+              { 'X-Rester-Producer-Name' => 'some_producer' },
               '{"message":"array_received"}']
             }
           end
@@ -122,7 +122,7 @@ module Rester
             let(:params) { { hash: { p1: 'one', p2: 2, p3: 3.3 } } }
             it { is_expected.to eq [
               200,
-              { 'http_x_rester_producer_name' => 'some_producer' },
+              { 'X-Rester-Producer-Name' => 'some_producer' },
               '{"message":"hash_received"}']
             }
           end
@@ -181,7 +181,7 @@ module Rester
           context 'without body' do
             it { is_expected.to eq [
               201,
-              { 'http_x_rester_producer_name' => 'some_producer' },
+              { 'X-Rester-Producer-Name' => 'some_producer' },
               '{"message":"posted without body"}']
             }
           end
@@ -190,7 +190,7 @@ module Rester
             let(:params) { { p1: 'one', p2: 2, p3: 3.3 } }
             it { is_expected.to eq [
               201,
-              { 'http_x_rester_producer_name' => 'some_producer' },
+              { 'X-Rester-Producer-Name' => 'some_producer' },
               '{"message":"posted with body"}']
             }
           end

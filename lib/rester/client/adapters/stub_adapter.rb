@@ -36,7 +36,7 @@ module Rester
 
       def request!(verb, path, encoded_data)
         if verb == :get && path == '/ping'
-          return [200, { 'http_x_rester_producer_name' => producer }, '']
+          return [200, { 'X-Rester-Producer-Name' => producer }, '']
         end
 
         params = Rack::Utils.parse_nested_query(encoded_data)
@@ -55,7 +55,7 @@ module Rester
         spec = _process_request(path, verb, params)
         [
           spec['response_code'],
-          { 'http_x_rester_producer_name' => producer },
+          { 'X-Rester-Producer-Name' => producer },
           spec['response'].to_json]
       end
 

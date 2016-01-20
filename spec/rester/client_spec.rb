@@ -165,7 +165,7 @@ module Rester
     describe '#request', :request do
       let(:adapter) { double('adapter') }
       let(:valid_response) {
-        [200, { 'http_x_rester_producer_name' => ["DummyService"]}, '']
+        [200, { 'X-Rester-Producer-Name' => "DummyService"}, '']
       }
       subject { client.request(verb, path, params) }
       before do

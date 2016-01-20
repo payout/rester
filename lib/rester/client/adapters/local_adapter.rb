@@ -55,7 +55,7 @@ module Rester
         [
           response.first, # The status code
           {
-            'http_x_rester_producer_name' => service.service_name,
+            'X-Rester-Producer-Name' => service.service_name,
           },              # The header
           body            # The response body.
         ]

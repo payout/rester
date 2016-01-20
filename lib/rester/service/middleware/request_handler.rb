@@ -21,7 +21,7 @@ module Rester
           "#{consumer_name} <- [#{service.name}] - #{verb} #{path}"
 
         super.tap { |response|
-          response[1]["HTTP_X_RESTER_PRODUCER_NAME"] = service.name
+          response[1]["X-Rester-Producer-Name"] = service.name
           service.logger.info("#{response_log} #{response[0]}")
         }
       rescue Exception => e
