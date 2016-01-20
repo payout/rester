@@ -91,7 +91,7 @@ module Rester
     end # Class methods
 
     def logger
-      @__logger ||= Rester.logger
+      @_logger ||= Rester.logger
     end
 
     def logger=(new_logger)

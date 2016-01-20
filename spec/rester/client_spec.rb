@@ -300,6 +300,27 @@ module Rester
           ).once
         end
       end # with successful request
+
+      context 'with client request_handler middleware simulation' do
+        let(:logger) { double('logger') }
+        before {
+          Rester.begin_request
+          Rester.correlation_id = SecureRandom.uuid
+        }
+        after {
+          success_request
+          Rester.end_request
+        }
+
+        it 'should log the correct messages' do
+          expect(logger).to receive(:info).with(
+            "Correlation-ID=#{Rester.correlation_id}: [Dummy] -> DummyService - GET /v1/ping"
+          ).once
+          expect(logger).to receive(:info).with(
+            "Correlation-ID=#{Rester.correlation_id}: [Dummy] <- DummyService - GET /v1/ping 200"
+          ).once
+        end
+      end # with client request_handler middleware simulation
     end # #request
 
     describe '#tests', :tests do

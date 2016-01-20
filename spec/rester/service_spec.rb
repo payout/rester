@@ -381,5 +381,17 @@ module Rester
 
       it { is_expected.to eq "DummyService" }
     end # #name
+
+    describe '#logger' do
+      subject { service.logger }
+      it { is_expected.to eq Rester.logger }
+    end # #logger
+
+    describe '#logger=' do
+      let(:new_logger) { double('logger') }
+      before { service.logger = new_logger }
+      subject { service.logger }
+      it { is_expected.to eq new_logger }
+    end # #logger=
   end # Service
 end # Rester

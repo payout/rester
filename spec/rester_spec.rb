@@ -206,7 +206,7 @@ RSpec.describe Rester do
   end # ::request_info=
 
   describe '::correlation_id' do
-    subject {  Rester.correlation_id }
+    subject { Rester.correlation_id }
 
     context 'with correlation id set' do
       before { Rester.request_info = {correlation_id: id } }
