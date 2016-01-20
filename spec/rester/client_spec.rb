@@ -38,10 +38,8 @@ module Rester
       it { is_expected.to be true }
 
       context 'with connection error' do
-        let(:adapter) { Client::Adapters::HttpAdapter.new }
-        it {
-          expect { subject }.to raise_error Errors::ConnectionError
-        }
+        let(:adapter) { double('adapter', connected?: false) }
+        it { expect { subject }.to raise_error Errors::ConnectionError }
       end
     end # #connected?
 
@@ -287,7 +285,7 @@ module Rester
         end
       end # with producer name set
 
-      context 'with successful request' do
+      context 'with correlation_id defined' do
         let(:logger) { double('logger') }
         before {
           Rester.begin_request
@@ -306,7 +304,7 @@ module Rester
             "Correlation-ID=#{Rester.correlation_id}: [Dummy] <- DummyService - GET /v1/ping 200"
           ).once
         end
-      end # with successful request
+      end # with correlation_id defined
     end # #request
 
     describe '#tests', :tests do
