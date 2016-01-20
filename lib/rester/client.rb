@@ -123,7 +123,7 @@ module Rester
     end
 
     def _producer_name
-      @_producer_name ||= nil
+      @_producer_name
     end
 
     def _path_with_version(path)

@@ -170,36 +170,29 @@ RSpec.describe Rester do
       end # with new request_info
 
       context 'with nil request_info' do
-        it 'should delete the request_info for this thread' do
-          expect(subject[:correlation_id]).to eq(id)
-          subject = nil
-          expect(subject).to eq nil
-        end
+        let(:request_info) { nil }
+        it { is_expected.to eq nil }
       end
     end # with single thread
 
     context 'with multiple threads' do
-      before { new_thread.join }
       let(:new_thread) {
-        Thread.new { Rester.request_info = { correlation_id: new_id } }
-      }
-      let(:new_id) { SecureRandom.uuid }
-      subject { Rester.instance_variable_get(:@_request_infos) }
-
-      context 'with new id' do
-        it 'should set the correlation id for both threads' do
-          expect(subject[Thread.current.object_id]).to eq(correlation_id: id)
-          expect(subject[new_thread.object_id]).to eq(correlation_id: new_id)
+        Thread.new do
+          Rester.request_info = new_thread_info
+          expect(Rester.request_info).to eq new_thread_info
         end
-      end # with new id
+      }
+      let(:new_thread_info) { { correlation_id: new_id } }
+      let(:new_id) { SecureRandom.uuid }
+      before { new_thread.join }
+
+      it { expect(Rester.request_info).to eq request_info }
 
       context 'with nil id' do
         it 'should delete the key for the current thread' do
-          expect(subject[Thread.current.object_id]).to eq(correlation_id: id)
-          expect(subject[new_thread.object_id]).to eq(correlation_id: new_id)
+          expect(Rester.request_info).to eq request_info
           Rester.request_info = nil
-          expect(subject[Thread.current.object_id]).to eq nil
-          expect(subject[new_thread.object_id]).to eq(correlation_id: new_id)
+          expect(Rester.request_info).to eq nil
         end
       end # with nil id
     end # with multiple threads
@@ -213,9 +206,21 @@ RSpec.describe Rester do
       let(:id) { SecureRandom.uuid }
       it { is_expected.to eq id }
     end # with correlation id set
+
+    context 'with correlation_id not set' do
+      before { Rester.end_request }
+      it { is_expected.to eq nil }
+    end # with correlation_id not set
   end # ::correlation_id
 
   describe '::correlation_id=' do
+    subject { Rester.request_info[:correlation_id] }
+    before {
+      Rester.request_info = {}
+      Rester.correlation_id = id
+    }
+    let(:id) { SecureRandom.uuid }
+    it { is_expected.to eq id }
   end # ::correlation_id=
 
   describe '::logger', :logger do
