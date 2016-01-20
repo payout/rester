@@ -33,7 +33,7 @@ module Rester
         expect(Rester.request_info).to eq nil
       end
 
-      describe 'logging', :test do
+      describe 'logging' do
         let(:logger) { double('logger') }
         before { Rester.logger = logger }
         after {
