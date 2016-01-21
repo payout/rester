@@ -251,24 +251,19 @@ RSpec.describe Rester do
   describe '::logger', :logger do
     subject { Rester.logger }
 
-    context 'with no logger passed to client' do
+    context 'without logger defined' do
       it { is_expected.to be_a Rester::Utils::LoggerWrapper }
     end
 
-    context 'with logger passed in' do
+    context 'with logger set to nil' do
+      before { Rester.logger = nil }
+      it { is_expected.to be_a Rester::Utils::LoggerWrapper }
+    end
+
+    context 'with logger set to STDOUT logger' do
+      let(:logger) { Logger.new(STDOUT) }
       before { Rester.logger = logger }
-
-      context 'with logger passed as nil' do
-        let(:logger) { nil }
-        it { is_expected.to be_a Rester::Utils::LoggerWrapper }
-      end
-
-      context 'with logger passed as 10' do
-        let(:logger) { Logger.new(STDOUT) }
-        it 'should set the new logger' do
-          expect(subject.logger).to eq logger
-        end
-      end
-    end # with logger passed in
-  end # #logger
+      it { expect(subject.logger).to eq logger }
+    end
+  end # ::logger
 end # Rester

@@ -2,11 +2,12 @@ module Rester
   module Utils
     RSpec.describe LoggerWrapper do
       describe '#initialize' do
-        subject { LoggerWrapper.new(logger).logger }
+        subject { LoggerWrapper.new(logger) }
 
         context 'with default logger' do
-          let(:logger) { nil }
-          it { is_expected.to be_a Logger }
+          subject { LoggerWrapper.new }
+
+          it { expect(subject.logger).to be_a Logger }
 
           it 'should allow the standard logger methods' do
             (Logger::SEV_LABEL - ['ANY']).each { |sev|
@@ -17,8 +18,13 @@ module Rester
 
         context 'with logger passed in' do
           let(:logger) { double('logger') }
-          it { is_expected.to eq logger }
+          it { expect(subject.logger).to eq logger }
         end # with logger passed in
+
+        context 'with logger disabled' do
+          let(:logger) { nil }
+          it { expect(subject.logger).to eq nil }
+        end # with logger disabled
       end # #initialize
 
       describe '#info' do
@@ -31,6 +37,14 @@ module Rester
           expect(custom_logger).to receive(:info).with(msg)
           subject
         end
+
+        context 'with logging disabled' do
+          let(:logger) { LoggerWrapper.new }
+
+          it 'should not raise an error when logging' do
+            expect { logger.info("message") }.not_to raise_error
+          end
+        end # with logging disabled
 
         context 'within a request' do
           let(:id) { SecureRandom.uuid }
@@ -51,7 +65,7 @@ module Rester
               " message")
             subject
           end
-        end
+        end # within a request
       end # #info
     end # LoggerWrapper
   end # Utils

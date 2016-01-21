@@ -3,12 +3,12 @@ module Rester
     class LoggerWrapper
       attr_reader :logger
 
-      def initialize(logger = nil)
-        @logger = logger || Logger.new(STDOUT)
+      def initialize(logger = Logger.new(STDOUT))
+        @logger = logger
       end
 
       (Logger::SEV_LABEL - ['ANY']).map(&:downcase).map(&:to_sym).each do |sev|
-        define_method(sev) { |msg| _log(sev, msg) }
+        define_method(sev) { |msg| _log(sev, msg) if logger }
       end
 
       private

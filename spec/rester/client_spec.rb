@@ -160,7 +160,7 @@ module Rester
         it { is_expected.to be_a Utils::LoggerWrapper }
       end
 
-      context 'with logger passed as 10' do
+      context 'with stdout logger passed in' do
         let(:logger) { Logger.new(STDOUT) }
         it 'should set the new logger' do
           expect(subject.logger).to eq logger
