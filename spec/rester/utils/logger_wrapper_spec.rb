@@ -1,7 +1,7 @@
 module Rester
   module Utils
     RSpec.describe LoggerWrapper do
-      describe '#initialize' do
+      describe '#new' do
         subject { LoggerWrapper.new(logger) }
 
         context 'with default logger' do
@@ -25,7 +25,7 @@ module Rester
           let(:logger) { nil }
           it { expect(subject.logger).to eq nil }
         end # with logger disabled
-      end # #initialize
+      end # #new
 
       describe '#info' do
         subject { logger.info(msg) }

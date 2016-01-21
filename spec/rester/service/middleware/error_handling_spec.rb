@@ -23,11 +23,11 @@ module Rester
 
       after { Rester.end_request }
 
-      subject { ErrorHandling.new(instance).call(env) }
-
-
       describe '#call' do
         let(:logger) { double('logger') }
+
+        subject { ErrorHandling.new(instance).call(env) }
+
         before {
           allow(logger).to receive(:error)
           instance.logger = logger
