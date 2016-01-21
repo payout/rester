@@ -391,7 +391,9 @@ module Rester
       let(:new_logger) { double('logger') }
       before { service.logger = new_logger }
       subject { service.logger }
-      it { is_expected.to eq new_logger }
+      it 'should set the new logger' do
+        expect(subject.logger).to eq new_logger
+      end
     end # #logger=
   end # Service
 end # Rester

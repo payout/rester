@@ -4,6 +4,7 @@ module Rester
       def call(env)
         Rester.begin_request
         Rester.correlation_id = SecureRandom.uuid
+        Rester.request_info[:consumer_name] = Rester.service_name
         super
       ensure
         Rester.end_request

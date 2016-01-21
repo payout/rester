@@ -6,6 +6,7 @@ module Rester
     autoload(:StubFile,       'rester/utils/stub_file')
     autoload(:RSpec,          'rester/utils/rspec')
     autoload(:CircuitBreaker, 'rester/utils/circuit_breaker')
+    autoload(:LoggerWrapper,  'rester/utils/logger_wrapper')
 
     class << self
       ##

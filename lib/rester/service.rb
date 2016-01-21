@@ -95,6 +95,7 @@ module Rester
     end
 
     def logger=(new_logger)
+      new_logger = Utils::LoggerWrapper.new(new_logger) if new_logger
       @_logger = new_logger
     end
 

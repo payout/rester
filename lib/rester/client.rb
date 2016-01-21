@@ -20,7 +20,7 @@ module Rester
       self.version = params[:version]
       @error_threshold = (params[:error_threshold] || 3).to_i
       @retry_period = (params[:retry_period] || 1).to_f
-      @logger = params[:logger] || Rester.logger
+      self.logger = params[:logger]
       @_breaker_enabled = params.fetch(:circuit_breaker_enabled,
         ENV['RACK_ENV'] != 'test' && ENV['RAILS_ENV'] != 'test'
       )
@@ -41,6 +41,15 @@ module Rester
 
     def circuit_breaker_enabled?
       !!@_breaker_enabled
+    end
+
+    def logger=(logger)
+      logger = Utils::LoggerWrapper.new(logger) if logger
+      @logger = logger
+    end
+
+    def logger
+      @logger || Rester.logger
     end
 
     def request(verb, path, params={})
@@ -95,11 +104,11 @@ module Rester
         ) { |*args| _request(*args) }
 
         @_requester.on_open do
-          _log_with_correlation_id(:error, "circuit opened for #{_producer_name}")
+          logger.error("circuit opened for #{_producer_name}")
         end
 
         @_requester.on_close do
-          _log_with_correlation_id(:info, "circuit closed for #{_producer_name}")
+          logger.info("circuit closed for #{_producer_name}")
         end
       else
         @_requester = proc { |*args| _request(*args) }
@@ -109,8 +118,12 @@ module Rester
     ##
     # Add a correlation ID to the header and send the request to the adapter
     def _request(verb, path, params)
+      Rester.request_info[:producer_name] = _producer_name
+      Rester.request_info[:path] = path
+      Rester.request_info[:verb] = verb
+      logger.info('sending request')
+
       _set_default_headers
-      _log_req_res(:request, verb, path)
       _process_response(verb, path, *adapter.request(verb, path, params))
     end
 
@@ -133,8 +146,7 @@ module Rester
     def _process_response(verb, path, status, headers, body)
       response = Response.new(status, _parse_json(body))
       @_producer_name = headers['X-Rester-Producer-Name']
-
-      _log_req_res(:response, verb, path, status)
+      logger.info("received status #{status}")
 
       unless [200, 201, 400].include?(status)
         case status
@@ -158,18 +170,6 @@ module Rester
       else
         {}
       end
-    end
-
-    def _log_req_res(type, verb, path, msg=nil)
-      arrow_str = type == :request ? '->' : '<-'
-      log_str = "[#{Rester.service_name}] #{arrow_str} #{_producer_name} - " \
-        "#{verb.upcase} #{path}"
-      log_str << " #{msg}" if msg
-      _log_with_correlation_id(:info, log_str)
-    end
-
-    def _log_with_correlation_id(log_level, msg)
-      logger.send(log_level, "Correlation-ID=#{Rester.correlation_id}: #{msg}")
     end
   end # Client
 end # Rester

@@ -20,11 +20,11 @@ module Rester
 
   class << self
     def logger
-      @_logger ||= Logger.new(STDOUT)
+      @_logger ||= Utils::LoggerWrapper.new
     end
 
     def logger=(new_logger)
-      @_logger = new_logger
+      @_logger = Utils::LoggerWrapper.new(new_logger)
     end
 
     def load_tasks
@@ -33,7 +33,7 @@ module Rester
       ].each { |rake_file| load rake_file }
     end
 
-    def connect(service, params={})
+    def connect(service, params = {})
       adapter_opts = Client::Adapters.extract_opts(params)
       adapter = Client::Adapters.connect(service, adapter_opts)
       Client.new(adapter, params)
@@ -53,6 +53,10 @@ module Rester
 
     def end_request
       self.request_info = nil
+    end
+
+    def processing_request?
+      !!request_info
     end
 
     def request_info

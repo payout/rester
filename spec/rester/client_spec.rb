@@ -7,6 +7,12 @@ module Rester
       JSON.parse(params.to_json, symbolize_names: true)
     end
 
+    around { |ex|
+      Rester.begin_request
+      ex.run
+      Rester.end_request
+    }
+
     let(:client) { Client.new(adapter, client_opts) }
     let(:adapter) { Client::Adapters::HttpAdapter.new(test_url) }
     let(:client_opts) do
@@ -146,17 +152,19 @@ module Rester
 
       context 'with no logger passed to client' do
         let(:client_opts) { {} }
-        it { is_expected.to be_a Logger }
+        it { is_expected.to be_a Utils::LoggerWrapper }
       end
 
       context 'with logger passed as nil' do
         let(:logger) { nil }
-        it { is_expected.to be_a Logger }
+        it { is_expected.to be_a Utils::LoggerWrapper }
       end
 
       context 'with logger passed as 10' do
         let(:logger) { Logger.new(STDOUT) }
-        it { is_expected.to eq logger }
+        it 'should set the new logger' do
+          expect(subject.logger).to eq logger
+        end
       end
     end # #logger
 
@@ -214,8 +222,14 @@ module Rester
         after { error_request }
 
         it 'should log that circuit is now opened' do
+          correlation_id = Rester.correlation_id
+          producer = Rester.request_info[:producer_name]
+          consumer = Rester.request_info[:consumer_name]
+
           expect(logger).to receive(:error).with(
-            "Correlation-ID=#{Rester.correlation_id}: circuit opened for DummyService"
+            "Correlation-ID=#{correlation_id} Consumer=#{consumer} " \
+            "Producer=#{producer} GET /v1/ping - circuit opened for " \
+            "DummyService"
           ).once
         end
       end # with error_threshold reached
@@ -255,16 +269,18 @@ module Rester
         let(:error_threshold) { 3 }
         let(:retry_period) { 0.001 }
 
-        before {
-          # 3 error request logs + 1 success req log + 1 success response log
-          expect(logger).to receive(:info).at_most(error_threshold + 2).times
-          error_threshold.times { error_request }
-        }
+        before { error_threshold.times { error_request } }
         after { let_retry_period_pass; success_request }
 
         it 'should log that circuit is now closed' do
+          correlation_id = Rester.correlation_id
+          producer = Rester.request_info[:producer_name]
+          consumer = Rester.request_info[:consumer_name]
+
           expect(logger).to receive(:info).with(
-            "Correlation-ID=#{Rester.correlation_id}: circuit closed for DummyService"
+            "Correlation-ID=#{correlation_id} Consumer=#{consumer} " \
+            "Producer=#{producer} GET /v1/ping - circuit closed for " \
+            "DummyService"
           ).once
         end
       end # with error_threshold reached
@@ -293,16 +309,18 @@ module Rester
         }
         after {
           success_request
-          Rester.end_request
+          # Rester.end_request
         }
 
         it 'should log the correct messages' do
-          expect(logger).to receive(:info).with(
-            "Correlation-ID=#{Rester.correlation_id}: [Dummy] -> DummyService - GET /v1/ping"
-          ).once
-          expect(logger).to receive(:info).with(
-            "Correlation-ID=#{Rester.correlation_id}: [Dummy] <- DummyService - GET /v1/ping 200"
-          ).once
+          correlation_id = Rester.correlation_id
+
+          expect(logger).to receive(:info).with("Correlation-ID=" \
+            "#{correlation_id} Consumer= Producer=DummyService GET " \
+            "/v1/ping - sending request").once
+          expect(logger).to receive(:info).with("Correlation-ID=" \
+            "#{correlation_id} Consumer= Producer=DummyService GET " \
+            "/v1/ping - received status 200").once
         end
       end # with correlation_id defined
     end # #request

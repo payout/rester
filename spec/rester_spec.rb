@@ -6,6 +6,12 @@ RSpec.describe Rester do
     let(:client) { Rester.connect(*connect_args) }
     let(:adapter) { subject.adapter }
 
+    around { |ex|
+      Rester.begin_request
+      ex.run
+      Rester.end_request
+    }
+
     context 'with url' do
       let(:url) { RSpec.server_uri }
       let(:connect_args) { [url] }
@@ -24,6 +30,11 @@ RSpec.describe Rester do
     context 'with service class' do
       let(:opts) { {} }
       let(:connect_args) { [Rester::DummyService, opts] }
+      before {
+        client # Prime the client so the initial ping is sent
+        Rester.begin_request
+      }
+      after { Rester.end_request }
 
       it { is_expected.to be_a Rester::Client }
 
@@ -227,7 +238,7 @@ RSpec.describe Rester do
     subject { Rester.logger }
 
     context 'with no logger passed to client' do
-      it { is_expected.to be_a Logger }
+      it { is_expected.to be_a Rester::Utils::LoggerWrapper }
     end
 
     context 'with logger passed in' do
@@ -235,12 +246,14 @@ RSpec.describe Rester do
 
       context 'with logger passed as nil' do
         let(:logger) { nil }
-        it { is_expected.to be_a Logger }
+        it { is_expected.to be_a Rester::Utils::LoggerWrapper }
       end
 
       context 'with logger passed as 10' do
         let(:logger) { Logger.new(STDOUT) }
-        it { is_expected.to eq logger }
+        it 'should set the new logger' do
+          expect(subject.logger).to eq logger
+        end
       end
     end # with logger passed in
   end # #logger
