@@ -56,7 +56,8 @@ module Rester
         [
           spec['response_code'],
           { 'X-Rester-Producer-Name' => producer },
-          spec['response'].to_json]
+          spec['response'].to_json
+        ]
       end
 
       def _process_request(path, verb, params)
