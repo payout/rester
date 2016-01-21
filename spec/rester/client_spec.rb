@@ -301,28 +301,26 @@ module Rester
         end
       end # with producer name set
 
-      context 'with correlation_id defined' do
+      context 'with request info defined' do
         let(:logger) { double('logger') }
         before {
           Rester.begin_request
           Rester.request_info[:correlation_id] = SecureRandom.uuid
+          Rester.request_info[:consumer_name] = "TestConsumer"
         }
-        after {
-          success_request
-          # Rester.end_request
-        }
+        after { success_request }
 
         it 'should log the correct messages' do
           correlation_id = Rester.correlation_id
 
           expect(logger).to receive(:info).with("Correlation-ID=" \
-            "#{correlation_id} Consumer= Producer=DummyService GET " \
+            "#{correlation_id} Consumer=TestConsumer Producer=DummyService GET " \
             "/v1/ping - sending request").once
           expect(logger).to receive(:info).with("Correlation-ID=" \
-            "#{correlation_id} Consumer= Producer=DummyService GET " \
+            "#{correlation_id} Consumer=TestConsumer Producer=DummyService GET " \
             "/v1/ping - received status 200").once
         end
-      end # with correlation_id defined
+      end # with request info defined
     end # #request
 
     describe '#tests', :tests do

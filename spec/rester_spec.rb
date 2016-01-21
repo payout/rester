@@ -32,7 +32,7 @@ RSpec.describe Rester do
       let(:connect_args) { [Rester::DummyService, opts] }
       before {
         client # Prime the client so the initial ping is sent
-        Rester.begin_request
+        Rester.begin_request # Begin the request again since the service ends it
       }
       after { Rester.end_request }
 
@@ -166,6 +166,20 @@ RSpec.describe Rester do
     before { Rester.end_request }
     it { is_expected.to eq nil }
   end # ::end_request
+
+  describe '::processing_request?' do
+    subject { Rester.processing_request? }
+
+    context 'with request processing' do
+      before { Rester.begin_request }
+      it { is_expected.to be true }
+    end
+
+    context 'with no request processing' do
+      before { Rester.end_request }
+      it { is_expected.to be false }
+    end
+  end # ::processing_request?
 
   describe '::request_info=' do
     subject { Rester.request_info }

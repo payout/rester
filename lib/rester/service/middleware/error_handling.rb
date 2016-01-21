@@ -15,8 +15,7 @@ module Rester
           end
         }
 
-        service.logger.error("Correlation-ID=#{Rester.correlation_id}:" \
-          "#{error.inspect}")
+        service.logger.error("#{error.inspect}")
         _error_to_response(error).finish
       end
 

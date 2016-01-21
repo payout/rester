@@ -1,5 +1,3 @@
-require 'support/test_service'
-
 module Rester
   module Client::Middleware
     RSpec.describe RequestHandler do
