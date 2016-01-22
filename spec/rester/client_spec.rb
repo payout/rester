@@ -168,6 +168,14 @@ module Rester
       end
     end # #logger
 
+    describe '#name' do
+      context 'before first real request' do
+        it 'should default #name to to the service after first ping' do
+          expect(client.name).to eq "DummyService"
+        end
+      end # before first real request
+    end # #name
+
     describe '#request', :request do
       let(:adapter) { double('adapter') }
       let(:valid_response) {
@@ -284,22 +292,6 @@ module Rester
           ).once
         end
       end # with error_threshold reached
-
-      context 'before first real request' do
-        before { success_request }
-
-        it 'should default producer name to to the service after first ping' do
-          expect(client.send(:_producer_name)).to eq "DummyService"
-        end
-      end # without producer name set
-
-      context 'with producer name set' do
-        before { success_request }
-
-        it 'should default producer name to "Producer"' do
-          expect(client.send(:_producer_name)).to eq "DummyService"
-        end
-      end # with producer name set
 
       context 'with request info defined' do
         let(:logger) { double('logger') }

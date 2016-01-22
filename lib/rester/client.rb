@@ -52,6 +52,10 @@ module Rester
       @logger || Rester.logger
     end
 
+    def name
+      @_producer_name
+    end
+
     def request(verb, path, params={})
       path = _path_with_version(path)
       @_requester.call(verb, path, params)
@@ -104,11 +108,11 @@ module Rester
         ) { |*args| _request(*args) }
 
         @_requester.on_open do
-          logger.error("circuit opened for #{_producer_name}")
+          logger.error("circuit opened for #{name}")
         end
 
         @_requester.on_close do
-          logger.info("circuit closed for #{_producer_name}")
+          logger.info("circuit closed for #{name}")
         end
       else
         @_requester = proc { |*args| _request(*args) }
@@ -118,7 +122,7 @@ module Rester
     ##
     # Add a correlation ID to the header and send the request to the adapter
     def _request(verb, path, params)
-      Rester.request_info[:producer_name] = _producer_name
+      Rester.request_info[:producer_name] = name
       Rester.request_info[:path] = path
       Rester.request_info[:verb] = verb
       logger.info('sending request')
@@ -131,12 +135,8 @@ module Rester
       adapter.headers(
         'X-Rester-Correlation-ID' => Rester.correlation_id,
         'X-Rester-Consumer-Name' => Rester.service_name,
-        'X-Rester-Producer-Name' => _producer_name
+        'X-Rester-Producer-Name' => name
       )
-    end
-
-    def _producer_name
-      @_producer_name
     end
 
     def _path_with_version(path)
