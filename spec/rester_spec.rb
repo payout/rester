@@ -1,8 +1,16 @@
+require 'securerandom'
+
 RSpec.describe Rester do
   describe '::connect' do
     subject { client }
     let(:client) { Rester.connect(*connect_args) }
     let(:adapter) { subject.adapter }
+
+    around { |ex|
+      Rester.begin_request
+      ex.run
+      Rester.end_request
+    }
 
     context 'with url' do
       let(:url) { RSpec.server_uri }
@@ -22,6 +30,11 @@ RSpec.describe Rester do
     context 'with service class' do
       let(:opts) { {} }
       let(:connect_args) { [Rester::DummyService, opts] }
+      before {
+        client # Prime the client so the initial ping is sent
+        Rester.begin_request # Begin the request again since the service ends it
+      }
+      after { Rester.end_request }
 
       it { is_expected.to be_a Rester::Client }
 
@@ -128,4 +141,129 @@ RSpec.describe Rester do
       end
     end # without circuit_breaker_enabled
   end # ::connect
+
+  describe '::service_name' do
+    subject { Rester.service_name }
+
+    it 'should default to the Rails application name' do
+      is_expected.to eq "Dummy"
+    end
+
+    context 'with service_name set' do
+      before { Rester.service_name = "New Consumer Name" }
+      it { is_expected.to eq "New Consumer Name" }
+    end # with service_name set
+  end # ::service_name
+
+  describe '::begin_request' do
+    subject { Rester.request_info }
+    before { Rester.begin_request }
+    it { is_expected.to eq({}) }
+  end # ::begin_request
+
+  describe '::end_request' do
+    subject { Rester.request_info }
+    before { Rester.end_request }
+    it { is_expected.to eq nil }
+  end # ::end_request
+
+  describe '::processing_request?' do
+    subject { Rester.processing_request? }
+
+    context 'with request processing' do
+      before { Rester.begin_request }
+      it { is_expected.to be true }
+    end
+
+    context 'with no request processing' do
+      before { Rester.end_request }
+      it { is_expected.to be false }
+    end
+  end # ::processing_request?
+
+  describe '::request_info=' do
+    subject { Rester.request_info }
+    before { Rester.request_info = request_info }
+    let(:request_info) {  { correlation_id: id } }
+    let(:id) { SecureRandom.uuid }
+
+    context 'with single thread' do
+      context 'with new request_info' do
+        it 'should set the request info value' do
+          expect(subject[:correlation_id]).to eq id
+        end
+      end # with new request_info
+
+      context 'with nil request_info' do
+        let(:request_info) { nil }
+        it { is_expected.to eq nil }
+      end
+    end # with single thread
+
+    context 'with multiple threads' do
+      let(:new_thread) {
+        Thread.new do
+          Rester.request_info = new_thread_info
+          expect(Rester.request_info).to eq new_thread_info
+        end
+      }
+      let(:new_thread_info) { { correlation_id: new_id } }
+      let(:new_id) { SecureRandom.uuid }
+      before { new_thread.join }
+
+      it { expect(Rester.request_info).to eq request_info }
+
+      context 'with nil id' do
+        it 'should delete the key for the current thread' do
+          expect(Rester.request_info).to eq request_info
+          Rester.request_info = nil
+          expect(Rester.request_info).to eq nil
+        end
+      end # with nil id
+    end # with multiple threads
+  end # ::request_info=
+
+  describe '::correlation_id' do
+    subject { Rester.correlation_id }
+
+    context 'with correlation id set' do
+      before { Rester.request_info = {correlation_id: id } }
+      let(:id) { SecureRandom.uuid }
+      it { is_expected.to eq id }
+    end # with correlation id set
+
+    context 'with correlation_id not set' do
+      before { Rester.end_request }
+      it { is_expected.to eq nil }
+    end # with correlation_id not set
+  end # ::correlation_id
+
+  describe '::correlation_id=' do
+    subject { Rester.request_info[:correlation_id] }
+    before {
+      Rester.request_info = {}
+      Rester.correlation_id = id
+    }
+    let(:id) { SecureRandom.uuid }
+    it { is_expected.to eq id }
+  end # ::correlation_id=
+
+  describe '::logger', :logger do
+    subject { Rester.logger }
+
+    context 'without logger defined' do
+      it { is_expected.to be_a Rester::Utils::LoggerWrapper }
+    end
+
+    context 'with logger set to nil' do
+      before { Rester.logger = nil }
+      it { is_expected.to be_a Rester::Utils::LoggerWrapper }
+    end
+
+    context 'with logger set to STDOUT logger' do
+      let(:logger) { Logger.new(STDOUT) }
+      before { Rester.logger = logger }
+      it { expect(subject.logger).to eq logger }
+    end
+  end # ::logger
 end # Rester

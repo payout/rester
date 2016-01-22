@@ -1,5 +1,5 @@
 module Rester
-  module Middleware
+  module Service::Middleware
     class Base
       attr_reader :app
       attr_reader :options
@@ -40,5 +40,5 @@ module Rester
         Errors.throw_error!(klass, message)
       end
     end # Base
-  end # Middleware
+  end # Service::Middleware
 end # Rester

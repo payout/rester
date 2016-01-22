@@ -50,6 +50,18 @@ module Rester
         let(:encoded_data) { Utils.encode_www_data(params) }
         subject { adapter.request!(verb, path, params) }
 
+        context 'with valid request' do
+          let(:verb) { :get }
+          let(:path) { '/v1/commands/sleep' }
+          let(:headers) { subject[1] }
+
+          it 'should respond with the correct custom headers' do
+            expect(headers).to include(
+              "X-Rester-Producer-Name"=> "DummyService"
+            )
+          end
+        end # with valid request
+
         context 'with request timeout' do
           let(:verb) { :get }
           let(:path) { '/v1/commands/sleep' }

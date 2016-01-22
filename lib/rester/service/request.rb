@@ -6,6 +6,9 @@ module Rester
       attr_reader :version
       attr_reader :object_chain
 
+      CUSTOM_FIELDS = ['correlation_id', 'producer_name',
+        'consumer_name'].freeze
+
       def initialize(env)
         super
         _parse_path if valid?
@@ -24,6 +27,10 @@ module Rester
           break if chain.empty?
         end
       end
+
+      CUSTOM_FIELDS.each { |field|
+        define_method(field) { env["HTTP_X_RESTER_#{field.upcase}"] }
+      }
 
       private
 

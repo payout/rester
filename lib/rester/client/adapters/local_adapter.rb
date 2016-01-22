@@ -37,11 +37,13 @@ module Rester
 
         response = Timeout::timeout(timeout) do
           service.call(
-            'REQUEST_METHOD' => verb.to_s.upcase,
-            'PATH_INFO'      => path,
-            'CONTENT_TYPE'   => 'application/x-www-form-urlencoded',
-            'QUERY_STRING'   => query,
-            'rack.input'     => StringIO.new(body)
+            _headers_to_http_format(opts[:headers]).merge(
+              'REQUEST_METHOD' => verb.to_s.upcase,
+              'PATH_INFO'      => path,
+              'CONTENT_TYPE'   => 'application/x-www-form-urlencoded',
+              'QUERY_STRING'   => query,
+              'rack.input'     => StringIO.new(body)
+            )
           )
         end
 
@@ -52,10 +54,18 @@ module Rester
 
         [
           response.first, # The status code
+          {
+            'X-Rester-Producer-Name' => service.service_name,
+          },              # The header
           body            # The response body.
         ]
       rescue Timeout::Error
         fail Errors::TimeoutError
+      end
+
+
+      def _headers_to_http_format(headers={})
+        headers.map { |k,v| ["HTTP_#{k.to_s.upcase.gsub('-', '_')}", v] }.to_h
       end
     end # LocalAdapter
   end # Client::Adapters

@@ -7,9 +7,14 @@ module Rester
       JSON.parse(params.to_json, symbolize_names: true)
     end
 
-    let(:client) { Client.new(adapter, client_opts) }
-    let(:adapter) { Client::Adapters::HttpAdapter.new }
+    around { |ex|
+      Rester.begin_request
+      ex.run
+      Rester.end_request
+    }
 
+    let(:client) { Client.new(adapter, client_opts) }
+    let(:adapter) { Client::Adapters::HttpAdapter.new(test_url) }
     let(:client_opts) do
       {
         version: version,
@@ -34,28 +39,13 @@ module Rester
     # Response Hash
     let(:res_hash) { req_hash.map{|k,v| [k, v.nil? ? nil : v.to_s]}.to_h }
 
-    describe '#connect', :connect do
-      subject { client.connect(url) }
-
-      context 'with valid url' do
-        let(:url) { test_url }
-
-        it 'should return nil' do
-          expect(subject).to be nil
-        end
-      end # valid url
-    end # #connect
-
     describe '#connected?', :connected? do
       subject { client.connected? }
+      it { is_expected.to be true }
 
-      context 'before connecting' do
-        it { is_expected.to be false }
-      end
-
-      context 'after connecting' do
-        before { client.connect(test_url) }
-        it { is_expected.to be true }
+      context 'with connection error' do
+        let(:adapter) { double('adapter', connected?: false) }
+        it { expect { subject }.to raise_error Errors::ConnectionError }
       end
     end # #connected?
 
@@ -162,23 +152,44 @@ module Rester
 
       context 'with no logger passed to client' do
         let(:client_opts) { {} }
-        it { is_expected.to be_a Logger }
+        it { is_expected.to be_a Utils::LoggerWrapper }
       end
 
       context 'with logger passed as nil' do
         let(:logger) { nil }
-        it { is_expected.to be_a Logger }
+        it { is_expected.to be_a Utils::LoggerWrapper }
       end
 
-      context 'with logger passed as 10' do
+      context 'with stdout logger passed in' do
         let(:logger) { Logger.new(STDOUT) }
-        it { is_expected.to eq logger }
+        it 'should set the new logger' do
+          expect(subject.logger).to eq logger
+        end
       end
     end # #logger
 
+    describe '#name' do
+      context 'before first real request' do
+        it 'should equal the name provided by the initial ping response' do
+          expect(client.name).to eq "DummyService"
+        end
+      end # before first real request
+    end # #name
+
     describe '#request', :request do
       let(:adapter) { double('adapter') }
+      let(:valid_response) {
+        [200, { 'X-Rester-Producer-Name' => "DummyService"}, '']
+      }
       subject { client.request(verb, path, params) }
+      before do
+        # Setup setup_adapter
+        allow(adapter).to receive(:connected?).and_return true
+        allow(adapter).to receive(:request).and_return valid_response
+        allow(adapter).to receive(:headers)
+        allow(logger).to receive(:info).at_least(2).times if defined?(logger)
+        client # prime the client so the initial ping connection occurs
+      end
 
       let(:verb) { :get }
       let(:path) { '/ping' }
@@ -189,17 +200,20 @@ module Rester
       # Useful when testing the circuit breaker logic.
       def error_request
         allow(adapter).to receive(:request).and_raise 'error'
-        expect { client.request(verb, path, params) }.to raise_error
+        expect { subject }.to raise_error
       end
 
       ##
       # Simulates a request that does not raise an error.
       # Useful when testing the circuit breaker logic.
       def success_request
-        allow(adapter).to receive(:request).and_return [200, '']
+        allow(adapter).to receive(:request).and_return valid_response
+        expect(subject).to eq Client::Response.new(200, {})
+      end
 
-        expect(client.request(verb, path, params))
-          .to eq Client::Response.new(200, {})
+      def success_without_producer_header
+        allow(adapter).to receive(:request).and_return [200, {}, '']
+        expect(subject).to eq Client::Response.new(200, {})
       end
 
       def let_retry_period_pass
@@ -209,11 +223,22 @@ module Rester
       context 'with error_threshold reached' do
         let(:logger) { double('logger') }
         let(:error_threshold) { 3 }
-        before { (error_threshold - 1).times { error_request } }
+        before {
+          allow(logger).to receive(:info).at_least(error_threshold).times
+          (error_threshold - 1).times { error_request }
+        }
         after { error_request }
 
         it 'should log that circuit is now opened' do
-          expect(logger).to receive(:error).with('circuit opened').once
+          correlation_id = Rester.correlation_id
+          producer = Rester.request_info[:producer_name]
+          consumer = Rester.request_info[:consumer_name]
+
+          expect(logger).to receive(:error).with(
+            "Correlation-ID=#{correlation_id} Consumer=#{consumer} " \
+            "Producer=#{producer} GET /v1/ping - circuit opened for " \
+            "DummyService"
+          ).once
         end
       end # with error_threshold reached
 
@@ -256,243 +281,226 @@ module Rester
         after { let_retry_period_pass; success_request }
 
         it 'should log that circuit is now closed' do
-          expect(logger).to receive(:info).with('circuit closed').once
+          correlation_id = Rester.correlation_id
+          producer = Rester.request_info[:producer_name]
+          consumer = Rester.request_info[:consumer_name]
+
+          expect(logger).to receive(:info).with(
+            "Correlation-ID=#{correlation_id} Consumer=#{consumer} " \
+            "Producer=#{producer} GET /v1/ping - circuit closed for " \
+            "DummyService"
+          ).once
         end
       end # with error_threshold reached
+
+      context 'with request info defined' do
+        let(:logger) { double('logger') }
+        before {
+          Rester.begin_request
+          Rester.request_info[:correlation_id] = SecureRandom.uuid
+          Rester.request_info[:consumer_name] = "TestConsumer"
+        }
+        after { success_request }
+
+        it 'should log the correct messages' do
+          correlation_id = Rester.correlation_id
+
+          expect(logger).to receive(:info).with("Correlation-ID=" \
+            "#{correlation_id} Consumer=TestConsumer Producer=DummyService GET " \
+            "/v1/ping - sending request").once
+          expect(logger).to receive(:info).with("Correlation-ID=" \
+            "#{correlation_id} Consumer=TestConsumer Producer=DummyService GET " \
+            "/v1/ping - received status 200").once
+        end
+      end # with request info defined
     end # #request
 
     describe '#tests', :tests do
       let(:tests) { client.tests(*args) }
       subject { tests }
 
-      context 'without connection' do
+      context 'with unsupported version' do
+        let(:version) { 2 }
+        let(:args) { ['token'] }
+
+        it 'should raise an error' do
+          expect { subject.get }.to raise_error Errors::NotFoundError, '/v2/tests/token'
+        end
+      end # with unsupported version
+
+      context 'with supported version' do
         context 'with string argument' do
           let(:args) { ['token'] }
 
+          it { is_expected.to be_a Rester::Client::Resource }
+
           describe '#get' do
-            subject { tests.get }
-            it { expect { subject }.to raise_error RuntimeError, 'not connected' }
-          end
+            let(:params) { {} }
+            let(:expected_resp) { {token: 'token', params: json_h(params), method: 'get'} }
+
+            context 'without argument' do
+              subject { tests.get }
+              it { is_expected.to eq(expected_resp) }
+            end # without argument
+
+            context 'with argument' do
+              let(:params) { {} }
+              subject { tests.get(params) }
+              it { is_expected.to eq(expected_resp) }
+
+              context 'with params' do
+                let(:params) { req_hash }
+
+                it 'should be successful' do
+                  expect(subject.successful?).to be true
+                end
+
+                it { is_expected.to eq(expected_resp) }
+              end
+
+              context 'with triggered error!' do
+                let(:params) { {string: 'testing_error'} }
+
+                it 'should be unsuccessful' do
+                  expect(subject.successful?).to be false
+                end
+
+                it 'should have an error message' do
+                  expect(subject[:error]).to eq 'testing_error'
+                  expect(subject.key?(:message)).to be false
+                end
+
+                context 'with message' do
+                  let(:params) { {string: 'testing_error_with_message'} }
+
+                  it 'should have an error message' do
+                    expect(subject[:error]).to eq 'testing_error'
+                    expect(subject[:message]).to eq 'with_message'
+                  end
+                end
+              end
+
+              context 'with nil argument' do
+                let(:params) { nil }
+                it { is_expected.to eq(token: 'token', params: {}, method: 'get') }
+              end
+            end # with argument
+          end # #get
 
           describe '#update' do
-            subject { tests.update }
-            it { expect { subject }.to raise_error RuntimeError, 'not connected' }
-          end
+            let(:params) { {} }
+            let(:expected_resp) {
+              {
+                method: 'update',
+                int: 1, float: 1.1, bool: true, null: nil,
+                params: json_h(params.merge(test_token: 'token'))
+              }
+            }
+
+            context 'without argument' do
+              subject { tests.update }
+              it { is_expected.to eq expected_resp }
+            end # without argument
+
+            context 'with argument' do
+              subject { tests.update(params) }
+
+              context 'with empty params' do
+                let(:params) { {} }
+                it { is_expected.to eq expected_resp }
+              end
+
+              context 'with params' do
+                let(:params) { req_hash }
+                it { is_expected.to eq expected_resp }
+              end
+            end # with argument
+          end # #update
 
           describe '#delete' do
-            subject { tests.delete }
-            it { expect { subject }.to raise_error RuntimeError, 'not connected' }
-          end
+            let(:params) { {} }
+            let(:expected_resp) { {token: 'token', params: json_h(params), method: 'delete'} }
+
+            context 'without argument' do
+              subject { tests.delete }
+              it { is_expected.to eq(expected_resp) }
+            end # without argument
+
+            context 'with argument' do
+              let(:params) { {} }
+              subject { tests.delete(params) }
+
+              before { adapter.connect(test_url) }
+              it { is_expected.to eq expected_resp }
+
+              context 'with params' do
+                let(:params) { req_hash }
+                it { is_expected.to eq expected_resp }
+              end
+            end # with argument
+          end # #delete
+
+          describe '#mounted_objects' do
+            let(:mounted_objects) { tests.mounted_objects(*margs) }
+
+            context 'with mounted object token' do
+              let(:margs) { ['mounted_id'] }
+
+              describe '#update' do
+                let(:params) { req_hash }
+                subject { mounted_objects.update(params) }
+                it { is_expected.to eq res_hash.merge(test_token: 'token', mounted_object_id: 'mounted_id') }
+              end # #update
+
+              describe '#delete' do
+                subject { mounted_objects.delete }
+                it { is_expected.to eq(no: 'params accepted') }
+              end # #delete
+
+              # Multi-level
+              describe '#mounted_objects' do
+                subject { mounted_objects.mounted_objects('mounted_id2').get }
+                it { is_expected.to eq(test_token: 'token', mounted_object_id: 'mounted_id2') }
+              end
+            end # with mounted object token
+          end # mounted_object
+
+          describe '#mounted_objects!' do
+            let(:mounted_objects!) { tests.mounted_objects!(arg: 'required') }
+            subject { mounted_objects! }
+
+            it 'should raise an error' do
+              expect { subject.get }.to raise_error Errors::NotFoundError,
+                '/v1/tests/token/mounted_objects'
+            end
+          end # mounted_objects!
         end # with string argument
 
         context 'with hash argument' do
           let(:args) { [req_hash] }
-          it { expect { subject }.to raise_error RuntimeError, 'not connected' }
+          it { is_expected.to eq json_h(req_hash).merge(method: 'search') }
         end # with hash argument
-      end # without connection
 
-      context 'with connection' do
-        before { client.connect(test_url) }
-
-        context 'with unsupported version' do
-          let(:version) { 2 }
-          let(:args) { ['token'] }
-
-          it 'should raise an error' do
-            expect { subject.get }.to raise_error Errors::NotFoundError, '/v2/tests/token'
-          end
-        end # with unsupported version
-
-        context 'with supported version' do
-          context 'with string argument' do
-            let(:args) { ['token'] }
-
-            it { is_expected.to be_a Rester::Client::Resource }
-
-            describe '#get' do
-              let(:params) { {} }
-              let(:expected_resp) { {token: 'token', params: json_h(params), method: 'get'} }
-
-              context 'without argument' do
-                subject { tests.get }
-                it { is_expected.to eq(expected_resp) }
-              end # without argument
-
-              context 'with argument' do
-                let(:params) { {} }
-                subject { tests.get(params) }
-                it { is_expected.to eq(expected_resp) }
-
-                context 'with params' do
-                  let(:params) { req_hash }
-
-                  it 'should be successful' do
-                    expect(subject.successful?).to be true
-                  end
-
-                  it { is_expected.to eq(expected_resp) }
-                end
-
-                context 'with triggered error!' do
-                  let(:params) { {string: 'testing_error'} }
-
-                  it 'should be unsuccessful' do
-                    expect(subject.successful?).to be false
-                  end
-
-                  it 'should have an error message' do
-                    expect(subject[:error]).to eq 'testing_error'
-                    expect(subject.key?(:message)).to be false
-                  end
-
-                  context 'with message' do
-                    let(:params) { {string: 'testing_error_with_message'} }
-
-                    it 'should have an error message' do
-                      expect(subject[:error]).to eq 'testing_error'
-                      expect(subject[:message]).to eq 'with_message'
-                    end
-                  end
-                end
-
-                context 'with nil argument' do
-                  let(:params) { nil }
-                  it { is_expected.to eq(token: 'token', params: {}, method: 'get') }
-                end
-              end # with argument
-            end # #get
-
-            describe '#update' do
-              let(:params) { {} }
-              let(:expected_resp) {
-                {
-                  method: 'update',
-                  int: 1, float: 1.1, bool: true, null: nil,
-                  params: json_h(params.merge(test_token: 'token'))
-                }
-              }
-
-              context 'without argument' do
-                subject { tests.update }
-                it { is_expected.to eq expected_resp }
-              end # without argument
-
-              context 'with argument' do
-                subject { tests.update(params) }
-
-                context 'with empty params' do
-                  let(:params) { {} }
-                  it { is_expected.to eq expected_resp }
-                end
-
-                context 'with params' do
-                  let(:params) { req_hash }
-                  it { is_expected.to eq expected_resp }
-                end
-              end # with argument
-            end # #update
-
-            describe '#delete' do
-              let(:params) { {} }
-              let(:expected_resp) { {token: 'token', params: json_h(params), method: 'delete'} }
-
-              context 'without argument' do
-                subject { tests.delete }
-                it { is_expected.to eq(expected_resp) }
-              end # without argument
-
-              context 'with argument' do
-                let(:params) { {} }
-                subject { tests.delete(params) }
-
-                before { client.connect(test_url) }
-                it { is_expected.to eq expected_resp }
-
-                context 'with params' do
-                  let(:params) { req_hash }
-                  it { is_expected.to eq expected_resp }
-                end
-              end # with argument
-            end # #delete
-
-            describe '#mounted_objects' do
-              let(:mounted_objects) { tests.mounted_objects(*margs) }
-
-              context 'with mounted object token' do
-                let(:margs) { ['mounted_id'] }
-
-                describe '#update' do
-                  let(:params) { req_hash }
-                  subject { mounted_objects.update(params) }
-                  it { is_expected.to eq res_hash.merge(test_token: 'token', mounted_object_id: 'mounted_id') }
-                end # #update
-
-                describe '#delete' do
-                  subject { mounted_objects.delete }
-                  it { is_expected.to eq(no: 'params accepted') }
-                end # #delete
-
-                # Multi-level
-                describe '#mounted_objects' do
-                  subject { mounted_objects.mounted_objects('mounted_id2').get }
-                  it { is_expected.to eq(test_token: 'token', mounted_object_id: 'mounted_id2') }
-                end
-              end # with mounted object token
-            end # mounted_object
-
-            describe '#mounted_objects!' do
-              let(:mounted_objects!) { tests.mounted_objects!(arg: 'required') }
-              subject { mounted_objects! }
-
-              it 'should raise an error' do
-                expect { subject.get }.to raise_error Errors::NotFoundError,
-                  '/v1/tests/token/mounted_objects'
-              end
-            end # mounted_objects!
-          end # with string argument
-
-          context 'with hash argument' do
-            let(:args) { [req_hash] }
-            it { is_expected.to eq json_h(req_hash).merge(method: 'search') }
-          end # with hash argument
-
-          context 'with no arguments' do
-            let(:args) { [] }
-            it { is_expected.to eq(method: 'search') }
-          end # with no arguments
-        end # with supported version
-      end # with connection
+        context 'with no arguments' do
+          let(:args) { [] }
+          it { is_expected.to eq(method: 'search') }
+        end # with no arguments
+      end # with supported version
     end # #tests
 
     describe '#tests!', :tests! do
       let(:tests!) { client.tests!(*args) }
       subject { tests! }
 
-      context 'without connection' do
-        context 'with no arguments' do
-          let(:args) { [] }
-          it { expect { subject }.to raise_error RuntimeError, 'not connected' }
-        end
+      context 'with no arguments' do
+        let(:args) { [] }
+        it { is_expected.to eq(method: 'create') }
+      end
 
-        context 'with hash argument' do
-          let(:args) { [{}] }
-          it { expect { subject }.to raise_error RuntimeError, 'not connected' }
-        end
-      end # without connection
-
-      context 'with connection' do
-        before { client.connect(test_url) }
-
-        context 'with no arguments' do
-          let(:args) { [] }
-          it { is_expected.to eq(method: 'create') }
-        end
-
-        context 'with hash argument' do
-          let(:args) { [req_hash] }
-          it { is_expected.to eq json_h(req_hash).merge(method: 'create') }
-        end # with hash argument
-      end # with connection
+      context 'with hash argument' do
+        let(:args) { [req_hash] }
+        it { is_expected.to eq json_h(req_hash).merge(method: 'create') }
+      end # with hash argument
     end # #tests!
 
     describe '#with_context' do

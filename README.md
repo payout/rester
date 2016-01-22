@@ -15,7 +15,22 @@ gem install rester
 ## Basic Usage
 
 ### Client-side
+For non-Rails applications and non-Rester services, a Rester middleware will be
+needed for creating a Correlation ID for outgoing requests. Add the middleware
+in `config.ru`:
 ```ruby
+require 'rester'
+use Rester::Client::Middleware::RequestHandler
+```
+This is done automatically for Rails applications
+
+```ruby
+# Service name defaults to the Rails application name or the name of a defined
+# Rester Service. If neither is available, a custom name must be set. Otherwise,
+# this field is optional.
+Rester.service_name = "My Customer Service Name"
+
+# Connect to the external service
 PaymentService = Rester.connect("http://url-to-service.com", version: 1)
 
 ##

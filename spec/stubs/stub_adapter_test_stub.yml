@@ -1,4 +1,5 @@
 # To be used in the stub_adapter_spec
+producer: some_producer
 
 /v1/tests:
   GET:

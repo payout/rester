@@ -1,17 +1,22 @@
 require 'uri'
 require 'rack'
 require 'active_support/inflector'
+require 'logger'
 
 module Rester
   class Service
-    autoload(:Request, 'rester/service/request')
-    autoload(:Resource,  'rester/service/resource')
+    autoload(:Request,    'rester/service/request')
+    autoload(:Resource,   'rester/service/resource')
+    autoload(:Middleware, 'rester/service/middleware')
+
+    attr_reader :logger
 
     ##
     # The base set of middleware to use for every service.
     # Middleware will be executed in the order specified.
     BASE_MIDDLEWARE = [
       Rack::Head,
+      Middleware::RequestHandler,
       Middleware::ErrorHandling,
       Middleware::Ping
     ].freeze
@@ -57,6 +62,10 @@ module Rester
         }.map(&:downcase).map(&:to_sym)
       end
 
+      def service_name
+        @__name ||= name.split('::').last
+      end
+
       def version_module(version)
         (@__version_modules ||= {})[version.to_sym] ||= _load_version_module(version)
       end
@@ -81,6 +90,19 @@ module Rester
       end
     end # Class methods
 
+    def logger
+      @_logger || Rester.logger
+    end
+
+    def logger=(new_logger)
+      new_logger = Utils::LoggerWrapper.new(new_logger) if new_logger
+      @_logger = new_logger
+    end
+
+    def name
+      self.class.service_name
+    end
+
     ##
     # To be called by Rack. Wraps the app in middleware.
     def rack_call(env)
@@ -102,7 +124,7 @@ module Rester
     # Calls methods that may modify instance variables, so the instance should
     # be dup'd beforehand.
     def call!(env)
-      _process_request(Request.new(env))
+      _process_request(Rester.request)
     end
 
     private
@@ -142,7 +164,6 @@ module Rester
     # request.
     def _call_method(request)
       params = request.params
-      retval = nil
       resource_obj = nil
       resource_id = nil
 

@@ -38,53 +38,93 @@ module Rester
 
         around { |ex| stub_adapter.with_context(context) { ex.run } }
 
+        context 'GET /ping' do
+          let(:verb) { :get }
+          let(:path) { '/ping' }
+          it { is_expected.to eq [
+            200,
+            { 'X-Rester-Producer-Name' => 'some_producer' },
+            '']
+          }
+        end # GET /ping
+
         context 'GET /v1/tests' do
           let(:verb) { :get }
           let(:path) { '/v1/tests' }
 
           context 'without query params' do
-            it { is_expected.to eq [200,
-              '{"message":"no query params specified"}'] }
+            it { is_expected.to eq [
+              200,
+              { 'X-Rester-Producer-Name' => 'some_producer' },
+              '{"message":"no query params specified"}']
+            }
           end
 
           context 'with no query params and context = "With error response"' do
             let(:context) { 'With error response' }
-            it { is_expected.to eq [400, '{"error":"a_test_error"}'] }
+            it { is_expected.to eq [
+              400,
+              { 'X-Rester-Producer-Name' => 'some_producer' },
+              '{"error":"a_test_error"}']
+            }
           end
 
           context 'with 3 query params' do
             let(:params) { { p1: 'one', p2: 2, p3: 3.3 } }
-            it { is_expected.to eq [200, '{"message":"one, 2, 3.3"}'] }
+            it { is_expected.to eq [
+              200,
+              { 'X-Rester-Producer-Name' => 'some_producer' },
+              '{"message":"one, 2, 3.3"}']
+            }
           end
 
           context 'with 3 query params and context = "With error response and three params"' do
             let(:params) { { p1: 'one', p2: 2, p3: 3.3 } }
             let(:context) { 'With error response and three params' }
 
-            it { is_expected.to eq [400,
-              '{"error":"error_with_multiple_params"}'] }
+            it { is_expected.to eq [
+              400,
+              { 'X-Rester-Producer-Name' => 'some_producer' },
+              '{"error":"error_with_multiple_params"}']
+            }
           end
 
           context 'with array param and context specified' do
             let(:context) { 'With array param' }
             let(:params) { { array: ['one', 'two', 'three'] } }
-            it { is_expected.to eq [200, '{"message":"array_received"}'] }
+            it { is_expected.to eq [
+              200,
+              { 'X-Rester-Producer-Name' => 'some_producer' },
+              '{"message":"array_received"}']
+            }
           end
 
           context 'with hash param and context specified' do
             let(:context) { 'With hash param' }
             let(:params) { { hash: { p1: 'one', p2: 2, p3: 3.3 } } }
-            it { is_expected.to eq [200, '{"message":"hash_received"}'] }
+            it { is_expected.to eq [
+              200,
+              { 'X-Rester-Producer-Name' => 'some_producer' },
+              '{"message":"hash_received"}']
+            }
           end
 
           context 'with array param and without context specified' do
             let(:params) { { array: ['one', 'two', 'three'] } }
-            it { is_expected.to eq [200, '{"message":"array_received"}'] }
+            it { is_expected.to eq [
+              200,
+              { 'X-Rester-Producer-Name' => 'some_producer' },
+              '{"message":"array_received"}']
+            }
           end
 
           context 'with hash param and without context specified' do
             let(:params) { { hash: { p1: 'one', p2: 2, p3: 3.3 } } }
-            it { is_expected.to eq [200, '{"message":"hash_received"}'] }
+            it { is_expected.to eq [
+              200,
+              { 'X-Rester-Producer-Name' => 'some_producer' },
+              '{"message":"hash_received"}']
+            }
           end
 
           context 'with undefined context' do
@@ -139,12 +179,20 @@ module Rester
           let(:path) { '/v1/tests' }
 
           context 'without body' do
-            it { is_expected.to eq [201, '{"message":"posted without body"}'] }
+            it { is_expected.to eq [
+              201,
+              { 'X-Rester-Producer-Name' => 'some_producer' },
+              '{"message":"posted without body"}']
+            }
           end
 
           context 'with body' do
             let(:params) { { p1: 'one', p2: 2, p3: 3.3 } }
-            it { is_expected.to eq [201, '{"message":"posted with body"}'] }
+            it { is_expected.to eq [
+              201,
+              { 'X-Rester-Producer-Name' => 'some_producer' },
+              '{"message":"posted with body"}']
+            }
           end
         end # POST /v1/tests
 

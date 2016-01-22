@@ -23,6 +23,7 @@ module Rester
     # Client Errors
     class ClientError < Error; end
     class CircuitOpenError < ClientError; end
+    class ConnectionError < ClientError; end
 
     #############
     # Stub Errors

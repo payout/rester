@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'rack', '~> 1.5', '>= 1.5.2'
   s.add_dependency 'activesupport'
+  s.add_dependency 'thread_safe'
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'rspec-rails'
   s.add_development_dependency 'sqlite3'
