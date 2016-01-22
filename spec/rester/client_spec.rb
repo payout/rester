@@ -170,7 +170,7 @@ module Rester
 
     describe '#name' do
       context 'before first real request' do
-        it 'should default #name to the service after first ping' do
+        it 'should equal the name provided by the initial ping response' do
           expect(client.name).to eq "DummyService"
         end
       end # before first real request
