@@ -17,7 +17,7 @@ RSpec::Matchers.define :include_stub_response do |stub|
     end
   }
 
-  failure_message { |actual| failure }
+  failure_message { failure }
 end
 
 RSpec.configure do |config|
@@ -31,7 +31,7 @@ RSpec.configure do |config|
       raise "invalid service to test"
     end
 
-    @rester_adapter = Rester::Client::Adapters::LocalAdapter.new(klass, {})
+    @rester_adapter = Rester::Client::Adapters::LocalAdapter.new(klass)
 
     _validate_test_coverage(ex)
   end
@@ -40,7 +40,7 @@ RSpec.configure do |config|
     _setup_example(ex) unless ex.pending?
   end
 
-  config.after :each, rester: // do |ex|
+  config.after :each, rester: // do
     if defined?(service_response_code)
       expect(service_response_code).to eq stub_response_code
     end

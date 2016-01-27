@@ -11,7 +11,7 @@ module Rester
 
       attr_reader :timeout
 
-      def initialize(service=nil, opts={})
+      def initialize(service = nil, opts = {})
         @timeout = opts[:timeout]
         connect(service) if service
       end
@@ -19,7 +19,7 @@ module Rester
       ##
       # Returns the headers defined for this Adapter. Optionally, you may also
       # define additional headers you'd like to add/override.
-      def headers(new_headers={})
+      def headers(new_headers = {})
         (@headers ||= {}).merge!(new_headers)
       end
 
