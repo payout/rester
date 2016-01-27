@@ -19,12 +19,12 @@ module Rester
 
         context 'with the timeout option given as integer' do
           let(:opts) { { timeout: 1234 } }
-          it { is_expected.to be 1234 }
+          it { is_expected.to eq 1234 }
         end
 
         context 'with the timeout option given as float' do
           let(:opts) { { timeout: 3.14159 } }
-          it { is_expected.to be 3.14159 }
+          it { is_expected.to eq 3.14159 }
         end
       end # #timeout
 

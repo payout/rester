@@ -92,7 +92,7 @@ module Rester
         # Takes a response key (e.g., "response[successful=false]") and parses out
         # the tags (e.g., {"successful" => false})
         def _parse_tags(path, verb, context, resp_key)
-          DEFAULT_TAGS.merge(resp_key.scan(/(\w+) *= *(\w+)/).to_h).tap { |tags|
+          DEFAULT_TAGS.merge(Hash[resp_key.scan(/(\w+) *= *(\w+)/)]).tap { |tags|
             _validate_tags(path, verb, context, tags)
           }
         end

@@ -164,24 +164,24 @@ RSpec.configure do |config|
   #   }
   # }
   def _missing_stub_tests(tests)
-    @rester_stub.reject { |k, _|
+    Hash[@rester_stub.reject { |k, _|
       ['version', 'consumer', 'producer'].include?(k)
     }.map { |path, verbs|
       [
         path,
-        verbs.map { |verb, contexts|
+        Hash[verbs.map { |verb, contexts|
           [
             verb,
-            contexts.map { |context, _|
+            Hash[contexts.map { |context, _|
               [
                 context,
                 !!(tests[path] && tests[path][verb] && tests[path][verb][context])
               ]
-            }.to_h.reject { |_, v| v }
+            }].reject { |_, v| v }
           ]
-        }.to_h.reject { |_, v| v.empty? }
+        }].reject { |_, v| v.empty? }
       ]
-    }.to_h.reject { |_, v| v.empty? }
+    }].reject { |_, v| v.empty? }
   end
 
   def _find_child_with_description(group, description)

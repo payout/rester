@@ -65,7 +65,7 @@ module Rester
 
 
       def _headers_to_http_format(headers={})
-        headers.map { |k,v| ["HTTP_#{k.to_s.upcase.gsub('-', '_')}", v] }.to_h
+        Hash[headers.map { |k,v| ["HTTP_#{k.to_s.upcase.gsub('-', '_')}", v] }]
       end
     end # LocalAdapter
   end # Client::Adapters

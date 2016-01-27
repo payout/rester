@@ -51,9 +51,9 @@ module Rester
           _error!("unexpected params: #{unexpected.join(', ')}")
         end
 
-        validated_params = params.map do |key, value|
-          [key.to_sym, validate!(key.to_sym, value)]
-        end.to_h
+        validated_params = Hash[
+          params.map { |key, value| [key.to_sym, validate!(key.to_sym, value)] }
+        ]
 
         @_defaults.merge(validated_params)
       end

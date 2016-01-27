@@ -37,7 +37,7 @@ module Rester
     let(:req_hash) { {string: "string", integer: 1, float: 1.1, symbol: :symbol, bool: true, null: nil} }
 
     # Response Hash
-    let(:res_hash) { req_hash.map{|k,v| [k, v.nil? ? nil : v.to_s]}.to_h }
+    let(:res_hash) { Hash[req_hash.map{|k,v| [k, v.nil? ? nil : v.to_s]}] }
 
     describe '#connected?', :connected? do
       subject { client.connected? }

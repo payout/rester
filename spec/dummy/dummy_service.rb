@@ -172,7 +172,7 @@ module Rester
           use shared_params
         end
         def search(params)
-          params[:nil_return_val] ? nil : [[:this, :that]]
+          params[:nil_return_val] ? nil : {this: :that}
         end
       end # TestWithNonHashValue
 
