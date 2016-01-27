@@ -4,7 +4,7 @@ require 'active_support/inflector'
 NewRelic::Agent.manual_start unless defined?(Rails)
 
 module Rester
-  module Middleware
+  module Service::Middleware
     class NewRelic < Base
       include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 

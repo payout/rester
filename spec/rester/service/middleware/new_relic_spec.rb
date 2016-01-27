@@ -1,7 +1,7 @@
 require 'support/new_relic_test_service'
 
 module Rester
-  module Middleware
+  module Service::Middleware
     RSpec.describe NewRelic do
       let(:instance) { NewRelic.new(app) }
       let(:app) { NewRelicTestService.new }
@@ -77,5 +77,5 @@ module Rester
         end
       end # #identify_method
     end # NewRelic
-  end # Middleware
+  end # Service::Middleware
 end # Rester

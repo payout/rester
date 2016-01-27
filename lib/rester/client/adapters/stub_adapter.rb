@@ -30,7 +30,15 @@ module Rester
         !!stub
       end
 
+      def producer
+        stub['producer']
+      end
+
       def request!(verb, path, encoded_data)
+        if verb == :get && path == '/ping'
+          return [200, { 'X-Rester-Producer-Name' => producer }, '']
+        end
+
         params = Rack::Utils.parse_nested_query(encoded_data)
         _request(verb.to_s.upcase, path, params)
       end
@@ -45,7 +53,11 @@ module Rester
 
       def _request(verb, path, params)
         spec = _process_request(path, verb, params)
-        [spec['response_code'], spec['response'].to_json]
+        [
+          spec['response_code'],
+          { 'X-Rester-Producer-Name' => producer },
+          spec['response'].to_json
+        ]
       end
 
       def _process_request(path, verb, params)

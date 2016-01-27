@@ -38,7 +38,12 @@ module Rester
       private
 
       def _prepare_response(response)
-        [response.code.to_i, response.body]
+        # We want to format the header keys in the way we would expect it in our
+        # client: X-Rester-Header-Key.
+        #
+        # http://ruby-doc.org/stdlib-2.1.1/libdoc/net/http/rdoc/Net/HTTPHeader.html
+        headers = {}.tap { |h| response.each_capitalized { |k,v| h[k] = v } }
+        [response.code.to_i, headers, response.body]
       end
 
       def _require_connection

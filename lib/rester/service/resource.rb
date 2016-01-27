@@ -82,7 +82,7 @@ module Rester
       # determining which instance method to call. For example, if the request
       # method is GET: the ID being specified will call the `get` method and if
       # it's not specified then it will call the `search` method.
-      def process(request_method, id_provided, params={})
+      def process(request_method, id_provided, params = {})
         meth = (id_provided ? REQUEST_METHOD_TO_IDENTIFIED_METHOD
           : REQUEST_METHOD_TO_UNIDENTIFIED_METHOD)[request_method]
 

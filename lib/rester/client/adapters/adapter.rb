@@ -37,7 +37,7 @@ module Rester
       end
 
       ##
-      # Sends an HTTP request to the service.
+      # Sends a request (using one of the subclass adapters) to the service.
       #
       # `params` should be a hash if specified.
       def request(verb, path, params = nil)

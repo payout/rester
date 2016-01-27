@@ -34,6 +34,7 @@ module Rester
           case params[:command_name]
           when :sleep
             _sleep(params[:sleep_time])
+            {}
           else
             fail "unexpected command: #{params[:command_name]}"
           end
@@ -171,7 +172,7 @@ module Rester
           use shared_params
         end
         def search(params)
-          params[:nil_return_val] ? nil : [[:this, :that]]
+          params[:nil_return_val] ? nil : {this: :that}
         end
       end # TestWithNonHashValue
 

@@ -2,7 +2,11 @@ require 'support/test_service'
 
 module Rester
   RSpec.describe Service do
-    let(:service) { Class.new(Service) }
+    let(:service) do
+      Class.new(Service).tap { |klass|
+        allow(klass).to receive(:name) { 'Service' }
+      }
+    end
 
     describe '::use' do
       subject { service.use(*middleware) }
@@ -19,6 +23,19 @@ module Rester
         let(:middleware_class) { double('middleware') }
         let(:middleware) { [middleware_class, *args] }
 
+        # Setup mock middleware
+        # Need to do this since we're mocking the ::new method.
+        before {
+          service_inst = nil
+
+          allow(middleware_class).to receive(:new) { |a|
+            service_inst = a
+            middleware_class
+          }
+
+          allow(middleware_class).to receive(:app) { service_inst }
+        }
+
         after {
           subject
           service.call({})
@@ -28,7 +45,8 @@ module Rester
           let(:args) { [] }
 
           it 'should call constructor with service instance' do
-            expect(middleware_class).to receive(:new).with(service.instance).once
+            expect(middleware_class).to receive(:new).with(service.instance)
+              .once
           end
         end # with middleware but no arguments
 
@@ -349,5 +367,33 @@ module Rester
         end
       end
     end # ::call
+
+    describe '::service_name' do
+      let(:service) { Rester::DummyService }
+      subject { service.service_name }
+
+      it { is_expected.to eq "DummyService" }
+    end # ::service_name
+
+    describe '#name' do
+      let(:service) { Rester::DummyService }
+      subject { service.instance.name }
+
+      it { is_expected.to eq "DummyService" }
+    end # #name
+
+    describe '#logger' do
+      subject { service.logger }
+      it { is_expected.to eq Rester.logger }
+    end # #logger
+
+    describe '#logger=' do
+      let(:new_logger) { double('logger') }
+      before { service.logger = new_logger }
+      subject { service.logger }
+      it 'should set the new logger' do
+        expect(subject.logger).to eq new_logger
+      end
+    end # #logger=
   end # Service
 end # Rester

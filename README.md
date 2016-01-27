@@ -1,4 +1,4 @@
-[![Gem Version](https://badge.fury.io/rb/rester.svg)](http://badge.fury.io/rb/rester) [![Build Status](https://semaphoreci.com/api/v1/projects/a4233ca0-25dd-49ff-8bde-4ed5218d8f60/559761/shields_badge.svg)](https://semaphoreci.com/payout/rester) [![Code Climate](https://codeclimate.com/github/payout/rester/badges/gpa.svg)](https://codeclimate.com/github/payout/rester) [![Test Coverage](https://codeclimate.com/github/payout/rester/badges/coverage.svg)](https://codeclimate.com/github/payout/rester/coverage)
+[![Gem Version](https://badge.fury.io/rb/rester.svg)](http://badge.fury.io/rb/rester) [![Build Status](https://travis-ci.org/payout/rester.svg?branch=master)](https://travis-ci.org/payout/rester) [![Code Climate](https://codeclimate.com/github/payout/rester/badges/gpa.svg)](https://codeclimate.com/github/payout/rester) [![Test Coverage](https://codeclimate.com/github/payout/rester/badges/coverage.svg)](https://codeclimate.com/github/payout/rester/coverage)
 
 # Rester
 An opinionated framework for creating simple and effective RESTful interfaces between application services. The intended use-case is inter-service communication, not to provide a publically accessible API. There are better libraries for doing that (e.g., grape).
@@ -15,7 +15,22 @@ gem install rester
 ## Basic Usage
 
 ### Client-side
+For non-Rails applications and non-Rester services, a Rester middleware will be
+needed for creating a Correlation ID for outgoing requests. Add the middleware
+in `config.ru`:
 ```ruby
+require 'rester'
+use Rester::Client::Middleware::RequestHandler
+```
+This is done automatically for Rails applications
+
+```ruby
+# Service name defaults to the Rails application name or the name of a defined
+# Rester Service. If neither is available, a custom name must be set. Otherwise,
+# this field is optional.
+Rester.service_name = "My Customer Service Name"
+
+# Connect to the external service
 PaymentService = Rester.connect("http://url-to-service.com", version: 1)
 
 ##
