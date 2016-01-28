@@ -67,7 +67,7 @@ RSpec.configure do |config|
 
     begin
       spec = @rester_stub[path][verb][context]
-      _stub_path_not_found(path, verb, context) if spec.nil?
+      _stub_path_not_found(path, verb, context) unless spec
     rescue NoMethodError
       _stub_path_not_found(path, verb, context)
     end
@@ -106,7 +106,7 @@ RSpec.configure do |config|
   end
 
   def _stub_path_not_found(path, verb, context)
-    fail Rester::Errors::StubError,
+    fail Rester::Errors::TestError,
       "Could not find path: #{path.inspect} verb: #{verb.inspect} context: "\
         "#{context.inspect} in #{@rester_stub_filepath}"
   end
