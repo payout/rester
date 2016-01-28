@@ -30,6 +30,11 @@ module Rester
     class StubError < Error; end
 
     #############
+    # RSpec Errors
+    class RSpecError < Error; end
+    class TestError < RSpecError; end
+
+    #############
     # Http Errors
     class HttpError < Error; end
 

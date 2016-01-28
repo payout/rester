@@ -67,10 +67,9 @@ RSpec.configure do |config|
 
     begin
       spec = @rester_stub[path][verb][context]
+      _stub_path_not_found(path, verb, context) unless spec
     rescue NoMethodError
-      fail Rester::Errors::StubError,
-        "Could not find path: #{path.inspect} verb: #{verb.inspect} context: "\
-          "#{context.inspect} in #{@rester_stub_filepath}"
+      _stub_path_not_found(path, verb, context)
     end
 
     ##
@@ -104,6 +103,12 @@ RSpec.configure do |config|
     # Set the subject to be the service response (parsed ruby hash of the
     # returned data).
     ex.example_group.let(:subject) { service_response }
+  end
+
+  def _stub_path_not_found(path, verb, context)
+    fail Rester::Errors::TestError,
+      "Could not find path: #{path.inspect} verb: #{verb.inspect} context: "\
+        "#{context.inspect} in #{@rester_stub_filepath}"
   end
 
   ##
