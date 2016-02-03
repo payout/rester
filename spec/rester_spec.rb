@@ -6,12 +6,6 @@ RSpec.describe Rester do
     let(:client) { Rester.connect(*connect_args) }
     let(:adapter) { subject.adapter }
 
-    around { |ex|
-      Rester.begin_request
-      ex.run
-      Rester.end_request
-    }
-
     context 'with url' do
       let(:url) { RSpec.server_uri }
       let(:connect_args) { [url] }
@@ -32,9 +26,7 @@ RSpec.describe Rester do
       let(:connect_args) { [Rester::DummyService, opts] }
       before {
         client # Prime the client so the initial ping is sent
-        Rester.begin_request # Begin the request again since the service ends it
       }
-      after { Rester.end_request }
 
       it { is_expected.to be_a Rester::Client }
 
@@ -142,7 +134,7 @@ RSpec.describe Rester do
     end # without circuit_breaker_enabled
   end # ::connect
 
-  describe '::service_name' do
+  describe '::service_name', :service_name do
     subject { Rester.service_name }
 
     it 'should default to the Rails application name' do
@@ -155,28 +147,75 @@ RSpec.describe Rester do
     end # with service_name set
   end # ::service_name
 
-  describe '::begin_request' do
-    subject { Rester.request_info }
-    before { Rester.begin_request }
-    it { is_expected.to eq({}) }
-  end # ::begin_request
+  describe '::wrap_request', :wrap_request do
+    subject { Rester.wrap_request(&block) }
 
-  describe '::end_request' do
-    subject { Rester.request_info }
-    before { Rester.end_request }
-    it { is_expected.to eq nil }
-  end # ::end_request
+    context 'with unnested call' do
+      let(:response) { SecureRandom.uuid }
+      let(:block) { proc { expect(Rester.request_info).to eq({}); response } }
+
+      it 'should initialize request_info hash' do
+        expect(Rester.request_info).to be nil
+        subject
+      end
+
+      it 'should return retval of block' do
+        is_expected.to eq response
+      end
+
+      it 'should clear request_info after the block ends' do
+        subject
+        expect(Rester.request_info).to be nil
+      end
+    end
+
+    context 'with unnested call that raises error' do
+      let(:block) { proc { fail } }
+
+      it 'should clear request_info after the block ends' do
+        expect { subject }.to raise_error
+        expect(Rester.request_info).to be nil
+      end
+    end
+
+    context 'with nested call' do
+      let(:block) do
+        proc do
+          orig = Rester.request_info
+          Rester.wrap_request { expect(Rester.request_info).to be orig }
+        end
+      end
+
+      it 'should preserve the same request_info hash' do
+        expect(Rester.request_info).to be nil
+        subject
+      end
+
+      it 'should clear request_info after the block ends' do
+        subject
+        expect(Rester.request_info).to be nil
+      end
+    end
+
+    context 'with nested call that raises error' do
+      let(:block) { proc { Rester.wrap_request { fail } } }
+
+      it 'should clear request_info after the block ends' do
+        expect { subject }.to raise_error
+        expect(Rester.request_info).to be nil
+      end
+    end
+  end # ::wrap_request
 
   describe '::processing_request?' do
     subject { Rester.processing_request? }
 
-    context 'with request processing' do
-      before { Rester.begin_request }
+    context 'within a wrap_request' do
+      around { |ex| Rester.wrap_request { ex.run } }
       it { is_expected.to be true }
     end
 
     context 'with no request processing' do
-      before { Rester.end_request }
       it { is_expected.to be false }
     end
   end # ::processing_request?
@@ -226,16 +265,25 @@ RSpec.describe Rester do
   describe '::correlation_id' do
     subject { Rester.correlation_id }
 
-    context 'with correlation id set' do
-      before { Rester.request_info = {correlation_id: id } }
-      let(:id) { SecureRandom.uuid }
-      it { is_expected.to eq id }
-    end # with correlation id set
+    context 'within wrap_request' do
+      around { |ex| Rester.wrap_request { ex.run } }
 
-    context 'with correlation_id not set' do
-      before { Rester.end_request }
-      it { is_expected.to eq nil }
-    end # with correlation_id not set
+      context 'with correlation_id set' do
+        let(:id) { SecureRandom.uuid }
+        before { Rester.request_info[:correlation_id] = id }
+        it { is_expected.to eq id }
+      end
+
+      context 'with correlation_id not set' do
+        it { is_expected.to be nil }
+      end
+    end # within wrap_request
+
+    context 'not within wrap_request' do
+      context 'with correlation_id not set' do
+        it { is_expected.to be nil }
+      end # with correlation_id not set
+    end # not within wrap_request
   end # ::correlation_id
 
   describe '::correlation_id=' do

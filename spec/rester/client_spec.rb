@@ -7,12 +7,6 @@ module Rester
       JSON.parse(params.to_json, symbolize_names: true)
     end
 
-    around { |ex|
-      Rester.begin_request
-      ex.run
-      Rester.end_request
-    }
-
     let(:client) { Client.new(adapter, client_opts) }
     let(:adapter) { Client::Adapters::HttpAdapter.new(test_url) }
     let(:client_opts) do
@@ -41,9 +35,26 @@ module Rester
 
     describe '#connected?', :connected? do
       subject { client.connected? }
-      it { is_expected.to be true }
 
-      context 'with connection error' do
+      context 'with HttpAdapter' do
+        let(:adapter) { Client::Adapters::HttpAdapter.new(test_url) }
+        it { is_expected.to be true }
+      end
+
+      context 'with StubAdapter' do
+        let(:adapter) do
+          Client::Adapters::StubAdapter.new('spec/stubs/dummy_stub.yml')
+        end
+
+        it { is_expected.to be true }
+      end
+
+      context 'with LocalAdapter' do
+        let(:adapter) { Client::Adapters::LocalAdapter.new(DummyService) }
+        it { is_expected.to be true }
+      end
+
+      context 'with adapter returning false to #connected?' do
         let(:adapter) { double('adapter', connected?: false) }
         it { expect { subject }.to raise_error Errors::ConnectionError }
       end
@@ -229,16 +240,28 @@ module Rester
         }
         after { error_request }
 
-        it 'should log that circuit is now opened' do
-          correlation_id = Rester.correlation_id
-          producer = Rester.request_info[:producer_name]
-          consumer = Rester.request_info[:consumer_name]
+        context 'within Rester.wrap_request' do
+          around { |ex| Rester.wrap_request { ex.run } }
 
-          expect(logger).to receive(:error).with(
-            "Correlation-ID=#{correlation_id} Consumer=#{consumer} " \
-            "Producer=#{producer} GET /v1/ping - circuit opened for " \
-            "DummyService"
-          ).once
+          it 'should log that circuit is now opened' do
+            correlation_id = Rester.correlation_id
+            producer = Rester.request_info[:producer_name]
+            consumer = Rester.request_info[:consumer_name]
+
+            expect(logger).to receive(:error).with(
+              "Correlation-ID=#{correlation_id} Consumer=#{consumer} " \
+              "Producer=#{producer} GET /v1/ping - circuit opened for " \
+              "DummyService"
+            ).once
+          end
+        end # within Rester.wrap_request
+
+        context 'not within Rester.wrap_request' do
+          it 'should log that circuit is now opened' do
+            expect(logger).to receive(:error).with(
+              'circuit opened for DummyService'
+            ).once
+          end
         end
       end # with error_threshold reached
 
@@ -280,26 +303,42 @@ module Rester
         before { error_threshold.times { error_request } }
         after { let_retry_period_pass; success_request }
 
-        it 'should log that circuit is now closed' do
-          correlation_id = Rester.correlation_id
-          producer = Rester.request_info[:producer_name]
-          consumer = Rester.request_info[:consumer_name]
+        context 'within Rester.wrap_request' do
+          around { |ex| Rester.wrap_request { ex.run } }
 
-          expect(logger).to receive(:info).with(
-            "Correlation-ID=#{correlation_id} Consumer=#{consumer} " \
-            "Producer=#{producer} GET /v1/ping - circuit closed for " \
-            "DummyService"
-          ).once
-        end
+          it 'should log that circuit is now closed' do
+            correlation_id = Rester.correlation_id
+            producer = Rester.request_info[:producer_name]
+            consumer = Rester.request_info[:consumer_name]
+
+            expect(logger).to receive(:info).with(
+              "Correlation-ID=#{correlation_id} Consumer=#{consumer} " \
+              "Producer=#{producer} GET /v1/ping - circuit closed for " \
+              "DummyService"
+            ).once
+          end
+        end # within Rester.wrap_request
+
+        context 'not within Rester.wrap_request' do
+          it 'should log that circuit is now closed' do
+            expect(logger).to receive(:info).with(
+              'circuit closed for DummyService'
+            ).once
+          end
+        end # not within Rester.wrap_request
       end # with error_threshold reached
 
       context 'with request info defined' do
         let(:logger) { double('logger') }
-        before {
-          Rester.begin_request
-          Rester.request_info[:correlation_id] = SecureRandom.uuid
-          Rester.request_info[:consumer_name] = "TestConsumer"
-        }
+
+        around do |ex|
+          Rester.wrap_request do
+            Rester.request_info[:correlation_id] = SecureRandom.uuid
+            Rester.request_info[:consumer_name] = "TestConsumer"
+            ex.run
+          end
+        end
+
         after { success_request }
 
         it 'should log the correct messages' do
