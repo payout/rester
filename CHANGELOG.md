@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.3
+ * [[#88](https://github.com/payout/rester/issues/88)] - Fixing bug with how request information is managed.
+
 ## 0.5.2
  * [[#24](https://github.com/payout/rester/issues/24)][[#86](https://github.com/payout/rester/issues/86)] - Automatically generating, managing and logging correlation IDs for requests. This allows correlating multiple rester requests/responses between multiple rester services.
  * [[#80](https://github.com/payout/rester/issues/80)] - Disabled circuit breaker when using StubAdapter. This improves testing.
