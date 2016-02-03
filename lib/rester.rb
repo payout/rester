@@ -47,12 +47,15 @@ module Rester
       @_service_name = name
     end
 
-    def begin_request
-      self.request_info = {}
-    end
+    ##
+    # Used to manage the thread-safe `Rester.request_info` object.
+    def wrap_request
+      outer_most = !request_info
 
-    def end_request
-      self.request_info = nil
+      self.request_info = {} if outer_most
+      yield
+    ensure
+      self.request_info = nil if outer_most
     end
 
     def processing_request?

@@ -12,16 +12,16 @@ module Rester
       let(:producer_name) { 'TestProducer' }
       let(:consumer_name) { 'TestConsumer' }
 
-      before {
-        Rester.begin_request
-        Rester.correlation_id = id
-        Rester.request_info[:producer_name] = producer_name
-        Rester.request_info[:consumer_name] = consumer_name
-        Rester.request_info[:verb] = 'GET'
-        Rester.request_info[:path] = '/v1/tests'
-      }
-
-      after { Rester.end_request }
+      around do |ex|
+        Rester.wrap_request do
+          Rester.correlation_id = id
+          Rester.request_info[:producer_name] = producer_name
+          Rester.request_info[:consumer_name] = consumer_name
+          Rester.request_info[:verb] = 'GET'
+          Rester.request_info[:path] = '/v1/tests'
+          ex.run
+        end
+      end
 
       describe '#call' do
         let(:logger) { double('logger') }

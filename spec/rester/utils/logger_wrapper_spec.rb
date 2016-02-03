@@ -49,15 +49,16 @@ module Rester
         context 'within a request' do
           let(:id) { SecureRandom.uuid }
 
-          before {
-            Rester.begin_request
-            Rester.correlation_id = id
-            Rester.request_info[:producer_name] = 'producer'
-            Rester.request_info[:consumer_name] = 'consumer'
-            Rester.request_info[:path] = '/v1/tests'
-            Rester.request_info[:verb] = 'GET'
-          }
-          after { Rester.end_request }
+          around do |ex|
+            Rester.wrap_request do
+              Rester.correlation_id = id
+              Rester.request_info[:producer_name] = 'producer'
+              Rester.request_info[:consumer_name] = 'consumer'
+              Rester.request_info[:path] = '/v1/tests'
+              Rester.request_info[:verb] = 'GET'
+              ex.run
+            end
+          end
 
           it 'should log the message' do
             expect(custom_logger).to receive(:info).with("Correlation-ID=" \

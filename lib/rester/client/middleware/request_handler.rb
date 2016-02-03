@@ -2,12 +2,11 @@ module Rester
   module Client::Middleware
     class RequestHandler < Base
       def call(env)
-        Rester.begin_request
-        Rester.correlation_id = SecureRandom.uuid
-        Rester.request_info[:consumer_name] = Rester.service_name
-        super
-      ensure
-        Rester.end_request
+        Rester.wrap_request do
+          Rester.correlation_id = SecureRandom.uuid
+          Rester.request_info[:consumer_name] = Rester.service_name
+          super
+        end
       end
     end # RequestHandlers
   end # Client::Middleware

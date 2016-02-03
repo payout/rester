@@ -35,7 +35,8 @@ module Rester
 
     def connected?
       adapter.connected? && @_requester.call(:get, '/ping', {}).successful?
-    rescue
+    rescue Exception => e
+      logger.error("Connection Error: #{e.inspect}")
       false
     end
 
@@ -122,15 +123,17 @@ module Rester
     ##
     # Add a correlation ID to the header and send the request to the adapter
     def _request(verb, path, params)
-      Rester.request_info[:producer_name] = name
-      Rester.request_info[:path] = path
-      Rester.request_info[:verb] = verb
-      logger.info('sending request')
+      Rester.wrap_request do
+        Rester.request_info[:producer_name] = name
+        Rester.request_info[:path] = path
+        Rester.request_info[:verb] = verb
+        logger.info('sending request')
 
-      _set_default_headers
-      start_time = Time.now.to_f
-      response = adapter.request(verb, path, params)
-      _process_response(start_time, verb, path, *response)
+        _set_default_headers
+        start_time = Time.now.to_f
+        response = adapter.request(verb, path, params)
+        _process_response(start_time, verb, path, *response)
+      end
     end
 
     def _set_default_headers
