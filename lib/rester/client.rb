@@ -35,7 +35,8 @@ module Rester
 
     def connected?
       adapter.connected? && @_requester.call(:get, '/ping', {}).successful?
-    rescue
+    rescue Exception => e
+      logger.error("Connection Error: #{e.inspect}")
       false
     end
 

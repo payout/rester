@@ -58,6 +58,24 @@ module Rester
         let(:adapter) { double('adapter', connected?: false) }
         it { expect { subject }.to raise_error Errors::ConnectionError }
       end
+
+      context 'with adapter raising error' do
+        let(:logger) { double('logger') }
+        let(:adapter) { double('adapter', connected?: true) }
+
+        before do
+          allow(adapter).to receive(:request) { fail 'adapter error' }
+          allow(adapter).to receive(:headers)
+          allow(logger).to receive(:info)
+          allow(logger).to receive(:error)
+        end
+
+        it 'should log error' do
+          expect(logger).to receive(:error).with('Connection Error: '\
+            '#<RuntimeError: adapter error>')
+          expect { subject }.to raise_error Errors::ConnectionError
+        end
+      end
     end # #connected?
 
     describe '#version', :version do
