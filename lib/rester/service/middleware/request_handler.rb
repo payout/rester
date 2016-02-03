@@ -15,9 +15,12 @@ module Rester
 
         service.logger.info('request received')
 
+        start_time = Time.now.to_f
         super.tap { |response|
+          elapsed_ms = (Time.now.to_f - start_time) * 1000
           response[1]["X-Rester-Producer-Name"] = service.name
-          service.logger.info("responding with #{response[0]}")
+          service.logger.info("responding with #{response[0]} after %0.3fms" %
+            elapsed_ms)
         }
       ensure
         Rester.end_request
