@@ -308,9 +308,10 @@ module Rester
           expect(logger).to receive(:info).with("Correlation-ID=" \
             "#{correlation_id} Consumer=TestConsumer Producer=DummyService GET " \
             "/v1/ping - sending request").once
-          expect(logger).to receive(:info).with("Correlation-ID=" \
-            "#{correlation_id} Consumer=TestConsumer Producer=DummyService GET " \
-            "/v1/ping - received status 200").once
+          expect(logger).to receive(:info).with(a_string_matching %r{
+            \ACorrelation-ID=#{correlation_id}\sConsumer=TestConsumer\sProducer=
+            DummyService\sGET\s/v1/ping\s-\sreceived\sstatus\s200\safter\s0\.
+            \d{3}ms\z}x).once
         end
       end # with request info defined
     end # #request

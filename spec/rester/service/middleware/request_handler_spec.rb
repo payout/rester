@@ -46,9 +46,9 @@ module Rester
             expect(logger).to receive(:info).with("Correlation-ID=#{id} " \
               "Consumer=TestClient Producer=Service GET / - request received")
               .once
-            expect(logger).to receive(:info).with("Correlation-ID=#{id} " \
-              "Consumer=TestClient Producer=Service GET / - responding with" \
-              " 200").once
+            expect(logger).to receive(:info).with(a_string_matching %r{
+              \ACorrelation-ID=#{id}\sConsumer=TestClient\sProducer=Service\sGET\s
+              /\s-\sresponding\swith\s200\safter\s0\.\d{3}ms\z}x).once
           end
         end # with successful response
 
@@ -68,9 +68,9 @@ module Rester
             expect(logger).to receive(:info).with("Correlation-ID=#{id} " \
               "Consumer=TestClient Producer=Service GET / - request received")
               .once
-            expect(logger).to receive(:info).with("Correlation-ID=#{id} " \
-              "Consumer=TestClient Producer=Service GET / - responding with" \
-              " 500").once
+            expect(logger).to receive(:info).with(a_string_matching %r{
+              \ACorrelation-ID=#{id}\sConsumer=TestClient\sProducer=Service\sGET\s
+              /\s-\sresponding\swith\s500\safter\s0\.\d{3}ms\z}x).once
           end
         end # with error response
       end # #call

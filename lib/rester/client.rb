@@ -128,7 +128,9 @@ module Rester
       logger.info('sending request')
 
       _set_default_headers
-      _process_response(verb, path, *adapter.request(verb, path, params))
+      start_time = Time.now.to_f
+      response = adapter.request(verb, path, params)
+      _process_response(start_time, verb, path, *response)
     end
 
     def _set_default_headers
@@ -143,10 +145,11 @@ module Rester
       Utils.join_paths("/v#{version}", path)
     end
 
-    def _process_response(verb, path, status, headers, body)
+    def _process_response(start_time, verb, path, status, headers, body)
+      elapsed_ms = (Time.now.to_f - start_time) * 1000
       response = Response.new(status, _parse_json(body))
       @_producer_name = headers['X-Rester-Producer-Name']
-      logger.info("received status #{status}")
+      logger.info("received status #{status} after %0.3fms" % elapsed_ms)
 
       unless [200, 201, 400].include?(status)
         case status
