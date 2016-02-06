@@ -63,7 +63,7 @@ module Rester
       end
 
       def service_name
-        @__name ||= name.split('::').last
+        @__name ||= (name && name.split('::').last) || 'Anonymous'
       end
 
       def version_module(version)

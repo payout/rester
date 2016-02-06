@@ -369,10 +369,17 @@ module Rester
     end # ::call
 
     describe '::service_name' do
-      let(:service) { Rester::DummyService }
       subject { service.service_name }
 
-      it { is_expected.to eq "DummyService" }
+      context 'with named service class' do
+        let(:service) { Rester::DummyService }
+        it { is_expected.to eq "DummyService" }
+      end
+
+      context 'with anonymous service class' do
+        let(:service) { Class.new(Service) }
+        it { is_expected.to eq 'Anonymous' }
+      end
     end # ::service_name
 
     describe '#name' do

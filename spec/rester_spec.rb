@@ -1,10 +1,19 @@
 require 'securerandom'
 
 RSpec.describe Rester do
-  describe '::connect' do
+  describe '::connect', :connect do
     subject { client }
     let(:client) { Rester.connect(*connect_args) }
     let(:adapter) { subject.adapter }
+
+    ##
+    # This relies on the `spec/dummy/config/initializers/rester.rb` file calling
+    # Rester.connect.  Would like to find a cleaner way to test this logic, but
+    # given that Rails is global, I don't know how to do it at this time.
+    it 'should have installed middleware in Rails when first run' do
+      expect(Rails.configuration.middleware.last)
+        .to eq Rester::Client::Middleware::RequestHandler
+    end
 
     context 'with url' do
       let(:url) { RSpec.server_uri }
