@@ -13,11 +13,6 @@ module Rester
 
   @_request_infos ||= ThreadSafe::Cache.new
 
-  # Set up the Client middleware if it's a Rails application
-  if defined?(Rails) && Rails.application
-    Rails.configuration.middleware.use(Client::Middleware::RequestHandler)
-  end
-
   class << self
     def logger
       @_logger ||= Utils::LoggerWrapper.new
@@ -34,6 +29,7 @@ module Rester
     end
 
     def connect(service, params = {})
+      _install_middleware_if_needed
       adapter_opts = Client::Adapters.extract_opts(params)
       adapter = Client::Adapters.connect(service, adapter_opts)
       Client.new(adapter, params)
@@ -99,6 +95,18 @@ module Rester
         services = Service.descendants
         fail "Define a service name" if services.empty?
         services.first.service_name
+      end
+    end
+
+    ##
+    # On the first call, installs the Client RequestHandler middleware into the
+    # host application. Subsequent calls will do nothing.
+    def _install_middleware_if_needed
+      return if @__middleware_installed
+      @__middleware_installed = true
+
+      if defined?(Rails) && Rails.application
+        Rails.configuration.middleware.use(Client::Middleware::RequestHandler)
       end
     end
   end # Class Methods
