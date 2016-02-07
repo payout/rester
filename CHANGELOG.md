@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.4
+ * [[#90](https://github.com/payout/rester/issues/90)] - Automatically installing Client::Middleware::RequestHandler on first call to `Rester.connect`. This is useful for Rails apps.
+
 ## 0.5.3
  * [[#88](https://github.com/payout/rester/issues/88)] - Fixing bug with how request information is managed.
 
