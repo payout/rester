@@ -20,7 +20,9 @@ module Rester
               assert_deep_include(response[i], e, accessors + [i])
             }
           else
-            _match_error(response, stub, accessors) unless stub == response
+            unless stub == response || (stub.is_a?(Regexp) && stub =~ response)
+              _match_error(response, stub, accessors)
+            end
             true
           end
         end

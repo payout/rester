@@ -96,6 +96,14 @@ module Rester
               expect { subject }.to raise_error Errors::StubError, "Stub[:some_array][0]=3 doesn't match Response[:some_array][0]=1"
             end
           end
+
+          context 'with different regexp value' do
+            let(:response) { test_hash }
+            let(:stub) { test_hash.merge(string: /\Abad_matcher\z/) }
+            it 'should raise an error' do
+              expect { subject }.to raise_error Errors::StubError, "Stub[:string]=/\\Abad_matcher\\z/ doesn't match Response[:string]=\"hello\""
+            end
+          end
         end # with failures
 
         context 'with successes' do
@@ -132,6 +140,12 @@ module Rester
           context 'with hash in a nested array' do
             let(:response) {{ some_array: [1, 2, { hello: :world }] }}
             let(:stub) { response.dup }
+            it { is_expected.to be true }
+          end
+
+          context 'with matching regexp value' do
+            let(:response) { test_hash }
+            let(:stub) { test_hash.merge(string: /\Ahe.*\z/) }
             it { is_expected.to be true }
           end
         end # with successes
