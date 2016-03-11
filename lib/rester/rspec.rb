@@ -15,7 +15,7 @@ RSpec::Matchers.define :include_stub_response do |stub|
       Rester::Utils::RSpec.assert_deep_include(stub_response, stub) if stub
       expected = stub ? stub_response.merge(stub) : stub_response
 
-      !!Rester::Utils::RSpec.assert_deep_include(actual, expected)
+      Rester::Utils::RSpec.assert_deep_include(actual, expected)
     rescue Rester::Errors::StubError => e
       failure = e
       false
