@@ -226,7 +226,7 @@ end
 
 ## Contract Testing
 
-### Client-side Stub Testing
+### Client-side (consumer) Stub Testing
 
 The client is responsible for writing contracts for producer service requests that are in used in their application.
 
@@ -293,7 +293,7 @@ describe '/v1/do_something' do
 end
 ```
 
-### Service-side Stub Testing
+### Service-side (producer) Stub Testing
 
 The Service providers are responsible for verifying that the stubs created by their clients are, in fact, accurate.
 
@@ -333,10 +333,15 @@ RSpec.describe PaymentService, rester: "/path/to/stub/file.yml" do
           # Perform any operations needed set the test up for success.
         }
 
-        # The `subject` and `stub_response` variables are created by Rester so the
-        # line below is all that is needed to verify that the Service is providing
-        # what the Stubfile expects for this specific request
-        it { is_expected.to include_stub_response }
+        # The include_stub_response matcher will compare the response of your service with
+        # the response defined in the stub. For fields generated non-deterministically within
+        # your endpoint, the format of the field in the stub and in the service's response
+        # can be validated with a regex.
+        it 'should satisfy stub' do
+          is_expected.to include_stub_response(
+            created_at: /\A2[0-9]{3}-[01][0-9]-[0-3][0-9]T[012][0-9]:[0-5][0-9]:[0-5][0-9]\+00:00\z/
+          )
+        end
       end
     end
   end
