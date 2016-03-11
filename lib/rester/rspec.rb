@@ -9,8 +9,13 @@ RSpec::Matchers.define :include_stub_response do |stub|
 
   match { |actual|
     begin
-      Rester::Utils::RSpec.assert_deep_include(actual, stub || stub_response)
-      true
+      # If a stub is passed in by the user, check both the stub file and the
+      # response for inclusion. This is helpful for cases when a field is better
+      # tested with a Regex in the Producer-side testing: ie :created_at in POST
+      Rester::Utils::RSpec.assert_deep_include(stub_response, stub) if stub
+      expected = stub ? stub_response.merge(stub) : stub_response
+
+      Rester::Utils::RSpec.assert_deep_include(actual, expected)
     rescue Rester::Errors::StubError => e
       failure = e
       false

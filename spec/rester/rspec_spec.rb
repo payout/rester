@@ -83,8 +83,7 @@ RSpec.describe Rester::DummyService, rester: 'spec/stubs/dummy_service_stub.yml'
       end
 
       context 'With generated token' do
-        it { expect(stub_response).to include(:token => "ATabc123") }
-        it { is_expected.to include(stub_response.merge(:token => /\AAT\w+\z/)) }
+        it { expect(stub_response).to include_stub_response(token: /\AAT[A-Za-z0-9]+\z/) }
       end
     end # POST
   end # /v1/tests
