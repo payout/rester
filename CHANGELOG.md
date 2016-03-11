@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.5
+ * [[#93](https://github.com/payout/rester/issues/93)] - Improving `include_stub_response` rspec matcher to support regex validation. Now when testing creation endpoints, the format of the stub and the response can be verified, instead of requiring a direct match (e.g., with a `created_at` field).
+
 ## 0.5.4
  * [[#90](https://github.com/payout/rester/issues/90)] - Automatically installing Client::Middleware::RequestHandler on first call to `Rester.connect`. This is useful for Rails apps.
 
