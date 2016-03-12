@@ -14,6 +14,7 @@ module Rester
 
       def initialize(opts={}, &block)
         @options = DEFAULT_OPTS.merge(opts).freeze
+        @_dynamic_fields = []
         @_required_fields = []
         @_defaults = {}
         @_all_fields = []
@@ -34,6 +35,7 @@ module Rester
       def freeze
         @_validators.freeze
         @_required_fields.freeze
+        @_dynamic_fields.freeze
         @_defaults.freeze
         @_all_fields.freeze
         super
@@ -47,9 +49,7 @@ module Rester
           _error!("missing params: #{missing.join(', ')}")
         end
 
-        if strict? && !(unexpected = param_keys - @_all_fields).empty?
-          _error!("unexpected params: #{unexpected.join(', ')}")
-        end
+        _validate_strict(param_keys)
 
         validated_params = Hash[
           params.map { |key, value| [key.to_sym, validate!(key.to_sym, value)] }
@@ -59,7 +59,13 @@ module Rester
       end
 
       def validate!(key, value)
-        klass, opts = @_validators[key]
+        if @_validators.key?(key)
+          klass, opts = @_validators[key]
+        else
+          dynamic_key = @_dynamic_fields.find { |r| r.match(key) }
+          klass, opts = @_validators[dynamic_key]
+        end
+
         _validate(key, value, klass, opts)
       end
 
@@ -105,6 +111,10 @@ module Rester
         @_required_fields.dup
       end
 
+      def dynamic_fields
+        @_dynamic_fields.dup
+      end
+
       def defaults
         @_defaults.dup
       end
@@ -120,8 +130,6 @@ module Rester
       private
 
       def method_missing(meth, *args)
-        meth_str = meth.to_s
-
         if meth.to_s.match(/\A[A-Z][A-Za-z]+\z/)
           name = args.shift
           opts = args.shift || {}
@@ -137,18 +145,35 @@ module Rester
         default_opts = { match: DEFAULT_TYPE_MATCHERS[klass] }
         opts = default_opts.merge(opts)
 
-        @_required_fields << name.to_sym if opts.delete(:required)
-        default = opts.delete(:default)
+        if name.is_a?(Regexp)
+          @_dynamic_fields << name
+        else
+          name = name.to_sym
+          @_required_fields << name if opts.delete(:required)
+          default = opts.delete(:default)
+        end
 
-        @_all_fields << name.to_sym
-        @_validators[name.to_sym] = [klass, opts]
+        @_all_fields << name
+        @_validators[name] = [klass, opts]
 
-        if default
-          _validate_default(name.to_sym, default)
-          @_defaults[name.to_sym] = default
+        if name.is_a?(Symbol) && default
+          _validate_default(name, default)
+          @_defaults[name] = default
         end
 
         nil
+      end
+
+      def _validate_strict(keys)
+        if strict?
+          unexpected = (keys - @_all_fields).reject do |k|
+            @_dynamic_fields.find { |f| f.match(k) }
+          end
+
+          unless unexpected.empty?
+            _error!("unexpected params: #{unexpected.join(', ')}")
+          end
+        end
       end
 
       ##
@@ -310,6 +335,7 @@ module Rester
         @_validators       = @_validators.merge!(params.validators)
         @_defaults         = @_defaults.merge!(params.defaults)
         @_required_fields |= params.required_params
+        @_dynamic_fields  |= params.dynamic_fields
         @_all_fields      |= params.all_fields
       end
     end
