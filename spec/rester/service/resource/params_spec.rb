@@ -741,20 +741,20 @@ module Rester
               my_hash_field: { test_name: 'hello' }
             )
           end
+        end
 
-          context 'with missing required nested value' do
-            let(:params) do
-              {
-                test_field_name: 'test',
-                my_integer_field: '3',
-                my_hash_field: {}
-              }
-            end
+        context 'with missing required nested value' do
+          let(:params) do
+            {
+              test_field_name: 'test',
+              my_integer_field: '3',
+              my_hash_field: {}
+            }
+          end
 
-            it 'should throw validation error' do
-              expect { subject }.to throw_symbol :error,
-                Errors::ValidationError.new('missing params: test_name')
-            end
+          it 'should throw validation error' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new('missing params: test_name')
           end
         end
 
