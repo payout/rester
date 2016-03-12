@@ -735,7 +735,6 @@ module Rester
           end
 
           it 'should match the fields with the regex' do
-
             is_expected.to eq(
               test_field_name: 'test',
               my_integer_field: 3,
