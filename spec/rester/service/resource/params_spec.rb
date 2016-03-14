@@ -714,6 +714,61 @@ module Rester
         end # #Datetime
       end # with default values
 
+      context 'with dynamic field names' do
+        before do
+          resource_params.String(/\Atest_field.+\z/)
+          resource_params.Integer(/\Amy_integer.+\z/)
+          resource_params.Hash(/\Amy_hash.+\z/, {}) do
+            String :test_name, required: true
+          end
+        end
+
+        subject { resource_params.validate(params) }
+
+        context 'with valid key name' do
+          let(:params) do
+            {
+              test_field_name: 'test',
+              my_integer_field: '3',
+              my_hash_field: { test_name: 'hello' }
+            }
+          end
+
+          it 'should match the fields with the regex' do
+            is_expected.to eq(
+              test_field_name: 'test',
+              my_integer_field: 3,
+              my_hash_field: { test_name: 'hello' }
+            )
+          end
+        end
+
+        context 'with missing required nested value' do
+          let(:params) do
+            {
+              test_field_name: 'test',
+              my_integer_field: '3',
+              my_hash_field: {}
+            }
+          end
+
+          it 'should throw validation error' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError.new('missing params: test_name')
+          end
+        end
+
+        context 'with invalid key name' do
+          let(:params) { { invalid_test_field_name: 'test' } }
+
+          it 'should throw validation error' do
+            expect { subject }.to throw_symbol :error,
+              Errors::ValidationError
+                .new('unexpected params: invalid_test_field_name')
+          end
+        end
+      end
+
       context 'with required field' do
         before {
           resource_params.Integer :int, required: true
