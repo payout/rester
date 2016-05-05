@@ -81,7 +81,8 @@ RSpec.describe Rester do
         let(:connect_args) { ['spec/stubs/', opts] }
 
         it 'should raise an error' do
-          expect { subject }.to raise_error 'unable to connect to "spec/stubs/"'
+          expect { subject }.to raise_error 'unable to find an adapter for ' \
+            '"spec/stubs/"'
         end
       end # with invalid input
 

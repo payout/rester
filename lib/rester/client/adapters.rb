@@ -25,7 +25,7 @@ module Rester
         # the service.
         def connect(service, opts={})
           klass = list.find { |a| a.can_connect_to?(service) }
-          fail "unable to connect to #{service.inspect}" unless klass
+          fail "unable to find an adapter for #{service.inspect}" unless klass
           klass.new(service, opts)
         end
 
