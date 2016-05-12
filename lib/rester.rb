@@ -105,7 +105,7 @@ module Rester
       return if @__middleware_installed
       @__middleware_installed = true
 
-      if defined?(Rails) && Rails.application
+      if defined?(Rails) && Rails.respond_to?(:application) && Rails.application
         Rails.configuration.middleware.use(Client::Middleware::RequestHandler)
       end
     end
