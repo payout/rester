@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.7
+ * [[#98](https://github.com/payout/rester/issues/98)] - Making `Client::Adapter.connect` error message clearer.
+ * [[#100](https://github.com/payout/rester/issues/100)] - Making Rails detection more robust.
+
 ## 0.5.6
  * [[#95](https://github.com/payout/rester/issues/95)] - Adding support for dynamic (defined by regex) parameter names.
 
