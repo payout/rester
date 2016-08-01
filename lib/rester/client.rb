@@ -131,8 +131,14 @@ module Rester
 
         _set_default_headers
         start_time = Time.now.to_f
-        response = adapter.request(verb, path, params)
-        _process_response(start_time, verb, path, *response)
+
+        begin
+          response = adapter.request(verb, path, params)
+          _process_response(start_time, verb, path, *response)
+        rescue Errors::TimeoutError
+          logger.error('timed out')
+          raise
+        end
       end
     end
 

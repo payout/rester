@@ -371,6 +371,31 @@ module Rester
             \d{3}ms\z}x).once
         end
       end # with request info defined
+
+      context 'with request timeout', :test do
+        let(:logger) { double('logger') }
+        let(:correlation_id) { SecureRandom.uuid }
+
+        around { |ex| Rester.wrap_request { ex.run } }
+
+        before do
+          allow(adapter).to receive(:request).and_raise(Errors::TimeoutError)
+          allow(logger).to receive(:error)
+          Rester.correlation_id = correlation_id
+        end
+
+        after { subject rescue nil }
+
+        it 'should raise timeout error' do
+          expect { subject }.to raise_error(Errors::TimeoutError)
+        end
+
+        it 'should log timeout with Correlation-ID' do
+          expect(logger).to receive(:error)
+            .with("Correlation-ID=#{correlation_id} Consumer= " \
+              'Producer=DummyService GET /v1/ping - timed out')
+        end
+      end # with request timeout
     end # #request
 
     describe '#tests', :tests do
