@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.9
+ * [[#106](https://github.com/payout/rester/issues/106)] - Updating endpoint path regex to support for dashes (`-`) in identifiers (e.g., `/v1/resources/id-1234`).
+
+## 0.5.8
+ * [[#104](https://github.com/payout/rester/issues/104)] - Logging timeout errors on client side.
+
 ## 0.5.7
  * [[#98](https://github.com/payout/rester/issues/98)] - Making `Client::Adapter.connect` error message clearer.
  * [[#100](https://github.com/payout/rester/issues/100)] - Making Rails detection more robust.
