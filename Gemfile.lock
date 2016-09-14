@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    rester (0.5.8)
+    rester (0.5.9)
       activesupport
       rack (~> 1.5, >= 1.5.2)
       thread_safe
@@ -121,3 +121,6 @@ DEPENDENCIES
   rspec
   rspec-rails
   sqlite3
+
+BUNDLED WITH
+   1.13.1
