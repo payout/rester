@@ -15,7 +15,7 @@ module Rester
       end
 
       def valid?
-        path.length < 256 && %r{\A/v\d+/(\w+/?)+\z}.match(path)
+        path.length < 256 && !!%r{\A/v\d+(/\w+/[\w-]+)*(/\w+)?/?\z}.match(path)
       end
 
       def each_resource
