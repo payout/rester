@@ -1,0 +1,9 @@
+development:
+  adapter: postgresql
+  database: rester_service
+  host: localhost
+
+test:
+  adapter: postgresql
+  database: rester_service_test
+  host: localhost

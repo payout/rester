@@ -1,0 +1,14 @@
+source "https://rubygems.org"
+
+ruby '2.1.6'
+
+gem 'pg'
+gem 'rester'
+gem 'activerecord', '~> 4.2.5.2'
+gem 'standalone_migrations', '~> 4.0.3'
+
+group :test, :development do
+  gem 'rspec'
+  gem 'sqlite3'
+  gem 'database_cleaner'
+end
